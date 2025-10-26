@@ -63,21 +63,6 @@ class Search : Fragment() {
         searchViewModel = ViewModelProvider(this, searchViewModelFactory)[SearchViewModel::class.java]
         databaseViewModel = DatabaseViewModel(context?.applicationContext!!)
 
-        if(firebaseAuth.currentUser?.email.toString().isEmpty()){
-            Glide.with(this).load(R.drawable.default_user).into(fragmentSearchBinding!!.userImage)
-        }else{
-            Glide.with(this).load(firebaseAuth.currentUser?.photoUrl).into(fragmentSearchBinding!!.userImage)
-        }
-
-        fragmentSearchBinding!!.userImage.setOnClickListener {
-            startActivity(
-                Intent(
-                    context,
-                    DopamineUserProfile::class.java
-                )
-            )
-        }
-
         binding.clearAll.setOnClickListener {
             binding.utilList.visibility = View.GONE
             binding.searchEffect.visibility = View.VISIBLE

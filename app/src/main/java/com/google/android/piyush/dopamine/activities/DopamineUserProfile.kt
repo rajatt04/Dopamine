@@ -31,6 +31,7 @@ import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.databinding.ActivityDopamineUserProfileBinding
 import com.google.android.piyush.dopamine.utilities.CustomDialog
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
+import com.google.android.piyush.dopamine.utilities.PreferenceManager
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.youtube.utilities.DopamineVersionViewModel
 import com.google.android.piyush.youtube.utilities.YoutubeResource
@@ -156,39 +157,51 @@ class DopamineUserProfile : AppCompatActivity() {
             finish()
         }
 
+        // Complete logout implementation for DopamineHome.kt
+
         binding.topAppBar.setOnMenuItemClickListener {
             when(it.itemId){
-                R.id.logout ->{
-
+                R.id.logout -> {
                     MaterialAlertDialogBuilder(this)
                         .setTitle("Sign out from your account ?")
                         .setIcon(R.drawable.ic_dopamine)
                         .setMessage("Logging out will remove your account from the app and you will not be able to access it's features. To access it, please sign in again 😊")
                         .setCancelable(true)
-                        .setPositiveButton("Yes"){
-                                dialog, _ ->
+                        .setPositiveButton("Yes") { dialog, _ ->
                             if(NetworkUtilities.isNetworkAvailable(context = this)) {
+                                // Sign out from Firebase
                                 firebaseAuth.signOut()
+
+                                // Clear SharedPreferences
+                                PreferenceManager.clearUserData(this)
+
+                                // Show toast message
                                 Toast.makeText(
                                     applicationContext,
                                     "See you soon 🫡",
                                     Toast.LENGTH_LONG
                                 ).show()
-                                startActivity(
-                                    Intent(this, MainActivity::class.java)
-                                )
+
+                                // Navigate to MainActivity and clear back stack
+                                val intent = Intent(this, MainActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                startActivity(intent)
+
                                 dialog.dismiss()
-                            }else{
+                                finish() // Close DopamineHome
+                            } else {
                                 Snackbar.make(
-                                    binding.main,"Please check your internet connection",Snackbar.LENGTH_LONG
+                                    binding.main,
+                                    "Please check your internet connection",
+                                    Snackbar.LENGTH_LONG
                                 ).show()
                             }
                         }
-                        .setNegativeButton("No"){
-                                dialog, _ ->
+                        .setNegativeButton("No") { dialog, _ ->
                             dialog.dismiss()
                         }
-                  .create().show()
+                        .create()
+                        .show()
                     true
                 }
                 else -> false

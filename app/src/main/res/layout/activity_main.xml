@@ -19,15 +19,17 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0">
 
-        <com.google.android.material.imageview.ShapeableImageView
+        <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/lottieAnimationView2"
             android:layout_width="256dp"
             android:layout_height="256dp"
-            android:src="@drawable/ic_dopamine"
-            app:layout_constraintBottom_toTopOf="@+id/materialTextView2"
+            app:layout_constraintBottom_toTopOf="@+id/phoneSignIn"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/auth" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/materialTextView2"
@@ -35,14 +37,13 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="32dp"
             android:layout_marginEnd="32dp"
-            android:layout_marginBottom="64dp"
             android:fontFamily="@font/circular_spotify"
             android:gravity="center"
             android:text="@string/stream_any_video_n_ad_free_on_dopamine"
             android:textSize="32sp"
-            app:layout_constraintBottom_toTopOf="@+id/phoneSignIn"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/lottieAnimationView2" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/phoneSignIn"

@@ -43,11 +43,14 @@ object YoutubeClient {
     const val PRE_RELEASE = "https://api.npoint.io/255cbfc840e9bf199c9d"
 
     val API_KEY = arrayListOf(
-        "AIzaSyDetnr3eHcdt6oqv_poZkrHB_T63cMRMsc","AIzaSyAx7uFZfxSppUJmY4ifXYirVEPB9pdUw2c","AIzaSyDaHGB5Z5nq29U46YGINN4Xjku3f-U8AIs"
+        "AIzaSyDetnr3eHcdt6oqv_poZkrHB_T63cMRMsc",
+        "AIzaSyAx7uFZfxSppUJmY4ifXYirVEPB9pdUw2c",
+        "AIzaSyDaHGB5Z5nq29U46YGINN4Xjku3f-U8AIs",
+        "AIzaSyCfJSho7nZIByC3ebdn9rAKXOGzRctloq0",
     ).random()
 
     val EXTRA_KEYS = arrayListOf(
-        "AIzaSyDMQuMItUqW2QrSQUtLtCpKmdCfniKD1zE","AIzaSyCgLZsNdWFWuJb4GQvfS_HJvc5n7cV6Pyk","AIzaSyDthuStFPH6bdtsDBFHVm30wjprKKOd5b8"
+        "AIzaSyDMQuMItUqW2QrSQUtLtCpKmdCfniKD1zE","AIzaSyCgLZsNdWFWuJb4GQvfS_HJvc5n7cV6Pyk","AIzaSyDthuStFPH6bdtsDBFHVm30wjprKKOd5b8","AIzaSyCfJSho7nZIByC3ebdn9rAKXOGzRctloq0"
     ).random()
 
     val HIDDEN_CLIENT = "https://api.npoint.io/$SHORTS/"

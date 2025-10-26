@@ -21,14 +21,6 @@
             android:layout_width="match_parent"
             android:layout_height="52dp">
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/userImage"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="start"
-                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-                android:layout_marginEnd="12dp" />
-
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/Search_che"
                 android:layout_width="wrap_content"

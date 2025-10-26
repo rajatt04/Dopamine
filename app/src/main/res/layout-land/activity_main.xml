@@ -7,16 +7,17 @@
     android:layout_height="match_parent"
     tools:context=".activities.MainActivity">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/lottieAnimationView"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_marginStart="12dp"
-        android:src="@drawable/ic_dopamine"
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/lottieAnimationView2"
+        android:layout_width="256dp"
+        android:layout_height="256dp"
+        app:layout_constraintBottom_toBottomOf="@+id/buttons"
+        app:layout_constraintEnd_toStartOf="@+id/buttons"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/buttons"/>
+        app:layout_constraintTop_toTopOf="@+id/buttons"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/auth" />
 
     <LinearLayout
         android:id="@+id/buttons"

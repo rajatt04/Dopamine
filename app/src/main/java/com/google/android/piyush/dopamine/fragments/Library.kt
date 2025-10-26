@@ -61,20 +61,6 @@ class Library : Fragment() {
 
         firebaseAuth = FirebaseAuth.getInstance()
 
-        if(firebaseAuth.currentUser?.email.toString().isEmpty()){
-            Glide.with(this).load(R.drawable.default_user).into(fragmentLibraryBinding!!.userImage)
-        }else{
-            Glide.with(this).load(firebaseAuth.currentUser?.photoUrl).into(fragmentLibraryBinding!!.userImage)
-        }
-
-        fragmentLibraryBinding!!.userImage.setOnClickListener {
-            Toast.makeText(context,firebaseAuth.currentUser!!.displayName,
-                Toast.LENGTH_SHORT).show()
-            startActivity(
-                Intent(context, DopamineUserProfile::class.java)
-            )
-        }
-
         if(NetworkUtilities.isNetworkAvailable(requireContext())) {
             viewModel.codingVideos.observe(viewLifecycleOwner) { playListVideos ->
                 when (playListVideos) {
@@ -260,7 +246,7 @@ class Library : Fragment() {
                     override fun onReady(youTubePlayer: YouTubePlayer) {
                         super.onReady(youTubePlayer)
                         youTubePlayer.loadVideo(
-                            "l2UDgpLz20M", 0.0F
+                            "4SErIMflSLQ", 0.0F
                         )
                         youTubePlayer.mute()
                     }
