@@ -3,10 +3,10 @@
 Dopamine is a YouTube clone that aims to replicate the functionality and features of the popular video-sharing platform.
 
 ## Authors
-🌊 [Rajat_Kevat](https://kotlindevs.github.io)
+🌊 [Rajat_Kevat](https://rajatt04.github.io)
 
 ## Logo of the application
-![Logo](https://raw.githubusercontent.com/kotlindevs/Dopamine/Stable/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp)
+![Logo](https://github.com/rajatt04/Dopamine/blob/main/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp?raw=true)
 
 ## App Screenshots
 
@@ -22,6 +22,6 @@ Below are some screenshots of the Dopamine application showcasing its features a
 
 ## Support
 
-For support, email [kotlindevslife@gmail.com](mailto:kotlindevslife@gmail.com)!
+For support, email [kevatrajat29@gmail.com](mailto:kevatrajat29@gmail.com)!
 
 "# Dopamine" 
