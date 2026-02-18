@@ -16,6 +16,7 @@ import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.databinding.ActivityMainBinding
 import com.google.android.piyush.dopamine.utilities.ToastUtilities.showToast
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
 import kotlin.system.exitProcess
@@ -24,11 +25,23 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var backPressed = false
+    private lateinit var auth: FirebaseAuth
+
+    override fun onStart() {
+        super.onStart()
+        // Check if user is signed in (non-null) and update UI accordingly.
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            startActivity(Intent(this, DopamineHome::class.java))
+            finish()
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        auth = Firebase.auth
 
         enableEdgeToEdge()
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -38,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.phoneSignIn.setOnClickListener{
-            Toast.makeText(this,"Under Development",Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this@MainActivity, PhoneLoginActivity::class.java))
         }
 
         onBackPressedDispatcher.addCallback {

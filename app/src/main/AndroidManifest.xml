@@ -49,6 +49,14 @@
             android:name=".activities.DopamineVideoWatchHistory"
             android:exported="true" />
         <activity
+            android:name=".activities.PhoneLoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Dopamine"/>
+        <activity
+            android:name=".activities.OtpVerifyActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Dopamine"/>
+        <activity
             android:name=".activities.DopamineUserProfile"
             android:exported="true" />
         <activity
