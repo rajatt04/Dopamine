@@ -65,7 +65,10 @@ class Library : Fragment() {
             viewModel.codingVideos.observe(viewLifecycleOwner) { playListVideos ->
                 when (playListVideos) {
                     is YoutubeResource.Success -> {
-                        libraryAdapter = LibraryAdapter(requireContext(), playListVideos.data)
+                        libraryAdapter = LibraryAdapter(requireContext(), playListVideos.data) { video ->
+                            val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
+                            sharedViewModel.selectVideo(video)
+                        }
                         fragmentLibraryBinding?.apply {
                             codingVideosList.layoutManager =
                                 LinearLayoutManager(
@@ -101,7 +104,10 @@ class Library : Fragment() {
                                                 false
                                             )
                                             libraryAdapter =
-                                                LibraryAdapter(requireContext(), it.data)
+                                                LibraryAdapter(requireContext(), it.data) { video ->
+                                                    val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
+                                                    sharedViewModel.selectVideo(video)
+                                                }
                                             adapter = libraryAdapter
                                         }
                                     }
@@ -119,7 +125,10 @@ class Library : Fragment() {
                                                 false
                                             )
                                             libraryAdapter =
-                                                LibraryAdapter(requireContext(), it.data)
+                                                LibraryAdapter(requireContext(), it.data) { video ->
+                                                    val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
+                                                    sharedViewModel.selectVideo(video)
+                                                }
                                             adapter = libraryAdapter
                                         }
                                     }
@@ -138,7 +147,10 @@ class Library : Fragment() {
                                                 false
                                             )
                                             libraryAdapter =
-                                                LibraryAdapter(requireContext(), it.data)
+                                                LibraryAdapter(requireContext(), it.data) { video ->
+                                                    val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
+                                                    sharedViewModel.selectVideo(video)
+                                                }
                                             adapter = libraryAdapter
                                         }
                                     }
@@ -159,7 +171,10 @@ class Library : Fragment() {
             viewModel.sportsVideos.observe(viewLifecycleOwner) { playListVideos ->
                 when (playListVideos) {
                     is YoutubeResource.Success -> {
-                        libraryAdapter = LibraryAdapter(requireContext(), playListVideos.data)
+                        libraryAdapter = LibraryAdapter(requireContext(), playListVideos.data) { video ->
+                            val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
+                            sharedViewModel.selectVideo(video)
+                        }
                         fragmentLibraryBinding?.apply {
                             sportsVideosList.layoutManager =
                                 LinearLayoutManager(
@@ -188,7 +203,10 @@ class Library : Fragment() {
             viewModel.technologyVideos.observe(viewLifecycleOwner) { playListVideos ->
                 when (playListVideos) {
                     is YoutubeResource.Success -> {
-                        libraryAdapter = LibraryAdapter(requireContext(), playListVideos.data)
+                        libraryAdapter = LibraryAdapter(requireContext(), playListVideos.data) { video ->
+                            val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
+                            sharedViewModel.selectVideo(video)
+                        }
                         fragmentLibraryBinding?.apply {
                             techVideosList.layoutManager =
                                 LinearLayoutManager(
@@ -215,6 +233,7 @@ class Library : Fragment() {
             }
         }
 
+
         databaseViewModel.getFavouritePlayList()
 
         databaseViewModel.favouritePlayList.observe(viewLifecycleOwner){ yourFavouriteList ->
@@ -229,7 +248,10 @@ class Library : Fragment() {
                 fragmentLibraryBinding!!.yourFavouriteList.apply {
                     setHasFixedSize(true)
                     layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-                    adapter = YourFavouriteVideosAdapter(requireContext(), yourFavouriteList)
+                    adapter = YourFavouriteVideosAdapter(requireContext(), yourFavouriteList) { video ->
+                        val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
+                        sharedViewModel.selectVideo(video)
+                    }
                 }
             }
         }

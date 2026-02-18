@@ -13,8 +13,11 @@ import com.google.android.piyush.youtube.model.Youtube
 
 class LibraryAdapter(
     private val context: Context,
-    private var youtube: Youtube?
+    private var youtube: Youtube?,
+    private val onVideoClick: (com.google.android.piyush.dopamine.viewModels.SelectedVideo) -> Unit
 ) : RecyclerView.Adapter<LibraryViewHolder>() {
+
+    // ... (onCreateViewHolder and getItemCount unchanged)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LibraryViewHolder {
         return LibraryViewHolder(
@@ -36,11 +39,15 @@ class LibraryAdapter(
         holder.title.text = videos?.snippet?.title
         holder.subtitle.text = videos?.snippet?.publishedAt
         holder.video.setOnClickListener {
-            context.startActivity(
-                Intent(context, YoutubePlayer::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                .putExtra("videoId",videos?.contentDetails?.videoId)
-                .putExtra("channelId",videos?.snippet?.channelId)
+            onVideoClick(
+                com.google.android.piyush.dopamine.viewModels.SelectedVideo(
+                    videoId = videos?.contentDetails?.videoId!!,
+                    channelId = videos.snippet!!.channelId!!,
+                    title = videos.snippet!!.title,
+                    description = videos.snippet!!.description,
+                    thumbnailUrl = videos.snippet!!.thumbnails?.standard?.url,
+                    channelTitle = videos.snippet!!.channelTitle
+                )
             )
         }
     }

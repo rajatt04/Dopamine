@@ -105,7 +105,10 @@ class Home : Fragment() {
                         binding.recyclerView.apply {
                             setHasFixedSize(true)
                             layoutManager = LinearLayoutManager(context)
-                            homeAdapter = HomeAdapter(requireContext(), videos.data)
+                            homeAdapter = HomeAdapter(requireContext(), videos.data) { video ->
+                                val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
+                                sharedViewModel.selectVideo(video)
+                            }
                             adapter = homeAdapter
                         }
                     }
@@ -132,10 +135,14 @@ class Home : Fragment() {
                                             is YoutubeResource.Success -> {
                                                 binding.shimmerRecyclerView.visibility = View.INVISIBLE
                                                 binding.shimmerRecyclerView.stopShimmer()
-                                                binding.recyclerView.apply {
+                                            binding.recyclerView.apply {
                                                     setHasFixedSize(true)
                                                     layoutManager = LinearLayoutManager(context)
-                                                    homeAdapter = HomeAdapter(requireContext(), videos.data)
+                                                    homeAdapter = HomeAdapter(requireContext(), videos.data) { video ->
+                                                        // Use SharedViewModel to select video
+                                                        val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
+                                                        sharedViewModel.selectVideo(video)
+                                                    }
                                                     adapter = homeAdapter
                                                 }
                                                 //Log.d(TAG, "Success: ${videos.data}")

@@ -16,8 +16,12 @@ import com.google.android.piyush.youtube.model.SearchTube
 
 class SearchAdapter(
     private val context: Context,
-    private val youtube: SearchTube?
+    private val youtube: SearchTube?,
+    private val onVideoClick: (com.google.android.piyush.dopamine.viewModels.SelectedVideo) -> Unit
 )  : RecyclerView.Adapter<SearchViewHolder>() {
+    
+    // ... (onCreateViewHolder and getItemCount unchanged)
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchViewHolder {
         return SearchViewHolder(
             LayoutInflater
@@ -73,14 +77,15 @@ class SearchAdapter(
                     }
                 }.create().show()
             } else {
-                context.startActivity(
-                    Intent(
-                        context,
-                        YoutubePlayer::class.java
+                onVideoClick(
+                    com.google.android.piyush.dopamine.viewModels.SelectedVideo(
+                        videoId = video!!.id!!.videoId!!,
+                        channelId = video.snippet!!.channelId!!,
+                        title = video.snippet!!.title,
+                        description = video.snippet!!.description,
+                        thumbnailUrl = video.snippet!!.thumbnails?.high?.url,
+                        channelTitle = video.snippet!!.channelTitle
                     )
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        .putExtra("videoId", video?.id?.videoId)
-                        .putExtra("channelId", video?.snippet?.channelId)
                 )
             }
         }

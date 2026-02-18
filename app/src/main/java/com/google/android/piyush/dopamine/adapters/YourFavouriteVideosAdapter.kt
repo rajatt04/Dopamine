@@ -13,8 +13,12 @@ import com.google.android.piyush.dopamine.viewHolders.YourFavouriteVideosViewHol
 
 class YourFavouriteVideosAdapter(
     private val context: Context,
-    private val videos: List<EntityFavouritePlaylist>?
+    private val videos: List<EntityFavouritePlaylist>?,
+    private val onVideoClick: (com.google.android.piyush.dopamine.viewModels.SelectedVideo) -> Unit
 ) : RecyclerView.Adapter<YourFavouriteVideosViewHolder>() {
+    
+    // ... (onCreateViewHolder and getItemCount unchanged)
+
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
@@ -36,11 +40,15 @@ class YourFavouriteVideosAdapter(
         holder.customName.text = favouriteVideo?.channelTitle
         Glide.with(context).load(favouriteVideo?.thumbnail).into(holder.image)
         holder.videoCard.setOnClickListener {
-            context.startActivity(
-                Intent(context, YoutubePlayer::class.java)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    .putExtra("videoId",favouriteVideo?.videoId)
-                    .putExtra("channelId",favouriteVideo?.channelId)
+            onVideoClick(
+                com.google.android.piyush.dopamine.viewModels.SelectedVideo(
+                    videoId = favouriteVideo?.videoId!!,
+                    channelId = favouriteVideo.channelId!!,
+                    title = favouriteVideo.title!!,
+                    description = "", // Description might not be available in EntityFavouritePlaylist, defaulting to empty
+                    thumbnailUrl = favouriteVideo.thumbnail,
+                    channelTitle = favouriteVideo.channelTitle!!
+                )
             )
         }
     }

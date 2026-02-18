@@ -21,8 +21,11 @@ import java.time.temporal.ChronoUnit
 
 class HomeAdapter(
     private val context: Context,
-    private var youtube : Youtube?
+    private var youtube : Youtube?,
+    private val onVideoClick: (com.google.android.piyush.dopamine.viewModels.SelectedVideo) -> Unit
 ) : RecyclerView.Adapter<HomeViewHolder>() {
+
+    // ... (onCreateViewHolder and getItemCount unchanged)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HomeViewHolder {
         return HomeViewHolder(
@@ -38,50 +41,55 @@ class HomeAdapter(
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: HomeViewHolder, position: Int) {
+        val item = youtube!!.items?.get(position)!!
+        val snippet = item.snippet!!
+        
         val publishedTime = formatDuration(
             ChronoUnit.SECONDS.between(
                 LocalDateTime.parse(
-                    youtube?.items?.get(position)?.snippet!!.publishedAt, DateTimeFormatter.ISO_DATE_TIME),
+                    snippet.publishedAt, DateTimeFormatter.ISO_DATE_TIME),
                 LocalDateTime.now()
             )
         )
         val publishedViews = viewsCount(
-            youtube!!.items?.get(position)?.statistics!!.viewCount!!.toInt()
+            item.statistics!!.viewCount!!.toInt()
         )
 
-        val channelTitle = "${
-            youtube!!.items?.get(position)?.snippet!!.channelTitle} • $publishedViews • $publishedTime"
+        val channelTitleStr = "${snippet.channelTitle} • $publishedViews • $publishedTime"
 
-        holder.videoTitle.text = youtube!!.items?.get(position)?.snippet!!.title
-
-        holder.channelTitle.text = channelTitle
+        holder.videoTitle.text = snippet.title
+        holder.channelTitle.text = channelTitleStr
 
         Glide.with(context)
-            .load(youtube!!.items?.get(position)?.snippet!!.thumbnails!!.default!!.url)
+            .load(snippet.thumbnails!!.default!!.url)
             .into(holder.imageView)
 
         Glide.with(context)
-            .load(youtube!!.items?.get(position)?.snippet!!.thumbnails!!.high!!.url)
+            .load(snippet.thumbnails!!.high!!.url)
             .into(holder.youTubePlayerView)
 
         holder.videoDuration.text = formatDuration(
-            Duration.parse(youtube!!.items?.get(position)?.contentDetails!!.duration!!)
+            Duration.parse(item.contentDetails!!.duration!!)
         )
 
         holder.youTubePlayer.setOnClickListener {
             if(NetworkUtilities.isNetworkAvailable(context)) {
-                context.startActivity(
-                    Intent(context, YoutubePlayer::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        .putExtra("videoId", youtube!!.items?.get(position)?.id)
-                        .putExtra("channelId", youtube!!.items?.get(position)?.snippet!!.channelId)
+                onVideoClick(
+                    com.google.android.piyush.dopamine.viewModels.SelectedVideo(
+                        videoId = item.id!!,
+                        channelId = snippet.channelId!!,
+                        title = snippet.title,
+                        description = snippet.description,
+                        thumbnailUrl = snippet.thumbnails?.high?.url,
+                        channelTitle = snippet.channelTitle
+                    )
                 )
-                Log.d("FragmentHome", "videoId: ${youtube!!.items?.get(position)?.id}")
-                Log.d("FragmentHome", "channelId: ${youtube!!.items?.get(position)?.snippet!!.channelId}")
+                Log.d("FragmentHome", "videoId: ${item.id}")
+                Log.d("FragmentHome", "channelId: ${snippet.channelId}")
             }else{
                 NetworkUtilities.showNetworkError(context)
             }
-            Log.d("FragmentHome", "videoData: ${youtube!!.items?.get(position)}")
+            Log.d("FragmentHome", "videoData: $item")
         }
     }
 

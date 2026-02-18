@@ -119,7 +119,10 @@ class Search : Fragment() {
                                     binding.utilList.apply {
                                         layoutManager = LinearLayoutManager(context)
                                         visibility = View.VISIBLE
-                                        adapter = SearchAdapter(context!!, searchVideos.data)
+                                        adapter = SearchAdapter(context!!, searchVideos.data) { video ->
+                                            val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
+                                            sharedViewModel.selectVideo(video)
+                                        }
                                     }
                                 }
 
@@ -149,7 +152,10 @@ class Search : Fragment() {
                                                                 adapter = SearchAdapter(
                                                                     context!!,
                                                                     searchVideos.data
-                                                                )
+                                                                ) { video ->
+                                                                    val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
+                                                                    sharedViewModel.selectVideo(video)
+                                                                }
                                                             }
                                                         }
                                                         is YoutubeResource.Error -> {}
