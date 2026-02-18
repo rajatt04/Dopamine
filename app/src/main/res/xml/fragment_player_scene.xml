@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:motion="http://schemas.android.com/apk/res-auto">
+
+    <Transition
+        motion:constraintSetEnd="@+id/end"
+        motion:constraintSetStart="@+id/start"
+        motion:duration="300">
+        
+        <!-- No onSwipe here, the parent activity drives the swipe -->
+    </Transition>
+
+    <ConstraintSet android:id="@+id/start">
+        <!-- Mini Player State -->
+        
+        <Constraint
+            android:id="@+id/playerContainer"
+            android:layout_width="120dp"
+            android:layout_height="0dp"
+            motion:layout_constraintTop_toTopOf="parent"
+            motion:layout_constraintBottom_toBottomOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="0dp"
+            android:layout_marginBottom="0dp"
+            android:layout_marginTop="0dp" />
+
+        <Constraint
+            android:id="@+id/nestedScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:visibility="invisible"
+            android:alpha="0"
+            motion:layout_constraintTop_toBottomOf="@id/playerContainer" />
+
+        <Constraint
+            android:id="@+id/miniPlayerTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:alpha="1"
+            motion:layout_constraintStart_toEndOf="@id/playerContainer"
+            motion:layout_constraintEnd_toStartOf="@id/btnMiniPlay"
+            motion:layout_constraintTop_toTopOf="parent"
+            motion:layout_constraintBottom_toBottomOf="parent" />
+
+        <Constraint
+            android:id="@+id/btnMiniPlay"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:alpha="1"
+            motion:layout_constraintEnd_toStartOf="@id/btnMiniClose"
+            motion:layout_constraintTop_toTopOf="parent"
+            motion:layout_constraintBottom_toBottomOf="parent" />
+
+        <Constraint
+            android:id="@+id/btnMiniClose"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:alpha="1"
+            android:visibility="visible"
+            android:elevation="10dp"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintTop_toTopOf="parent"
+            motion:layout_constraintBottom_toBottomOf="parent" />
+
+        <Constraint
+            android:id="@+id/btnCollapse"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:alpha="0"
+            android:visibility="invisible"
+            android:elevation="10dp"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toTopOf="parent" />
+
+    </ConstraintSet>
+
+    <ConstraintSet android:id="@+id/end">
+        <!-- Full Player State -->
+
+        <Constraint
+            android:id="@+id/playerContainer"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            motion:layout_constraintDimensionRatio="H,16:9"
+            motion:layout_constraintTop_toTopOf="parent"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintEnd_toEndOf="parent" />
+
+        <Constraint
+            android:id="@+id/nestedScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:visibility="visible"
+            android:alpha="1"
+            motion:layout_constraintTop_toBottomOf="@id/playerContainer"
+            motion:layout_constraintBottom_toBottomOf="parent" />
+
+        <Constraint
+            android:id="@+id/miniPlayerTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:alpha="0"
+            motion:layout_constraintStart_toEndOf="@id/playerContainer"
+            motion:layout_constraintTop_toTopOf="parent" />
+
+        <Constraint
+            android:id="@+id/btnMiniPlay"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:alpha="0"
+            android:visibility="invisible"
+            android:elevation="10dp"
+            motion:layout_constraintEnd_toStartOf="@id/btnMiniClose"
+            motion:layout_constraintTop_toTopOf="parent" />
+
+        <Constraint
+            android:id="@+id/btnMiniClose"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:alpha="0"
+            android:visibility="invisible"
+            android:elevation="10dp"
+            motion:layout_constraintEnd_toEndOf="parent"
+            motion:layout_constraintTop_toTopOf="parent" />
+
+        <Constraint
+            android:id="@+id/btnCollapse"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:alpha="1"
+            android:visibility="visible"
+            android:elevation="10dp"
+            motion:layout_constraintStart_toStartOf="parent"
+            motion:layout_constraintTop_toTopOf="parent" />
+
+    </ConstraintSet>
+
+</MotionScene>
