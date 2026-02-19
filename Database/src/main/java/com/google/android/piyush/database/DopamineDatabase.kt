@@ -5,13 +5,17 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.google.android.piyush.database.dao.DopamineDao
+import com.google.android.piyush.database.dao.SubscriptionDao
 import com.google.android.piyush.database.entities.EntityFavouritePlaylist
 import com.google.android.piyush.database.entities.EntityRecentVideos
 import com.google.android.piyush.database.entities.EntityVideoSearch
+import com.google.android.piyush.database.entities.SubscriptionEntity
 
-@Database(entities = [EntityVideoSearch::class, EntityRecentVideos::class,EntityFavouritePlaylist::class], version = 1, exportSchema = false)
+@Database(entities = [EntityVideoSearch::class, EntityRecentVideos::class, EntityFavouritePlaylist::class, SubscriptionEntity::class], version = 2, exportSchema = false)
 abstract class DopamineDatabase : RoomDatabase() {
     abstract fun dopamineDao(): DopamineDao
+    abstract fun subscriptionDao(): SubscriptionDao
+
     companion object {
         @Volatile
         private var INSTANCE: DopamineDatabase? = null
@@ -23,7 +27,9 @@ abstract class DopamineDatabase : RoomDatabase() {
                     context.applicationContext,
                     DopamineDatabase::class.java,
                     DATABASE_NAME
-                ).build()
+                )
+                .fallbackToDestructiveMigration()
+                .build()
                 INSTANCE = instance
                 instance
             }

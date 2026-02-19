@@ -1,5 +1,6 @@
 package com.google.android.piyush.dopamine.activities
 
+import android.app.Application
 import android.content.ContentValues
 import android.os.Bundle
 import android.util.Log
@@ -22,7 +23,7 @@ class DopamineVideoWatchHistory : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         binding = ActivityDopamineVideoWatchHistoryBinding.inflate(layoutInflater)
-        databaseViewModel = DatabaseViewModel(context = applicationContext)
+        databaseViewModel = DatabaseViewModel(applicationContext as Application)
         setContentView(binding.root)
 
         enableEdgeToEdge()

@@ -2,6 +2,7 @@ package com.google.android.piyush.dopamine.fragments
 
 import android.Manifest
 import android.app.Activity.RESULT_OK
+import android.app.Application
 import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -61,7 +62,7 @@ class Search : Fragment() {
         youtubeRepositoryImpl = YoutubeRepositoryImpl()
         searchViewModelFactory = SearchViewModelFactory(youtubeRepositoryImpl)
         searchViewModel = ViewModelProvider(this, searchViewModelFactory)[SearchViewModel::class.java]
-        databaseViewModel = DatabaseViewModel(context?.applicationContext!!)
+        databaseViewModel = DatabaseViewModel(requireActivity().application)
 
         binding.clearAll.setOnClickListener {
             binding.utilList.visibility = View.GONE
@@ -198,7 +199,7 @@ class Search : Fragment() {
                 val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say Something 🧿")
+                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say Something \ud83e\uddff")
                 startActivityForResult(intent, Utilities.PERMISSION_REQUEST_CODE)
             }
         }
@@ -218,7 +219,7 @@ class Search : Fragment() {
                 val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say Something 🧿")
+                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say Something \ud83e\uddff")
                 startActivityForResult(intent, Utilities.PERMISSION_REQUEST_CODE)
             }
         }

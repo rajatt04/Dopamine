@@ -53,7 +53,7 @@ class Library : Fragment() {
         fragmentLibraryBinding = binding
         repository = YoutubeRepositoryImpl()
         viewModelProviderFactory = LibraryViewModelFactory(repository)
-        databaseViewModel = DatabaseViewModel(requireContext())
+        databaseViewModel = ViewModelProvider(this)[DatabaseViewModel::class.java]
         viewModel = ViewModelProvider(
             this,
             viewModelProviderFactory
@@ -247,10 +247,28 @@ class Library : Fragment() {
                 fragmentLibraryBinding!!.yourFavouriteEffect.visibility = View.INVISIBLE
                 fragmentLibraryBinding!!.yourFavouriteList.apply {
                     setHasFixedSize(true)
-                    layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+                    layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
                     adapter = YourFavouriteVideosAdapter(requireContext(), yourFavouriteList) { video ->
                         val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
                         sharedViewModel.selectVideo(video)
+                    }
+                }
+            }
+        }
+        
+        // Subscriptions Logic
+        databaseViewModel.getAllSubscriptions()
+        databaseViewModel.subscriptions.observe(viewLifecycleOwner) { subscriptions ->
+            if (subscriptions.isNullOrEmpty()) {
+                fragmentLibraryBinding!!.subscriptionsLayout.visibility = View.GONE
+            } else {
+                fragmentLibraryBinding!!.subscriptionsLayout.visibility = View.VISIBLE
+                fragmentLibraryBinding!!.subscriptionsList.apply {
+                    setHasFixedSize(true)
+                    layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                    adapter = com.google.android.piyush.dopamine.adapters.SubscriptionsAdapter(requireContext(), subscriptions) { subscription ->
+                        // Handle channel click - for now just a toast or log
+                        Toast.makeText(context, "Clicked ${subscription.title}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

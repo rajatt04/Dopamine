@@ -1,5 +1,6 @@
 package com.google.android.piyush.database.viewModel
 
+import DopamineDatabaseRepository
 import android.content.ContentValues
 import android.content.Context
 import android.util.Log
@@ -13,16 +14,18 @@ import com.google.android.piyush.database.entities.EntityRecentVideos
 import com.google.android.piyush.database.entities.EntityVideoSearch
 import com.google.android.piyush.database.model.CustomPlaylistView
 import com.google.android.piyush.database.model.CustomPlaylists
-import com.google.android.piyush.database.repository.DopamineDatabaseRepository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+
 class DatabaseViewModel(
-    context: Context
-) : ViewModel() {
+    application: Application
+) : AndroidViewModel(application) {
 
     private val dopamineDatabaseRepository : DopamineDatabaseRepository
-    private val database = DopamineDatabase.getDatabase(context).openHelper
+    private val database = DopamineDatabase.getDatabase(application).openHelper
     private val currentUser = FirebaseAuth.getInstance().currentUser
 
     private val _searchVideoHistory = MutableLiveData<List<EntityVideoSearch>>()
@@ -40,9 +43,18 @@ class DatabaseViewModel(
     private val _isRecent : MutableLiveData<String> = MutableLiveData()
     val isRecent : LiveData<String> = _isRecent
 
+    private val _subscriptions : MutableLiveData<List<com.google.android.piyush.database.entities.SubscriptionEntity>> = MutableLiveData()
+    val subscriptions : LiveData<List<com.google.android.piyush.database.entities.SubscriptionEntity>> = _subscriptions
+
+    private val _isSubscribed : MutableLiveData<Boolean> = MutableLiveData()
+    val isSubscribed : LiveData<Boolean> = _isSubscribed
+
+
     init {
-        val dopamineDao = DopamineDatabase.getDatabase(context).dopamineDao()
-        dopamineDatabaseRepository = DopamineDatabaseRepository(dopamineDao)
+        val database = DopamineDatabase.getDatabase(getApplication())
+        val dopamineDao = database.dopamineDao()
+        val subscriptionDao = database.subscriptionDao()
+        dopamineDatabaseRepository = DopamineDatabaseRepository(dopamineDao, subscriptionDao)
     }
 
     fun insertSearchVideos(searchVideos: EntityVideoSearch) {
@@ -114,6 +126,35 @@ class DatabaseViewModel(
     fun deleteRecentVideo() {
         viewModelScope.launch {
             dopamineDatabaseRepository.deleteRecentVideo()
+        }
+    }
+
+    // Subscription Functions
+    fun insertSubscription(subscription: com.google.android.piyush.database.entities.SubscriptionEntity) {
+        viewModelScope.launch {
+            dopamineDatabaseRepository.insertSubscription(subscription)
+            // Refresh list
+            getAllSubscriptions()
+        }
+    }
+
+    fun deleteSubscription(channelId: String) {
+        viewModelScope.launch {
+            dopamineDatabaseRepository.deleteSubscription(channelId)
+            // Refresh list
+            getAllSubscriptions()
+        }
+    }
+
+    fun getAllSubscriptions() {
+        viewModelScope.launch {
+            _subscriptions.value = dopamineDatabaseRepository.getAllSubscriptions()
+        }
+    }
+
+    fun checkIsSubscribed(channelId: String) {
+        viewModelScope.launch {
+            _isSubscribed.value = dopamineDatabaseRepository.isSubscribed(channelId)
         }
     }
 

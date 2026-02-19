@@ -1,5 +1,6 @@
 package com.google.android.piyush.dopamine.fragments
 
+import android.app.Application
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -109,7 +110,7 @@ class YoutubePlayerFragment : Fragment() {
         val repository = YoutubeRepositoryImpl()
         val factory = YoutubePlayerViewModelFactory(repository)
         youtubePlayerViewModel = ViewModelProvider(this, factory)[YoutubePlayerViewModel::class.java]
-        databaseViewModel = DatabaseViewModel(requireContext().applicationContext)
+        databaseViewModel = DatabaseViewModel(requireActivity().application)
     }
 
     private fun setupPlayer() {

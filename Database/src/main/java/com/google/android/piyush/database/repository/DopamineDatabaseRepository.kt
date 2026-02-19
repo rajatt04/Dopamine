@@ -1,12 +1,13 @@
-package com.google.android.piyush.database.repository
-
 import com.google.android.piyush.database.dao.DopamineDao
+import com.google.android.piyush.database.dao.SubscriptionDao
 import com.google.android.piyush.database.entities.EntityFavouritePlaylist
 import com.google.android.piyush.database.entities.EntityRecentVideos
 import com.google.android.piyush.database.entities.EntityVideoSearch
+import com.google.android.piyush.database.entities.SubscriptionEntity
 
 class DopamineDatabaseRepository(
-    private val dopamineDao: DopamineDao
+    private val dopamineDao: DopamineDao,
+    private val subscriptionDao: SubscriptionDao
 ) {
     suspend fun insertSearchVideos(vararg searchVideo: EntityVideoSearch) {
         dopamineDao.insertSearchVideos(*searchVideo)
@@ -53,5 +54,22 @@ class DopamineDatabaseRepository(
     }
     suspend fun deleteRecentVideo() {
         dopamineDao.deleteRecentVideo()
+    }
+
+    // Subscription Methods
+    suspend fun insertSubscription(subscription: SubscriptionEntity) {
+        subscriptionDao.insert(subscription)
+    }
+
+    suspend fun deleteSubscription(channelId: String) {
+        subscriptionDao.delete(channelId)
+    }
+
+    suspend fun getAllSubscriptions(): List<SubscriptionEntity> {
+        return subscriptionDao.getAllSubscriptions()
+    }
+
+    suspend fun isSubscribed(channelId: String): Boolean {
+        return subscriptionDao.isSubscribed(channelId)
     }
 }

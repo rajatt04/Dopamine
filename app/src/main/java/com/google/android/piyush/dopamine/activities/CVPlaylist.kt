@@ -17,7 +17,7 @@ class CVPlaylist : AppCompatActivity() {
     private lateinit var binding : ActivityCvplaylistBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        databaseViewModel = DatabaseViewModel(applicationContext)
+        databaseViewModel = DatabaseViewModel(application)
         binding = ActivityCvplaylistBinding.inflate(layoutInflater)
         setContentView(binding.root)
         enableEdgeToEdge()

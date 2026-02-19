@@ -23,7 +23,11 @@
             motion:layout_constraintStart_toStartOf="parent"
             android:layout_marginStart="0dp"
             android:layout_marginBottom="0dp"
-            android:layout_marginTop="0dp" />
+            android:layout_marginTop="0dp">
+            <CustomAttribute
+                motion:attributeName="cardCornerRadius"
+                motion:customDimension="12dp" />
+        </Constraint>
 
         <Constraint
             android:id="@+id/nestedScrollView"
@@ -85,7 +89,11 @@
             motion:layout_constraintDimensionRatio="H,16:9"
             motion:layout_constraintTop_toTopOf="parent"
             motion:layout_constraintStart_toStartOf="parent"
-            motion:layout_constraintEnd_toEndOf="parent" />
+            motion:layout_constraintEnd_toEndOf="parent">
+            <CustomAttribute
+                motion:attributeName="cardCornerRadius"
+                motion:customDimension="0dp" />
+        </Constraint>
 
         <Constraint
             android:id="@+id/nestedScrollView"

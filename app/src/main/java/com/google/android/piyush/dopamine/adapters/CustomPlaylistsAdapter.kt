@@ -1,5 +1,6 @@
 package com.google.android.piyush.dopamine.adapters
 
+import android.app.Application
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.util.Log
@@ -33,7 +34,7 @@ class CustomPlaylistsAdapter(
     }
 
     override fun onBindViewHolder(holder: CustomPlaylistsViewHolder, position: Int) {
-        val databaseViewModel = DatabaseViewModel(context = context)
+        val databaseViewModel = DatabaseViewModel(application = context.applicationContext as Application)
         val pref = context.getSharedPreferences("customPlaylist", Context.MODE_PRIVATE)
         val playlistName = databaseViewModel.getPlaylistsFromDatabase()[position]
         val videoId = pref.getString("videoId", "")!!

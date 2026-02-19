@@ -1,5 +1,6 @@
 package com.google.android.piyush.dopamine.activities
 
+import android.app.Application
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -95,7 +96,7 @@ class YoutubePlayer : AppCompatActivity() {
         val repository = YoutubeRepositoryImpl()
         val factory = YoutubePlayerViewModelFactory(repository)
         youtubePlayerViewModel = ViewModelProvider(this, factory)[YoutubePlayerViewModel::class.java]
-        databaseViewModel = DatabaseViewModel(applicationContext)
+        databaseViewModel = DatabaseViewModel(applicationContext as Application)
     }
 
     private fun setupWindowInsets() {

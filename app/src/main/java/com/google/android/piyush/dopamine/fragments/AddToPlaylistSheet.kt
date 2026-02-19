@@ -33,7 +33,7 @@ class AddToPlaylistSheet : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        databaseViewModel = DatabaseViewModel(requireContext())
+        databaseViewModel = DatabaseViewModel(requireActivity().application)
         setupPlaylistsRecyclerView()
     }
 
