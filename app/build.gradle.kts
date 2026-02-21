@@ -1,17 +1,16 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
-    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
     namespace = "com.google.android.piyush.dopamine"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.google.android.piyush.dopamine"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "version dopamine_20240704_01.phone.stable.dynamic"
 
@@ -20,7 +19,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -62,8 +62,6 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.firebase.auth)
-    implementation(libs.play.services.auth)
     implementation(libs.androidx.legacy.support.v4)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)

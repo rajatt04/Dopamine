@@ -14,7 +14,6 @@ import com.google.android.piyush.database.entities.EntityRecentVideos
 import com.google.android.piyush.database.entities.EntityVideoSearch
 import com.google.android.piyush.database.model.CustomPlaylistView
 import com.google.android.piyush.database.model.CustomPlaylists
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 import android.app.Application
@@ -26,7 +25,6 @@ class DatabaseViewModel(
 
     private val dopamineDatabaseRepository : DopamineDatabaseRepository
     private val database = DopamineDatabase.getDatabase(application).openHelper
-    private val currentUser = FirebaseAuth.getInstance().currentUser
 
     private val _searchVideoHistory = MutableLiveData<List<EntityVideoSearch>>()
     val searchVideoHistory : LiveData<List<EntityVideoSearch>> = _searchVideoHistory
@@ -178,17 +176,6 @@ class DatabaseViewModel(
         }
         val query = "INSERT INTO $newPlaylistName VALUES (\"${playlistsData.videoId}\",\"${playlistsData.title}\",\"${playlistsData.thumbnail}\",\"${playlistsData.channelId}\",\"${playlistsData.publishedAt}\",\"${playlistsData.viewCount}\",\"${playlistsData.channelTitle}\",\"${playlistsData.duration}\")"
         writableDatabase.execSQL(query)
-    }
-
-    private val usersFavoritePlayListName = currentUser?.displayName+" Favorites"
-    val newPlaylistName = stringify(usersFavoritePlayListName)
-    val isUserFromPhoneAuth = currentUser?.uid.toString()
-
-    fun defaultUserPlaylist() {
-        val usersFavoritePlayListDescription =  "Your favorites playlist can be found in library"
-        val writableDatabase = database.writableDatabase
-        writableDatabase.execSQL("CREATE TABLE IF NOT EXISTS $newPlaylistName (videoId TEXT PRIMARY KEY, title TEXT, thumbnail TEXT, channelId TEXT, publishedAt TEXT , viewCount TEXT, channelTitle TEXT , duration TEXT)")
-        writableDatabase.execSQL("INSERT INTO DopamineMastersDev VALUES (\"$newPlaylistName\",\"$usersFavoritePlayListDescription\")")
     }
 
     fun userFromPhoneAuth() {

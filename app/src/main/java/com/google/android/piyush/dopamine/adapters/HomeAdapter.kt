@@ -36,7 +36,7 @@ class HomeAdapter(
     }
 
     override fun getItemCount(): Int {
-       return youtube?.items?.size!!
+       return youtube?.items?.size ?: 0
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -72,7 +72,7 @@ class HomeAdapter(
             Duration.parse(item.contentDetails!!.duration!!)
         )
 
-        holder.youTubePlayer.setOnClickListener {
+        holder.itemView.setOnClickListener {
             if(NetworkUtilities.isNetworkAvailable(context)) {
                 onVideoClick(
                     com.google.android.piyush.dopamine.viewModels.SelectedVideo(

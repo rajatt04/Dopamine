@@ -69,7 +69,7 @@ class SearchAdapter(
             if (video?.id?.videoId.isNullOrEmpty() || video?.snippet?.channelId.isNullOrEmpty()) {
                 MaterialAlertDialogBuilder(context).apply {
                     this.setTitle("Error")
-                    this.setMessage("Either video id or channel id is null")
+                    this.setMessage("Click Eye 👁 Button To View Channel")
                     this.setIcon(R.drawable.ic_dialog_error)
                     this.setCancelable(true)
                     this.setNegativeButton("Okay") { dialog, _ ->

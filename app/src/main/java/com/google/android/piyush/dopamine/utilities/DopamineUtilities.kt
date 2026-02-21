@@ -4,6 +4,8 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.widget.Toast
@@ -14,12 +16,12 @@ import com.google.android.piyush.database.viewModel.DatabaseViewModel
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.databinding.ItemCustomDialogBinding
 
-@Suppress("DEPRECATION")
 object NetworkUtilities {
     fun isNetworkAvailable(context: Context): Boolean {
         val connectivityManager = context.getSystemService(AppCompatActivity.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkInfo = connectivityManager.activeNetworkInfo
-        return networkInfo != null
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
     fun showNetworkError(context: Context?) {
         val materialAlertDialogBuilder = MaterialAlertDialogBuilder(context!!)

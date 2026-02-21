@@ -1,7 +1,6 @@
 package com.google.android.piyush.youtube.repository
 
 import com.google.android.piyush.youtube.model.SearchTube
-import com.google.android.piyush.youtube.model.Shorts
 import com.google.android.piyush.youtube.utilities.YoutubeClient
 import com.google.android.piyush.youtube.model.Youtube
 import com.google.android.piyush.youtube.model.channelDetails.YoutubeChannel
@@ -50,13 +49,6 @@ class YoutubeRepositoryImpl : YoutubeRepository {
                 parameters.append("key", YoutubeClient.API_KEY)
             }
         }
-        return response.body()
-    }
-
-    override suspend fun getYoutubeShorts(): List<Shorts> {
-        val response = YoutubeClient.CLIENT.get(
-            YoutubeClient.HIDDEN_CLIENT + YoutubeClient.SHORTS_PART
-        )
         return response.body()
     }
 
