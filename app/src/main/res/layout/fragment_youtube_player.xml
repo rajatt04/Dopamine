@@ -37,11 +37,10 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintDimensionRatio="H,16:9">
 
-            <com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+            <com.google.android.piyush.dopamine.player.ExoYouTubePlayer
                 android:id="@+id/YtPlayer"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:enableAutomaticInitialization="false" />
+                android:layout_height="match_parent" />
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Mini Player Title (Visible in Start/Mini state) -->

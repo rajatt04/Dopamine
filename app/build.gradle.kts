@@ -68,10 +68,11 @@ dependencies {
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.shimmer)
     implementation(libs.glide)
-    implementation(libs.core)
+    implementation(libs.newpipe.extractor)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+    implementation(libs.okhttp)
 
-
-    implementation (libs.exomedia)
     implementation(project(":Youtube"))
     implementation(project(":Database"))
     implementation(libs.androidx.preference)

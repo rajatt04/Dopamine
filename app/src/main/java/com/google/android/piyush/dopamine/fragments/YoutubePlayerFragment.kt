@@ -1,6 +1,5 @@
 package com.google.android.piyush.dopamine.fragments
 
-import android.app.Application
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -24,6 +23,7 @@ import com.google.android.piyush.database.entities.EntityRecentVideos
 import com.google.android.piyush.database.viewModel.DatabaseViewModel
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.YoutubeChannelPlaylistsAdapter
+import com.google.android.piyush.dopamine.player.ExoYouTubePlayer
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.SharedViewModel
 import com.google.android.piyush.dopamine.viewModels.YoutubePlayerViewModel
@@ -32,10 +32,6 @@ import com.google.android.piyush.youtube.model.Item
 import com.google.android.piyush.youtube.model.channelDetails.Item as ChannelItem
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeResource
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 import java.text.DecimalFormat
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -44,29 +40,23 @@ import kotlin.random.Random
 @Suppress("DEPRECATION")
 class YoutubePlayerFragment : Fragment() {
 
-    // View Binding replacement (using findViewById for simplicity in fragment transition)
     private lateinit var motionLayout: MotionLayout
-    private lateinit var youtubePlayerView: YouTubePlayerView
-    
-    // UI Elements
+    private lateinit var youtubePlayer: ExoYouTubePlayer
+
     private lateinit var textTitle: TextView
     private lateinit var miniPlayerTitle: TextView
     private lateinit var btnMiniPlay: ImageButton
     private lateinit var btnMiniClose: ImageButton
     private lateinit var btnLike: MaterialCheckBox
 
-    // ViewModels
     private lateinit var youtubePlayerViewModel: YoutubePlayerViewModel
     private lateinit var databaseViewModel: DatabaseViewModel
     private val sharedViewModel: SharedViewModel by activityViewModels()
 
-    // Data
     private var currentVideoId: String = ""
     private var currentChannelId: String = ""
-    private var youTubePlayerInstance: YouTubePlayer? = null
     private var isPlaying = false
 
-    // Cached formatters
     private val decimalFormatter by lazy { DecimalFormat("#0.0") }
     private val integerFormatter by lazy { DecimalFormat("#,##0") }
 
@@ -87,7 +77,6 @@ class YoutubePlayerFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
         initViews(view)
         initViewModels()
         setupPlayer()
@@ -97,7 +86,7 @@ class YoutubePlayerFragment : Fragment() {
 
     private fun initViews(view: View) {
         motionLayout = view.findViewById(R.id.player_motion_layout)
-        youtubePlayerView = view.findViewById(R.id.YtPlayer)
+        youtubePlayer = view.findViewById(R.id.YtPlayer)
         textTitle = view.findViewById(R.id.textTitle)
         miniPlayerTitle = view.findViewById(R.id.miniPlayerTitle)
         btnMiniPlay = view.findViewById(R.id.btnMiniPlay)
@@ -106,7 +95,6 @@ class YoutubePlayerFragment : Fragment() {
     }
 
     private fun initViewModels() {
-        // Initialize ViewModels manually as in the Activity
         val repository = YoutubeRepositoryImpl()
         val factory = YoutubePlayerViewModelFactory(repository)
         youtubePlayerViewModel = ViewModelProvider(this, factory)[YoutubePlayerViewModel::class.java]
@@ -114,54 +102,41 @@ class YoutubePlayerFragment : Fragment() {
     }
 
     private fun setupPlayer() {
-        lifecycle.addObserver(youtubePlayerView)
-        
-        val iFramePlayerOptions = IFramePlayerOptions.Builder(requireContext())
-            .rel(0)
-            .controls(0)
-            .build()
-            
-        youtubePlayerView.enableBackgroundPlayback(true)
-
-        youtubePlayerView.initialize(object : AbstractYouTubePlayerListener() {
-            override fun onReady(youTubePlayer: YouTubePlayer) {
-                youTubePlayerInstance = youTubePlayer
-                if (currentVideoId.isNotEmpty()) {
-                    youTubePlayer.loadVideo(currentVideoId, 0f)
-                    Log.d(TAG, "Loading video: $currentVideoId")
-                }
+        youtubePlayer.setShowControls(false) // Mini player: no controls
+        youtubePlayer.setCallback(object : ExoYouTubePlayer.PlayerCallback {
+            override fun onReady() {
+                Log.d(TAG, "Player ready")
             }
-            
-            override fun onStateChange(youTubePlayer: YouTubePlayer, state: com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants.PlayerState) {
-                isPlaying = state == com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants.PlayerState.PLAYING
+
+            override fun onPlaying() {
+                isPlaying = true
                 updateMiniPlayerPlayButton()
             }
-        }, true, iFramePlayerOptions)
-    }
 
-    private fun loadVideo(videoId: String) {
-        currentVideoId = videoId
-        youTubePlayerInstance?.loadVideo(videoId, 0f)
-        Log.d(TAG, "Loading video: $videoId")
+            override fun onPaused() {
+                isPlaying = false
+                updateMiniPlayerPlayButton()
+            }
+
+            override fun onError(error: String) {
+                Log.e(TAG, "Player error: $error")
+            }
+        })
     }
 
     private fun updateMiniPlayerPlayButton() {
-        // Reuse close for pause or add pause icon. For now using ic_play_arrow and standard pause if available?
-        // Let's use standard android resource for pause if needed or just toggle.
-        btnMiniPlay.setImageResource(if (isPlaying) R.drawable.pause_24dp else R.drawable.play_arrow_24dp)
+        btnMiniPlay.setImageResource(
+            if (isPlaying) R.drawable.pause_24dp else R.drawable.play_arrow_24dp
+        )
     }
 
     private fun setupClickListeners() {
         btnMiniPlay.setOnClickListener {
-            if (isPlaying) {
-                youTubePlayerInstance?.pause()
-            } else {
-                youTubePlayerInstance?.play()
-            }
+            youtubePlayer.togglePlayPause()
         }
 
         btnMiniClose.setOnClickListener {
-            youTubePlayerInstance?.pause()
+            youtubePlayer.pause()
             sharedViewModel.closePlayer()
         }
 
@@ -172,12 +147,11 @@ class YoutubePlayerFragment : Fragment() {
         view?.findViewById<View>(R.id.btnCustomPlaylist)?.setOnClickListener {
             AddToPlaylistSheet().show(parentFragmentManager, AddToPlaylistSheet.TAG)
         }
-        
-        // Show More/Less for description
+
         var isDescriptionExpanded = false
         val textDescription = view?.findViewById<TextView>(R.id.textDescription)
         val btnShowMore = view?.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnShowMore)
-        
+
         btnShowMore?.setOnClickListener {
             isDescriptionExpanded = !isDescriptionExpanded
             if (isDescriptionExpanded) {
@@ -192,31 +166,23 @@ class YoutubePlayerFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setupObservers() {
-        // Observe SharedViewModel for video selection
         sharedViewModel.currentVideo.observe(viewLifecycleOwner) { selectedVideo ->
             if (selectedVideo != null) {
                 if (currentVideoId != selectedVideo.videoId) {
                     currentVideoId = selectedVideo.videoId
                     currentChannelId = selectedVideo.channelId
-                    
-                    // Initial UI update from passed data
+
                     textTitle.text = selectedVideo.title
                     miniPlayerTitle.text = selectedVideo.title
-                    
-                    if (youTubePlayerInstance != null) {
-                        youTubePlayerInstance?.loadVideo(currentVideoId, 0f)
-                    }
 
-                    // Fetch full details
+                    youtubePlayer.loadVideo(currentVideoId)
                     fetchVideoDetails()
                 }
             } else {
-                // Handle close/collapse if needed, but DopamineHome handles visibility
-                youTubePlayerInstance?.pause()
+                youtubePlayer.pause()
             }
         }
-        
-        // Other observers (Video details, Channel details, etc.)
+
         setupInnerObservers()
     }
 
@@ -230,21 +196,18 @@ class YoutubePlayerFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setupInnerObservers() {
-        // Video Details
         youtubePlayerViewModel.videoDetails.observe(viewLifecycleOwner) { resource ->
             if (resource is YoutubeResource.Success) {
                 resource.data.items?.firstOrNull()?.let { updateVideoUI(it) }
             }
         }
 
-        // Channel Details
         youtubePlayerViewModel.channelDetails.observe(viewLifecycleOwner) { resource ->
             if (resource is YoutubeResource.Success) {
                 resource.data.items?.firstOrNull()?.let { updateChannelUI(it) }
             }
         }
 
-        // Related Playlists
         youtubePlayerViewModel.channelsPlaylists.observe(viewLifecycleOwner) { resource ->
             if (resource is YoutubeResource.Success) {
                 val recyclerView = view?.findViewById<RecyclerView>(R.id.channelsPlaylist)
@@ -254,8 +217,7 @@ class YoutubePlayerFragment : Fragment() {
                 }
             }
         }
-        
-        // Favourites
+
         databaseViewModel.isFavourite.observe(viewLifecycleOwner) { videoId ->
             btnLike.isChecked = videoId == currentVideoId
         }
@@ -265,8 +227,8 @@ class YoutubePlayerFragment : Fragment() {
     private fun updateVideoUI(item: Item) {
         item.snippet?.let { snippet ->
             textTitle.text = snippet.title
-            miniPlayerTitle.text = snippet.title // Update mini title too
-            
+            miniPlayerTitle.text = snippet.title
+
             view?.findViewById<TextView>(R.id.textDescription)?.text = snippet.description
 
             val viewCount = formatCount(item.statistics?.viewCount?.toLong() ?: 0)
@@ -280,7 +242,7 @@ class YoutubePlayerFragment : Fragment() {
             saveToPreferences(item, viewCount)
         }
     }
-    
+
     private fun setupLikeButton(snippet: com.google.android.piyush.youtube.model.Snippet) {
         btnLike.addOnCheckedStateChangedListener { _, state ->
             val isChecked = state == MaterialCheckBox.STATE_CHECKED
@@ -305,7 +267,8 @@ class YoutubePlayerFragment : Fragment() {
     private fun updateChannelUI(item: ChannelItem) {
         item.snippet?.let { snippet ->
             view?.findViewById<TextView>(R.id.channelName)?.text = snippet.title
-            view?.findViewById<TextView>(R.id.channelSubscribers)?.text = "${formatCount(item.statistics?.subscriberCount?.toLong() ?: 0)} Subscribers"
+            view?.findViewById<TextView>(R.id.channelSubscribers)?.text =
+                "${formatCount(item.statistics?.subscriberCount?.toLong() ?: 0)} Subscribers"
 
             val logoUrl = snippet.thumbnails?.default?.url
             val channelImage = view?.findViewById<com.google.android.material.imageview.ShapeableImageView>(R.id.channelImage)
@@ -320,10 +283,10 @@ class YoutubePlayerFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun handleRecentVideo(item: Item) {
         val currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("hh:mm a"))
-        
+
+        databaseViewModel.isRecentVideo(currentVideoId)
         databaseViewModel.isRecent.observe(viewLifecycleOwner) { recentVideoId ->
-            // This logic might loop if not careful, but following original pattern
-             if (recentVideoId == currentVideoId) {
+            if (recentVideoId == currentVideoId) {
                 databaseViewModel.updateRecentVideo(currentVideoId, currentTime)
             } else {
                 databaseViewModel.insertRecentVideos(
@@ -338,7 +301,6 @@ class YoutubePlayerFragment : Fragment() {
                 )
             }
         }
-        databaseViewModel.isRecentVideo(currentVideoId)
     }
 
     private fun saveToPreferences(item: Item, viewCount: String) {
@@ -369,25 +331,32 @@ class YoutubePlayerFragment : Fragment() {
 
     private fun animateLikeButton(view: View) {
         view.animate()
-            .scaleX(0.7f)
-            .scaleY(0.7f)
-            .setDuration(100)
+            .scaleX(0.7f).scaleY(0.7f).setDuration(100)
             .withEndAction {
-                view.animate()
-                    .scaleX(1.0f)
-                    .scaleY(1.0f)
-                    .setDuration(200)
+                view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(200)
                     .setInterpolator(android.view.animation.OvershootInterpolator(2f))
                     .start()
-            }
-            .start()
+            }.start()
     }
 
-    // Called by parent MotionLayout listener to synchronize transition
     fun setMotionProgress(progress: Float) {
-        // Only valid if motionLayout view exists
         if (view != null) {
             motionLayout.progress = progress
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        youtubePlayer.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        youtubePlayer.onPause()
+    }
+
+    override fun onDestroyView() {
+        youtubePlayer.release()
+        super.onDestroyView()
     }
 }

@@ -19,3 +19,16 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# R8 suggested rules to suppress warnings for missing classes
+-dontwarn org.slf4j.impl.StaticLoggerBinder
+
+# NewPipe Extractor
+-keep class org.schabi.newpipe.extractor.** { *; }
+-keep class org.mozilla.javascript.** { *; }
+-dontwarn org.mozilla.javascript.**
+-dontwarn javax.annotation.**
+
+# OkHttp
+-dontwarn okhttp3.**
+-dontwarn okio.**

@@ -21,11 +21,10 @@
             android:layout_height="wrap_content"
             app:layout_scrollFlags="scroll|enterAlways">
 
-            <com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+            <com.google.android.piyush.dopamine.player.ExoYouTubePlayer
                 android:id="@+id/YtPlayer"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:enableAutomaticInitialization="false" />
+                android:layout_height="wrap_content" />
         </FrameLayout>
 
     </com.google.android.material.appbar.AppBarLayout>

@@ -18,7 +18,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-        <com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+        <com.google.android.piyush.dopamine.player.ExoYouTubePlayer
             android:id="@+id/playlistsPlayer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />

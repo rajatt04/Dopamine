@@ -40,7 +40,7 @@ class LikedVideosFragment : Fragment() {
                 binding.recyclerView.visibility = View.VISIBLE
                 binding.recyclerView.apply {
                     setHasFixedSize(true)
-                    layoutManager = GridLayoutManager(context, 2)
+                    layoutManager = GridLayoutManager(requireContext(), 2)
                     adapter = YourFavouriteVideosAdapter(requireContext(), likedList) { video ->
                         val sharedViewModel = ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
                         sharedViewModel.selectVideo(video)

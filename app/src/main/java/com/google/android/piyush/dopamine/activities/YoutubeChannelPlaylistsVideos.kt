@@ -11,16 +11,13 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.piyush.dopamine.R
-
 import com.google.android.piyush.dopamine.adapters.YoutubePlaylistsVideosAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityYoutubeChannelPlaylistsVideosBinding
+import com.google.android.piyush.dopamine.player.ExoYouTubePlayer
 import com.google.android.piyush.dopamine.viewModels.YoutubeChannelPlaylistsVideosViewModel
 import com.google.android.piyush.dopamine.viewModels.YoutubeChannelPlaylistsViewModelFactory
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeResource
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions
 
 class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
 
@@ -28,7 +25,6 @@ class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
     private lateinit var youtubeRepositoryImpl: YoutubeRepositoryImpl
     private lateinit var youtubeChannelPlaylistsVideosViewModel: YoutubeChannelPlaylistsVideosViewModel
     private lateinit var youtubeChannelPlaylistsViewModelFactory: YoutubeChannelPlaylistsViewModelFactory
-    private var youTubePlayer : YouTubePlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +46,12 @@ class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
 
         val playlistId = intent.getStringExtra("playlistId").toString()
 
+        binding.playlistsPlayer.setCallback(object : ExoYouTubePlayer.PlayerCallback {
+            override fun onReady() {
+                Log.d(TAG, "Playlist player ready")
+            }
+        })
+
         youtubeChannelPlaylistsVideosViewModel.getPlaylistsVideos(playlistId)
 
         youtubeChannelPlaylistsVideosViewModel.playlistsVideos.observe(this) { playlistsVideos ->
@@ -59,7 +61,12 @@ class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
                     binding.recyclerView.apply {
                         setHasFixedSize(true)
                         layoutManager = LinearLayoutManager(this@YoutubeChannelPlaylistsVideos)
-                        adapter = YoutubePlaylistsVideosAdapter(context,playlistsVideos.data)
+                        adapter = YoutubePlaylistsVideosAdapter(context, playlistsVideos.data)
+                    }
+
+                    val firstVideoId = playlistsVideos.data.items?.firstOrNull()?.contentDetails?.videoId
+                    if (firstVideoId != null) {
+                        binding.playlistsPlayer.loadVideo(firstVideoId)
                     }
                 }
                 is YoutubeResource.Error -> {
@@ -71,24 +78,20 @@ class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
                 }
             }
         }
+    }
 
-        binding.playlistsPlayer.apply {
-            enableAutomaticInitialization = false
-            lifecycle.addObserver(this)
-            initialize(
-                youTubePlayerListener = object : AbstractYouTubePlayerListener() {
-                    override fun onReady(youTubePlayer: YouTubePlayer) {
-                        super.onReady(youTubePlayer)
-                        this@YoutubeChannelPlaylistsVideos.youTubePlayer = youTubePlayer
-                    }
-                },
-                handleNetworkEvents = true,
-                IFramePlayerOptions.Builder(context)
-                    .controls(1)
-                    .listType("playlist")
-                    .list(playlistId)
-                    .build()
-            )
-        }
+    override fun onResume() {
+        super.onResume()
+        binding.playlistsPlayer.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.playlistsPlayer.onPause()
+    }
+
+    override fun onDestroy() {
+        binding.playlistsPlayer.release()
+        super.onDestroy()
     }
 }
