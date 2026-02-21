@@ -90,23 +90,39 @@ class DopamineHome : AppCompatActivity() {
 
     private fun setupPlayerObserver() {
         // Hide player initially
-        binding.playerFragmentContainer.visibility = android.view.View.GONE
+        hidePlayer()
 
         sharedViewModel.currentVideo.observe(this) { video ->
             if (video != null) {
-                binding.playerFragmentContainer.visibility = android.view.View.VISIBLE
-                // Expand the player when a new video is selected
-                 // Check if it's already visible to avoid re-animation if needed, 
-                 // but typically selecting a video should open it.
-                 // We can check if video ID changed or force expand.
-                 // For now, force expand.
-                 if (binding.mainMotionLayout.currentState != R.id.end) {
-                     binding.mainMotionLayout.transitionToState(R.id.end)
-                 }
+                showPlayer()
             } else {
-                binding.playerFragmentContainer.visibility = android.view.View.GONE
+                hidePlayer()
             }
         }
+    }
+
+    private fun showPlayer() {
+        // Restore player visibility in the MotionLayout constraint sets
+        binding.mainMotionLayout.getConstraintSet(R.id.start)
+            ?.setVisibility(R.id.player_fragment_container, android.view.View.VISIBLE)
+        binding.mainMotionLayout.getConstraintSet(R.id.end)
+            ?.setVisibility(R.id.player_fragment_container, android.view.View.VISIBLE)
+        binding.playerFragmentContainer.visibility = android.view.View.VISIBLE
+        // Expand the player
+        if (binding.mainMotionLayout.currentState != R.id.end) {
+            binding.mainMotionLayout.transitionToState(R.id.end)
+        }
+    }
+
+    private fun hidePlayer() {
+        // Snap MotionLayout to start state immediately (no animation)
+        binding.mainMotionLayout.progress = 0f
+        // Hide the player in BOTH constraint sets so MotionLayout doesn't override
+        binding.mainMotionLayout.getConstraintSet(R.id.start)
+            ?.setVisibility(R.id.player_fragment_container, android.view.View.GONE)
+        binding.mainMotionLayout.getConstraintSet(R.id.end)
+            ?.setVisibility(R.id.player_fragment_container, android.view.View.GONE)
+        binding.playerFragmentContainer.visibility = android.view.View.GONE
     }
 
     private fun setupBottomNavigation() {
@@ -125,6 +141,8 @@ class DopamineHome : AppCompatActivity() {
                     true
                 }
                 R.id.shorts -> {
+                    // Hide the mini player when switching to Shorts
+                    sharedViewModel.closePlayer()
                     defaultScreen(Shorts())
                     true
                 }

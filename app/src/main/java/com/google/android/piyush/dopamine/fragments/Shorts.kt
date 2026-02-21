@@ -1,12 +1,13 @@
 package com.google.android.piyush.dopamine.fragments
 
-import ShortsAdapter
+import com.google.android.piyush.dopamine.adapters.ShortsAdapter
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.databinding.FragmentShortsBinding
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
@@ -24,6 +25,7 @@ class Shorts : Fragment() {
     private lateinit var shortsViewModelFactory: ShortsViewModelFactory
 
     private lateinit var databaseViewModel: DatabaseViewModel
+    private var shortsAdapter: ShortsAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,7 +44,7 @@ class Shorts : Fragment() {
         shortsViewModel = ViewModelProvider(this, shortsViewModelFactory)[ShortsViewModel::class.java]
         
         // Initialize DatabaseViewModel
-        databaseViewModel = ViewModelProvider(this)[DatabaseViewModel::class.java]
+        databaseViewModel = DatabaseViewModel(requireActivity().application)
 
         if(NetworkUtilities.isNetworkAvailable(requireContext())){
             shortsViewModel.shorts.observe(viewLifecycleOwner){ shorts ->
@@ -65,8 +67,27 @@ class Shorts : Fragment() {
                                 shorts.data,
                                 databaseViewModel
                             )
+                            shortsAdapter = adapter
                             binding.playWithShorts.adapter = adapter
-                            
+
+                            // Auto-play on swipe — like real YouTube Shorts
+                            binding.playWithShorts.registerOnPageChangeCallback(
+                                object : ViewPager2.OnPageChangeCallback() {
+                                    private var previousPosition = 0
+
+                                    override fun onPageSelected(position: Int) {
+                                        super.onPageSelected(position)
+                                        // Pause the previous short
+                                        if (previousPosition != position) {
+                                            adapter.pauseAt(previousPosition)
+                                        }
+                                        // Play the current short
+                                        adapter.playAt(position)
+                                        previousPosition = position
+                                    }
+                                }
+                            )
+
                             // Observe Liked Videos
                             databaseViewModel.getFavouritePlayList()
                             databaseViewModel.favouritePlayList.observe(viewLifecycleOwner) { favourites ->
@@ -91,5 +112,11 @@ class Shorts : Fragment() {
                 }
             }
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        shortsAdapter = null
+        shortsFragmentBinding = null
     }
 }

@@ -1,3 +1,5 @@
+package com.google.android.piyush.database.repository
+
 import com.google.android.piyush.database.dao.DopamineDao
 import com.google.android.piyush.database.dao.SubscriptionDao
 import com.google.android.piyush.database.entities.EntityFavouritePlaylist

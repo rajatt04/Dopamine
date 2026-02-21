@@ -53,7 +53,7 @@ class Library : Fragment() {
         fragmentLibraryBinding = binding
         repository = YoutubeRepositoryImpl()
         viewModelProviderFactory = LibraryViewModelFactory(repository)
-        databaseViewModel = ViewModelProvider(this)[DatabaseViewModel::class.java]
+        databaseViewModel = DatabaseViewModel(requireActivity().application)
         viewModel = ViewModelProvider(
             this,
             viewModelProviderFactory

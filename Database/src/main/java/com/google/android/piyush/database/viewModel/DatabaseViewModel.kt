@@ -1,6 +1,6 @@
 package com.google.android.piyush.database.viewModel
 
-import DopamineDatabaseRepository
+import com.google.android.piyush.database.repository.DopamineDatabaseRepository
 import android.content.ContentValues
 import android.content.Context
 import android.util.Log
