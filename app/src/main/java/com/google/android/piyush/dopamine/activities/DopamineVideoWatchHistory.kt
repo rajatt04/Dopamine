@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.ContentValues
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -42,13 +43,9 @@ class DopamineVideoWatchHistory : AppCompatActivity() {
                 adapter = RecentVideosAdapter(context,recentVideos)
             }
             if(recentVideos.isNullOrEmpty()){
-                binding.recyclerView.visibility = android.view.View.GONE
-                binding.clearWatchHistory.visibility = android.view.View.GONE
-                binding.lottieAnimationView.apply {
-                    visibility = android.view.View.VISIBLE
-                    setAnimation(R.raw.auth)
-                    loop(true)
-                }
+                binding.recyclerView.visibility = View.GONE
+                binding.clearWatchHistory.visibility = View.GONE
+                binding.emptyStateText.visibility = View.VISIBLE
             }
             Log.d(ContentValues.TAG, " -> Activity : DopamineVideoWatchHistory || recentVideos : $recentVideos")
         }
@@ -60,15 +57,9 @@ class DopamineVideoWatchHistory : AppCompatActivity() {
         binding.clearWatchHistory.setOnClickListener {
             databaseViewModel.deleteRecentVideo()
             Snackbar.make(binding.root, "Watch History Cleared", Snackbar.LENGTH_SHORT).show()
-            binding.recyclerView.visibility = android.view.View.GONE
-            binding.clearWatchHistory.visibility = android.view.View.GONE
-            binding.lottieAnimationView.apply {
-                visibility = android.view.View.VISIBLE
-                setAnimation(R.raw.auth)
-                @Suppress("DEPRECATION")
-                loop(true)
-                playAnimation()
-            }
+            binding.recyclerView.visibility = View.GONE
+            binding.clearWatchHistory.visibility = View.GONE
+            binding.emptyStateText.visibility = View.VISIBLE
         }
     }
 }

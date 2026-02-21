@@ -2,7 +2,6 @@ package com.google.android.piyush.dopamine.activities
 
 import android.os.Bundle
 import android.util.Log
-import android.view.SoundEffectConstants
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -106,12 +105,7 @@ class YoutubeChannel : AppCompatActivity() {
                     Log.d(TAG, "Error: ${channelsPlaylists.exception.message.toString()}")
                     binding.channelPlaylistLoader.apply {
                         visibility = View.VISIBLE
-                        setAnimation(R.raw.auth)
-                        playAnimation()
-                        playSoundEffect(SoundEffectConstants.CLICK)  //sound effect
-                        speed = 1.5f        //speed of animation
-                        @Suppress("DEPRECATION")
-                        loop(true)
+                        show()
                     }
                 }
             }

@@ -54,9 +54,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <com.airbnb.lottie.LottieAnimationView
-        android:id="@+id/lottieAnimationView"
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/emptyStateText"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="32dp"/>
+        android:layout_margin="32dp"
+        android:gravity="center"
+        android:text="No watch history yet"
+        android:textSize="18sp"
+        android:fontFamily="@font/circular_spotify"
+        android:visibility="gone" />
 </androidx.constraintlayout.widget.ConstraintLayout>

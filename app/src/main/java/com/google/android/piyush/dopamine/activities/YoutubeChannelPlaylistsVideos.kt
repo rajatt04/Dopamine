@@ -3,7 +3,6 @@ package com.google.android.piyush.dopamine.activities
 import android.content.ContentValues.TAG
 import android.os.Bundle
 import android.util.Log
-import android.view.SoundEffectConstants
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +11,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.piyush.dopamine.R
+
 import com.google.android.piyush.dopamine.adapters.YoutubePlaylistsVideosAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityYoutubeChannelPlaylistsVideosBinding
 import com.google.android.piyush.dopamine.viewModels.YoutubeChannelPlaylistsVideosViewModel
@@ -66,12 +66,7 @@ class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
                     Log.d(TAG, "Error: ${playlistsVideos.exception.message.toString()}")
                     binding.channelPlaylistVideosLoader.apply {
                         visibility = View.VISIBLE
-                        setAnimation(R.raw.auth)
-                        playAnimation()
-                        playSoundEffect(SoundEffectConstants.CLICK)  //sound effect
-                        speed = 1.5f        //speed of animation
-                        @Suppress("DEPRECATION")
-                        loop(true)
+                        show()
                     }
                 }
             }

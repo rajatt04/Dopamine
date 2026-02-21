@@ -7,14 +7,14 @@
     android:layout_height="match_parent"
     tools:context=".activities.MainActivity">
 
-    <com.airbnb.lottie.LottieAnimationView
-        android:id="@+id/lottieAnimationView"
-        app:lottie_rawRes="@raw/auth"
-        app:lottie_loop="true"
-        app:lottie_autoPlay="true"
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/appIcon"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_marginStart="12dp"
+        android:padding="32dp"
+        android:src="@drawable/ic_dopamine"
+        android:scaleType="fitCenter"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"

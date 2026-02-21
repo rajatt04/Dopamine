@@ -69,7 +69,8 @@ dependencies {
     implementation(libs.shimmer)
     implementation(libs.glide)
     implementation(libs.core)
-    implementation(libs.lottie)
+
+
     implementation (libs.exomedia)
     implementation(project(":Youtube"))
     implementation(project(":Database"))
