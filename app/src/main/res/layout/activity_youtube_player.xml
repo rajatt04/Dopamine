@@ -109,9 +109,20 @@
                 android:text="1M Subscribers"
                 android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="@id/channelImage"
-                app:layout_constraintEnd_toEndOf="@id/channelName"
+                app:layout_constraintEnd_toStartOf="@id/btnSubscribe"
                 app:layout_constraintStart_toStartOf="@id/channelName"
                 app:layout_constraintTop_toBottomOf="@id/channelName" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSubscribe"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="Subscribe"
+                app:layout_constraintBottom_toBottomOf="@id/channelImage"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/channelImage" />
 
             <!-- Actions ScrollView -->
             <HorizontalScrollView

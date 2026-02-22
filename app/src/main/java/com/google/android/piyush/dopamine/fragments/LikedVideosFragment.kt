@@ -29,9 +29,12 @@ class LikedVideosFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         databaseViewModel = DatabaseViewModel(requireActivity().application)
-        databaseViewModel.getFavouritePlayList()
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            databaseViewModel.getFavouritePlayList()
+        }
 
         databaseViewModel.favouritePlayList.observe(viewLifecycleOwner) { likedList ->
+            binding.swipeRefreshLayout.isRefreshing = false
             if (likedList.isEmpty()) {
                 binding.emptyState.visibility = View.VISIBLE
                 binding.recyclerView.visibility = View.GONE

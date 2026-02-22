@@ -5,8 +5,17 @@ import kotlinx.coroutines.withContext
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.stream.StreamInfo
-import org.schabi.newpipe.extractor.stream.VideoStream
 import android.util.Log
+
+/**
+ * Represents a selectable video stream quality option.
+ */
+data class StreamOption(
+    val resolution: String,
+    val url: String,
+    val format: String,
+    val isVideoOnly: Boolean = false
+)
 
 /**
  * Utility to extract direct video stream URLs from YouTube video IDs
@@ -71,6 +80,56 @@ object NewPipeStreamExtractor {
         } catch (e: Exception) {
             Log.e(TAG, "Stream extraction failed for $videoId", e)
             null
+        }
+    }
+
+    /**
+     * Extract all available video streams as selectable quality options.
+     * Returns a list of StreamOption sorted by resolution (highest first).
+     */
+    suspend fun extractAllStreams(videoId: String): List<StreamOption> = withContext(Dispatchers.IO) {
+        try {
+            init()
+            val url = "https://www.youtube.com/watch?v=$videoId"
+            val streamInfo = StreamInfo.getInfo(ServiceList.YouTube, url)
+
+            val options = mutableListOf<StreamOption>()
+
+            // Prefer streams with audio
+            streamInfo.videoStreams
+                .filter { !it.isVideoOnly }
+                .sortedByDescending { it.resolution?.replace("p", "")?.toIntOrNull() ?: 0 }
+                .forEach { stream ->
+                    options.add(
+                        StreamOption(
+                            resolution = stream.resolution ?: "Unknown",
+                            url = stream.content,
+                            format = stream.format?.name ?: "Unknown",
+                            isVideoOnly = false
+                        )
+                    )
+                }
+
+            // Also include video-only streams (labeled)
+            streamInfo.videoStreams
+                .filter { it.isVideoOnly }
+                .sortedByDescending { it.resolution?.replace("p", "")?.toIntOrNull() ?: 0 }
+                .forEach { stream ->
+                    options.add(
+                        StreamOption(
+                            resolution = "${stream.resolution ?: "Unknown"} (no audio)",
+                            url = stream.content,
+                            format = stream.format?.name ?: "Unknown",
+                            isVideoOnly = true
+                        )
+                    )
+                }
+
+            Log.d(TAG, "Found ${options.size} stream options for $videoId")
+            options
+        } catch (e: Exception) {
+            Log.e(TAG, "extractAllStreams failed for $videoId", e)
+            emptyList()
         }
     }
 

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -41,6 +42,13 @@ class SearchAdapter(
             .into(holder.image)
         holder.text1.text = video?.snippet?.title
         holder.text2.text = video?.snippet?.channelTitle
+
+        // Search API doesn't return duration/quality by default.
+        // We set them to GONE or fetch them if needed. 
+        // For now, mirroring Home logic if we had the data.
+        holder.durationCard.visibility = View.GONE
+        holder.qualityCard.visibility = View.GONE
+
         holder.channelview.setOnClickListener {
             if(video?.snippet?.channelId.isNullOrEmpty()){
                 MaterialAlertDialogBuilder(context).apply {

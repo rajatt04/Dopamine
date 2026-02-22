@@ -29,6 +29,14 @@ class PlaylistsFragment : Fragment() {
 
         databaseViewModel = DatabaseViewModel(requireActivity().application)
         
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            loadPlaylists()
+        }
+        
+        loadPlaylists()
+    }
+
+    private fun loadPlaylists() {
         val playlists = databaseViewModel.getPlaylist()
         if (playlists.isEmpty()) {
             binding.emptyState.visibility = View.VISIBLE
@@ -42,6 +50,7 @@ class PlaylistsFragment : Fragment() {
                 adapter = CustomPlayListVAdapter(requireContext(), playlists)
             }
         }
+        binding.swipeRefreshLayout.isRefreshing = false
     }
 
     override fun onDestroyView() {

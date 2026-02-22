@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
@@ -71,6 +72,17 @@ class HomeAdapter(
         holder.videoDuration.text = formatDuration(
             Duration.parse(item.contentDetails!!.duration!!)
         )
+
+        item.contentDetails?.definition?.let { definition ->
+            if (definition.equals("hd", ignoreCase = true)) {
+                holder.qualityCard.visibility = View.VISIBLE
+                holder.videoQuality.text = "HD"
+            } else {
+                holder.qualityCard.visibility = View.GONE
+            }
+        } ?: run {
+            holder.qualityCard.visibility = View.GONE
+        }
 
         holder.itemView.setOnClickListener {
             if(NetworkUtilities.isNetworkAvailable(context)) {

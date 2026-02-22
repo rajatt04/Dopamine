@@ -67,9 +67,20 @@
         android:fontFamily="@font/proxima_nova"
         android:text="@string/subscribers"
         android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnSubscribe"
         app:layout_constraintStart_toEndOf="@id/channelLogo"
         app:layout_constraintTop_toBottomOf="@id/channelCustomUrl" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSubscribe"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        android:text="Subscribe"
+        app:layout_constraintBottom_toBottomOf="@id/channelLogo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/channelLogo" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/channelDescription"

@@ -19,6 +19,7 @@
 
     <!-- Duration badge -->
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/duration_card"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
@@ -40,6 +41,36 @@
             android:text="@string/time"
             android:textColor="@android:color/white"
             android:textSize="12sp"
+            android:fontFamily="@font/circular_spotify" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Quality badge -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/quality_card"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="#CC000000"
+        app:cardCornerRadius="4dp"
+        app:cardElevation="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/youtube_player_view"
+        app:layout_constraintStart_toStartOf="@id/youtube_player_view">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/video_quality"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="4dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="4dp"
+            android:paddingBottom="2dp"
+            android:text="HD"
+            android:textColor="@android:color/white"
+            android:textSize="10sp"
+            android:textStyle="bold"
             android:fontFamily="@font/circular_spotify" />
 
     </com.google.android.material.card.MaterialCardView>

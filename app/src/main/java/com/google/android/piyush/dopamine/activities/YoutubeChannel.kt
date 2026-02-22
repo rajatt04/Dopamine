@@ -10,6 +10,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.google.android.piyush.database.viewModel.DatabaseViewModel
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.YoutubeChannelPlaylistsAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityYoutubeChannelBinding
@@ -26,11 +27,13 @@ class YoutubeChannel : AppCompatActivity() {
     private lateinit var youtubeRepositoryImpl: YoutubeRepositoryImpl
     private lateinit var youtubeChannelViewModel: YoutubeChannelViewModel
     private lateinit var youtubeChannelViewModelFactory: YoutubeChannelViewModelFactory
+    private lateinit var databaseViewModel: DatabaseViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityYoutubeChannelBinding.inflate(layoutInflater)
+        databaseViewModel = DatabaseViewModel(application)
         youtubeRepositoryImpl = YoutubeRepositoryImpl()
         youtubeChannelViewModelFactory = YoutubeChannelViewModelFactory(youtubeRepositoryImpl)
         youtubeChannelViewModel = ViewModelProvider(
@@ -80,6 +83,24 @@ class YoutubeChannel : AppCompatActivity() {
                         this.channelSubscribers.text = channelSubscribers
                         this.channelDescription.text = channelDescription
                     }
+
+                    databaseViewModel.checkIsSubscribed(channelId)
+                    binding.btnSubscribe.setOnClickListener {
+                        val isSubscribed = databaseViewModel.isSubscribed.value ?: false
+                        if (isSubscribed) {
+                            databaseViewModel.deleteSubscription(channelId)
+                        } else {
+                            databaseViewModel.insertSubscription(
+                                com.google.android.piyush.database.entities.SubscriptionEntity(
+                                    channelId = channelId,
+                                    title = channelTitle ?: "",
+                                    description = channelDescription,
+                                    thumbnail = channelLogo,
+                                    channelTitle = channelTitle
+                                )
+                            )
+                        }
+                    }
                 }
                 is YoutubeResource.Error -> {
                     Log.d(TAG, "Error: ${channelDetails.exception.message.toString()}")
@@ -110,7 +131,21 @@ class YoutubeChannel : AppCompatActivity() {
                 }
             }
         }
+        setupObservers()
     }
+
+    private fun setupObservers() {
+        databaseViewModel.isSubscribed.observe(this) { isSubscribed ->
+            if (isSubscribed) {
+                binding.btnSubscribe.text = "Subscribed"
+                binding.btnSubscribe.setIconResource(R.drawable.rounded_done_24)
+            } else {
+                binding.btnSubscribe.text = "Subscribe"
+                binding.btnSubscribe.setIconResource(0)
+            }
+        }
+    }
+
     private fun counter(count : Int) : String {
         var num: Double = count.toDouble()
         val data: String

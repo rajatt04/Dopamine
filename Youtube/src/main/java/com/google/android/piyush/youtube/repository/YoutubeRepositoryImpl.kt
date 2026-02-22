@@ -1,5 +1,6 @@
 package com.google.android.piyush.youtube.repository
 
+import com.google.android.piyush.youtube.model.CommentThreads
 import com.google.android.piyush.youtube.model.SearchTube
 import com.google.android.piyush.youtube.utilities.YoutubeClient
 import com.google.android.piyush.youtube.model.Youtube
@@ -9,6 +10,24 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 
 class YoutubeRepositoryImpl : YoutubeRepository {
+    override suspend fun getCommentThreads(videoId: String, order: String, pageToken: String?): CommentThreads {
+        val response = YoutubeClient.CLIENT.get(
+            YoutubeClient.YOUTUBE + YoutubeClient.COMMENT_THREADS
+        ){
+            url {
+                parameters.append("part", YoutubeClient.COMMENT_PART)
+                parameters.append("videoId", videoId)
+                parameters.append("order", order)
+                parameters.append("maxResults", "5")
+                if (pageToken != null) {
+                    parameters.append("pageToken", pageToken)
+                }
+                parameters.append("key", YoutubeClient.API_KEY)
+            }
+        }
+        return response.body()
+    }
+
     override suspend fun getHomeVideos(): Youtube {
         val response = YoutubeClient.CLIENT.get(
             YoutubeClient.YOUTUBE + YoutubeClient.VIDEO

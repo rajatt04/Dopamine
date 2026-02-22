@@ -63,6 +63,9 @@ object YoutubeClient {
     const val SEARCH_PART = "snippet"
 
     const val DOPAMINE_UPDATE = "https://api.npoint.io/0178e5b07792668c9a58"
+    
+    const val COMMENT_THREADS = "commentThreads"
+    const val COMMENT_PART = "snippet"
 
     const val EXPERIMENTAL_API = "https://yt.lemnoslife.com/noKey/"
 

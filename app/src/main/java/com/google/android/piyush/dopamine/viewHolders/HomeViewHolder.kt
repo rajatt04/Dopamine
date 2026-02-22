@@ -12,4 +12,6 @@ class HomeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     val videoTitle : MaterialTextView = itemView.findViewById(R.id.video_title)
     val channelTitle : MaterialTextView = itemView.findViewById(R.id.channel_title)
     val videoDuration : MaterialTextView = itemView.findViewById(R.id.video_duration)
+    val videoQuality : MaterialTextView = itemView.findViewById(R.id.video_quality)
+    val qualityCard : View = itemView.findViewById(R.id.quality_card)
 }

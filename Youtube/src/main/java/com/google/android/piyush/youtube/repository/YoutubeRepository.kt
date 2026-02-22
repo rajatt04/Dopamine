@@ -1,5 +1,6 @@
 package com.google.android.piyush.youtube.repository
 
+import com.google.android.piyush.youtube.model.CommentThreads
 import com.google.android.piyush.youtube.model.SearchTube
 import com.google.android.piyush.youtube.model.Youtube
 import com.google.android.piyush.youtube.model.channelDetails.YoutubeChannel
@@ -13,4 +14,5 @@ interface YoutubeRepository {
     suspend fun getChannelsPlaylists(channelId : String) : ChannelPlaylists
     suspend fun getPlaylistVideos(playListId : String) : Youtube
     suspend fun getVideoDetails(videoId : String) : Youtube
+    suspend fun getCommentThreads(videoId: String, order: String = "relevance", pageToken: String? = null): CommentThreads
 }

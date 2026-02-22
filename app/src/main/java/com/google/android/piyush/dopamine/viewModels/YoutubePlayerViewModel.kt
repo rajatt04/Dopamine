@@ -27,6 +27,39 @@ class YoutubePlayerViewModel(
         MutableLiveData()
     val channelsPlaylists: MutableLiveData<YoutubeResource<ChannelPlaylists>> = _channelsPlaylists
 
+    private val _commentThreads: MutableLiveData<YoutubeResource<com.google.android.piyush.youtube.model.CommentThreads>> =
+        MutableLiveData()
+    val commentThreads: LiveData<YoutubeResource<com.google.android.piyush.youtube.model.CommentThreads>> = _commentThreads
+
+    private var currentCommentsList = mutableListOf<com.google.android.piyush.youtube.model.CommentThreadItem>()
+    var commentNextPageToken: String? = null
+        private set
+
+    fun getCommentThreads(videoId: String, isLoadMore: Boolean = false) {
+        viewModelScope.launch {
+            try {
+                if (!isLoadMore) {
+                    _commentThreads.postValue(YoutubeResource.Loading)
+                    currentCommentsList.clear()
+                    commentNextPageToken = null
+                }
+
+                val response = youtubeRepositoryImpl.getCommentThreads(videoId, pageToken = if (isLoadMore) commentNextPageToken else null)
+                
+                commentNextPageToken = response.nextPageToken
+                response.items?.let { currentCommentsList.addAll(it) }
+
+                if (currentCommentsList.isEmpty()) {
+                    _commentThreads.postValue(YoutubeResource.Error(Exception("No comments found")))
+                } else {
+                    _commentThreads.postValue(YoutubeResource.Success(com.google.android.piyush.youtube.model.CommentThreads(items = currentCommentsList, nextPageToken = commentNextPageToken)))
+                }
+            } catch (exception: Exception) {
+                _commentThreads.postValue(YoutubeResource.Error(exception))
+            }
+        }
+    }
+
     fun getVideoDetails(videoId: String) {
         viewModelScope.launch {
             try {

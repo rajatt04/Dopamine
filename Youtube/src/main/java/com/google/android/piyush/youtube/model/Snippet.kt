@@ -12,7 +12,16 @@ data class Snippet(
     val kind: String? = null,
     val description: String? = null,
     val tags: List<String>? = null,
-    val title: String? = null
+    val title: String? = null,
+    val liveBroadcastContent: String? = null,
+    val defaultAudioLanguage: String? = null,
+    val localized: Localized? = null
+)
+
+@Serializable
+data class Localized(
+    val title: String? = null,
+    val description: String? = null
 )
 
 
@@ -26,9 +35,10 @@ data class Thumbnails(
 
 @Serializable
 data class Statistics(
-    val viewCount: Int? = 0,
-    val subscriberCount: Int? = 0,
-    val likeCount: Int? = 0
+    val viewCount: String? = null,
+    val subscriberCount: String? = null,
+    val likeCount: String? = null,
+    val commentCount: String? = null
 )
 
 @Serializable

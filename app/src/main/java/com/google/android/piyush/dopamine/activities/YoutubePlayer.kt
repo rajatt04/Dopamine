@@ -1,18 +1,23 @@
 package com.google.android.piyush.dopamine.activities
 
 import android.app.Application
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -25,6 +30,7 @@ import com.google.android.piyush.dopamine.adapters.YoutubeChannelPlaylistsAdapte
 import com.google.android.piyush.dopamine.databinding.ActivityYoutubePlayerBinding
 import com.google.android.piyush.dopamine.fragments.AddToPlaylistSheet
 import com.google.android.piyush.dopamine.player.ExoYouTubePlayer
+import com.google.android.piyush.dopamine.player.PlayerSettingsSheet
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.YoutubePlayerViewModel
 import com.google.android.piyush.dopamine.viewModels.YoutubePlayerViewModelFactory
@@ -103,9 +109,73 @@ class YoutubePlayer : AppCompatActivity() {
             }
         })
 
+        // Back button → finish activity
+        binding.YtPlayer.setOnBackListener {
+            if (requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+                exitFullscreen()
+            } else {
+                finish()
+            }
+        }
+
+        // Fullscreen toggle
+        binding.YtPlayer.setOnFullscreenListener { isFullscreen ->
+            if (isFullscreen) enterFullscreen() else exitFullscreen()
+        }
+
+        // Settings sheet
+        binding.YtPlayer.setOnSettingsListener {
+            PlayerSettingsSheet.newInstance(
+                currentSpeed = binding.YtPlayer.getPlaybackSpeed(),
+                videoId = currentVideoId,
+                onSpeedSelected = { speed ->
+                    binding.YtPlayer.setPlaybackSpeed(speed)
+                },
+                onQualitySelected = { option ->
+                    binding.YtPlayer.switchStream(option.url)
+                }
+            ).show(supportFragmentManager, PlayerSettingsSheet.TAG)
+        }
+
         if (currentVideoId.isNotEmpty()) {
             binding.YtPlayer.loadVideo(currentVideoId)
         }
+    }
+
+    private fun enterFullscreen() {
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        binding.YtPlayer.setFullscreen(true)
+
+        // Hide system bars for immersive mode
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        insetsController.hide(WindowInsetsCompat.Type.systemBars())
+        insetsController.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+        // Hide scrollable content
+        binding.nestedScrollView.visibility = View.GONE
+        binding.appBarLayout.visibility = View.GONE
+
+        // Make player fill screen
+        binding.YtPlayer.layoutParams.height = android.view.ViewGroup.LayoutParams.MATCH_PARENT
+        binding.YtPlayer.requestLayout()
+    }
+
+    private fun exitFullscreen() {
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        binding.YtPlayer.setFullscreen(false)
+
+        // Show system bars
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        insetsController.show(WindowInsetsCompat.Type.systemBars())
+
+        // Show scrollable content
+        binding.nestedScrollView.visibility = View.VISIBLE
+        binding.appBarLayout.visibility = View.VISIBLE
+
+        // Reset player height
+        binding.YtPlayer.layoutParams.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        binding.YtPlayer.requestLayout()
     }
 
     private fun setupClickListeners() {
@@ -169,6 +239,16 @@ class YoutubePlayer : AppCompatActivity() {
         databaseViewModel.isFavourite.observe(this) { videoId ->
             binding.btnLike.isChecked = videoId == currentVideoId
         }
+
+        databaseViewModel.isSubscribed.observe(this) { isSubscribed ->
+            if (isSubscribed) {
+                binding.btnSubscribe.text = "Subscribed"
+                binding.btnSubscribe.setIconResource(R.drawable.rounded_done_24)
+            } else {
+                binding.btnSubscribe.text = "Subscribe"
+                binding.btnSubscribe.setIconResource(0)
+            }
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -176,6 +256,9 @@ class YoutubePlayer : AppCompatActivity() {
         item.snippet?.let { snippet ->
             binding.textTitle.text = snippet.title
             binding.textDescription.text = snippet.description
+
+            // Set title on the player
+            binding.YtPlayer.setTitle(snippet.title ?: "")
 
             val viewCount = formatCount(item.statistics?.viewCount?.toLong() ?: 0)
             val likeCount = formatCount(item.statistics?.likeCount?.toLong() ?: 0)
@@ -219,6 +302,30 @@ class YoutubePlayer : AppCompatActivity() {
             Glide.with(this)
                 .load(snippet.thumbnails?.default?.url.takeUnless { it.isNullOrEmpty() } ?: Utilities.DEFAULT_LOGO)
                 .into(binding.channelImage)
+
+            databaseViewModel.checkIsSubscribed(currentChannelId)
+            setupSubscribeButton(item)
+        }
+    }
+
+    private fun setupSubscribeButton(item: ChannelItem) {
+        binding.btnSubscribe.setOnClickListener {
+            val isCurrentlySubscribed = databaseViewModel.isSubscribed.value ?: false
+            if (isCurrentlySubscribed) {
+                databaseViewModel.deleteSubscription(currentChannelId)
+            } else {
+                item.snippet?.let { snippet ->
+                    databaseViewModel.insertSubscription(
+                        com.google.android.piyush.database.entities.SubscriptionEntity(
+                            channelId = currentChannelId,
+                            title = snippet.title ?: "",
+                            description = snippet.description,
+                            thumbnail = snippet.thumbnails?.default?.url,
+                            channelTitle = snippet.title
+                        )
+                    )
+                }
+            }
         }
     }
 

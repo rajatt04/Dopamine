@@ -32,6 +32,7 @@ class Library : Fragment() {
             tab.text = when (position) {
                 0 -> "Liked Videos"
                 1 -> "Playlists"
+                2 -> "Subscriptions"
                 else -> null
             }
         }.attach()
@@ -43,12 +44,13 @@ class Library : Fragment() {
     }
 
     private inner class LibraryPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
-        override fun getItemCount(): Int = 2
+        override fun getItemCount(): Int = 3
 
         override fun createFragment(position: Int): Fragment {
             return when (position) {
                 0 -> LikedVideosFragment()
                 1 -> PlaylistsFragment()
+                2 -> SubscriptionsFragment()
                 else -> throw IllegalStateException("Invalid position")
             }
         }
