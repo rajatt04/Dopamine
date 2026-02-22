@@ -40,7 +40,6 @@ class DopamineUserProfile : AppCompatActivity() {
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var dopamineVersionViewModel: DopamineVersionViewModel
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -67,12 +66,16 @@ class DopamineUserProfile : AppCompatActivity() {
         }
 
         binding.deviceRam.setOnClickListener{
-            val intentStorage = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                Intent(Settings.ACTION_ADVANCED_MEMORY_PROTECTION_SETTINGS)
-            } else {
-                TODO("VERSION.SDK_INT < UPSIDE_DOWN_CAKE")
+            try {
+                val intentStorage = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    Intent(Settings.ACTION_ADVANCED_MEMORY_PROTECTION_SETTINGS)
+                } else {
+                    Intent(Settings.ACTION_DEVICE_INFO_SETTINGS)
+                }
+                startActivity(intentStorage)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Unable to open memory settings", Toast.LENGTH_SHORT).show()
             }
-            startActivity(intentStorage)
         }
 
         onBackPressedDispatcher.addCallback {
@@ -97,10 +100,9 @@ class DopamineUserProfile : AppCompatActivity() {
             dopamineVersionViewModel.preReleaseUpdate()
             dopamineVersionViewModel.preRelease.observe(this@DopamineUserProfile) {
                 if (it is YoutubeResource.Success) {
-                    sharedPreferences.edit().apply {
+                    sharedPreferences.edit {
                         putString("PreReleaseVersion", it.data.versionName)
                         putString("PreReleaseUrl", it.data.url)
-                        apply()
                     }
                     if (it.data.versionName != Utilities.PRE_RELEASE_VERSION) {
                         Toast.makeText(this,"Under Development",Toast.LENGTH_SHORT).show()
@@ -114,10 +116,9 @@ class DopamineUserProfile : AppCompatActivity() {
                     when (update) {
                         is YoutubeResource.Loading -> {}
                         is YoutubeResource.Success -> {
-                            sharedPreferences.edit().apply {
+                            sharedPreferences.edit {
                                 putString("Version", update.data.versionName)
                                 putString("Url", update.data.url)
-                                apply()
                             }
                             if (update.data.versionName != Utilities.PROJECT_VERSION) {
                                 Toast.makeText(this,"Under Development",Toast.LENGTH_SHORT).show()

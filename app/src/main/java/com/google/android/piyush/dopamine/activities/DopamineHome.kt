@@ -1,6 +1,6 @@
 package com.google.android.piyush.dopamine.activities
 
-import Home
+import com.google.android.piyush.dopamine.fragments.Home
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle

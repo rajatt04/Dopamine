@@ -1,31 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- YouTube-style flat video card — no nested cards, no elevation -->
+<!-- M3 Expressive video card with rounded thumbnail, badge overlays, and rich metadata -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="16dp">
+    android:paddingBottom="12dp"
+    android:background="?attr/selectableItemBackground">
 
-    <!-- Thumbnail -->
+    <!-- Thumbnail with rounded corners -->
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/youtube_player_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
         android:scaleType="centerCrop"
         app:layout_constraintDimensionRatio="16:9"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Dopamine.SmallComponent" />
 
     <!-- Duration badge -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/duration_card"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="20dp"
         android:layout_marginBottom="8dp"
         app:cardBackgroundColor="#CC000000"
-        app:cardCornerRadius="4dp"
+        app:cardCornerRadius="6dp"
         app:cardElevation="0dp"
         app:layout_constraintBottom_toBottomOf="@id/youtube_player_view"
         app:layout_constraintEnd_toEndOf="@id/youtube_player_view">
@@ -34,14 +38,15 @@
             android:id="@+id/video_duration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingStart="4dp"
+            android:paddingStart="6dp"
             android:paddingTop="2dp"
-            android:paddingEnd="4dp"
+            android:paddingEnd="6dp"
             android:paddingBottom="2dp"
             android:text="@string/time"
             android:textColor="@android:color/white"
             android:textSize="12sp"
-            android:fontFamily="@font/circular_spotify" />
+            android:fontFamily="@font/circular_spotify"
+            android:textStyle="bold" />
 
     </com.google.android.material.card.MaterialCardView>
 
@@ -50,11 +55,11 @@
         android:id="@+id/quality_card"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="20dp"
         android:layout_marginBottom="8dp"
         android:visibility="gone"
         app:cardBackgroundColor="#CC000000"
-        app:cardCornerRadius="4dp"
+        app:cardCornerRadius="6dp"
         app:cardElevation="0dp"
         app:layout_constraintBottom_toBottomOf="@id/youtube_player_view"
         app:layout_constraintStart_toStartOf="@id/youtube_player_view">
@@ -63,9 +68,9 @@
             android:id="@+id/video_quality"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingStart="4dp"
+            android:paddingStart="6dp"
             android:paddingTop="2dp"
-            android:paddingEnd="4dp"
+            android:paddingEnd="6dp"
             android:paddingBottom="2dp"
             android:text="HD"
             android:textColor="@android:color/white"
@@ -78,14 +83,16 @@
     <!-- Channel avatar (circular) -->
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/channel_image"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:layout_marginStart="12dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="12dp"
         android:scaleType="centerCrop"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/youtube_player_view"
-        app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
+        app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+        app:strokeColor="?attr/colorOutline"
+        app:strokeWidth="0.5dp" />
 
     <!-- Video title -->
     <com.google.android.material.textview.MaterialTextView
@@ -94,13 +101,15 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginTop="12dp"
-        android:layout_marginEnd="12dp"
+        android:layout_marginEnd="16dp"
         android:ellipsize="end"
         android:fontFamily="@font/circular_spotify"
+        android:letterSpacing="-0.01"
+        android:lineSpacingExtra="2dp"
         android:maxLines="2"
         android:text="@string/video_title"
         android:textColor="?attr/colorOnSurface"
-        android:textSize="14sp"
+        android:textSize="15sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/channel_image"
         app:layout_constraintTop_toBottomOf="@id/youtube_player_view" />
@@ -112,12 +121,12 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:layout_marginTop="4dp"
-        android:layout_marginEnd="12dp"
+        android:layout_marginEnd="16dp"
         android:fontFamily="@font/proxima_nova"
         android:maxLines="1"
         android:text="@string/channel_title"
         android:textColor="?attr/colorOnSurfaceVariant"
-        android:textSize="12sp"
+        android:textSize="13sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/channel_image"
         app:layout_constraintTop_toBottomOf="@id/video_title" />

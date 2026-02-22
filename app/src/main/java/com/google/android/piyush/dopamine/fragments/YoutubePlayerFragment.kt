@@ -41,6 +41,7 @@ import com.google.android.piyush.youtube.utilities.YoutubeResource
 import java.text.DecimalFormat
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import com.google.android.piyush.dopamine.utilities.FormatUtils
 import kotlin.random.Random
 
 @Suppress("DEPRECATION")
@@ -67,8 +68,7 @@ class YoutubePlayerFragment : Fragment() {
     private var isPlaying = false
     private var isFullscreen = false
 
-    private val decimalFormatter by lazy { DecimalFormat("#0.0") }
-    private val integerFormatter by lazy { DecimalFormat("#,##0") }
+
 
     companion object {
         private const val TAG = "YoutubePlayerFragment"
@@ -371,8 +371,8 @@ class YoutubePlayerFragment : Fragment() {
 
             view?.findViewById<TextView>(R.id.textDescription)?.text = snippet.description
 
-            val viewCount = formatCount(item.statistics?.viewCount?.toLong() ?: 0)
-            val likeCount = formatCount(item.statistics?.likeCount?.toLong() ?: 0)
+            val viewCount = FormatUtils.formatCount(item.statistics?.viewCount?.toLong() ?: 0)
+            val likeCount = FormatUtils.formatCount(item.statistics?.likeCount?.toLong() ?: 0)
 
             view?.findViewById<TextView>(R.id.metaInfoText)?.text = "$viewCount views"
             btnLike.text = likeCount
@@ -386,7 +386,7 @@ class YoutubePlayerFragment : Fragment() {
     private fun setupLikeButton(snippet: com.google.android.piyush.youtube.model.Snippet) {
         btnLike.addOnCheckedStateChangedListener { _, state ->
             val isChecked = state == MaterialCheckBox.STATE_CHECKED
-            animateLikeButton(btnLike)
+            FormatUtils.animateBounce(btnLike)
 
             if (isChecked) {
                 databaseViewModel.insertFavouriteVideos(
@@ -408,7 +408,7 @@ class YoutubePlayerFragment : Fragment() {
         item.snippet?.let { snippet ->
             view?.findViewById<TextView>(R.id.channelName)?.text = snippet.title
             view?.findViewById<TextView>(R.id.channelSubscribers)?.text =
-                "${formatCount(item.statistics?.subscriberCount?.toLong() ?: 0)} Subscribers"
+                "${FormatUtils.formatCount(item.statistics?.subscriberCount?.toLong() ?: 0)} Subscribers"
 
             val logoUrl = snippet.thumbnails?.default?.url
             val channelImage = view?.findViewById<com.google.android.material.imageview.ShapeableImageView>(R.id.channelImage)
@@ -454,7 +454,7 @@ class YoutubePlayerFragment : Fragment() {
             } else {
                 databaseViewModel.insertRecentVideos(
                     EntityRecentVideos(
-                        id = Random.nextInt(),
+                        id = 0,
                         videoId = currentVideoId,
                         thumbnail = item.snippet?.thumbnails?.high?.url,
                         title = item.snippet?.title,
@@ -477,29 +477,6 @@ class YoutubePlayerFragment : Fragment() {
             putString("publishedAt", item.snippet?.publishedAt)
             putString("duration", item.contentDetails?.duration)
         }
-    }
-
-    private fun formatCount(count: Long): String {
-        if (count < 1000) return count.toString()
-        val suffix = charArrayOf(' ', 'K', 'M', 'B', 'T', 'P', 'E')
-        val value = kotlin.math.floor(kotlin.math.log10(count.toDouble())).toInt()
-        val base = value / 3
-        return if (value >= 3 && base < suffix.size) {
-            val scaledValue = count / Math.pow(10.0, (base * 3).toDouble())
-            "${decimalFormatter.format(scaledValue)}${suffix[base]}"
-        } else {
-            integerFormatter.format(count)
-        }
-    }
-
-    private fun animateLikeButton(view: View) {
-        view.animate()
-            .scaleX(0.7f).scaleY(0.7f).setDuration(100)
-            .withEndAction {
-                view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(200)
-                    .setInterpolator(android.view.animation.OvershootInterpolator(2f))
-                    .start()
-            }.start()
     }
 
     fun setMotionProgress(progress: Float) {

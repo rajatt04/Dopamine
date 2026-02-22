@@ -28,7 +28,7 @@ class DopamineVideoWatchHistory : AppCompatActivity() {
         setContentView(binding.root)
 
         enableEdgeToEdge()
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
@@ -45,7 +45,7 @@ class DopamineVideoWatchHistory : AppCompatActivity() {
             if(recentVideos.isNullOrEmpty()){
                 binding.recyclerView.visibility = View.GONE
                 binding.clearWatchHistory.visibility = View.GONE
-                binding.emptyStateText.visibility = View.VISIBLE
+                binding.emptyStateContainer.visibility = View.VISIBLE
             }
             Log.d(ContentValues.TAG, " -> Activity : DopamineVideoWatchHistory || recentVideos : $recentVideos")
         }
@@ -59,7 +59,7 @@ class DopamineVideoWatchHistory : AppCompatActivity() {
             Snackbar.make(binding.root, "Watch History Cleared", Snackbar.LENGTH_SHORT).show()
             binding.recyclerView.visibility = View.GONE
             binding.clearWatchHistory.visibility = View.GONE
-            binding.emptyStateText.visibility = View.VISIBLE
+            binding.emptyStateContainer.visibility = View.VISIBLE
         }
     }
 }

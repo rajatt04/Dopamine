@@ -24,13 +24,14 @@ object NetworkUtilities {
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
     fun showNetworkError(context: Context?) {
-        val materialAlertDialogBuilder = MaterialAlertDialogBuilder(context!!)
+        context ?: return
+        MaterialAlertDialogBuilder(context)
             .setIcon(R.mipmap.ic_launcher)
             .setTitle("Error!")
             .setCancelable(false)
             .setMessage("No Internet Connection.")
             .setPositiveButton("Ok") { dialog, _ -> dialog.dismiss() }
-        materialAlertDialogBuilder.create().show()
+            .create().show()
     }
 }
 
@@ -88,25 +89,26 @@ class CustomDialog(context: Context) : MaterialAlertDialogBuilder(context) {
         binding = ItemCustomDialogBinding.inflate(LayoutInflater.from(context)).also {
             setView(it.root)
         }
-        val playlistName = binding.text1.text
-        val playlistDescription = binding.text2.text
 
         binding.button.setOnClickListener {
-            if(databaseViewModel.isPlaylistExist(playlistName.toString())){
+            val playlistName = binding.text1.text.toString().trim()
+            val playlistDescription = binding.text2.text.toString().trim()
+
+            if(databaseViewModel.isPlaylistExist(playlistName)){
                 binding.textInputLayout1.isErrorEnabled = true
                 binding.textInputLayout1.error = "Playlist Already Exists"
             }else{
-                if(playlistName.toString().isEmpty()){
+                if(playlistName.isEmpty()){
                     ToastUtilities.showToast(context, "Please Fill All Fields")
                 }else {
                     databaseViewModel.createCustomPlaylist(
                         CustomPlaylistView(
-                            playlistName.toString(),
-                            playlistDescription.toString().ifEmpty { "Empty Description" },
+                            playlistName,
+                            playlistDescription.ifEmpty { "Empty Description" },
                         )
                     )
-                    playlistName?.clear()
-                    playlistDescription?.clear()
+                    binding.text1.text?.clear()
+                    binding.text2.text?.clear()
                     ToastUtilities.showToast(context, "$playlistName Created ✅")
                 }
             }

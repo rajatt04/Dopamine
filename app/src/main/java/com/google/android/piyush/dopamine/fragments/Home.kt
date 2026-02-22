@@ -1,3 +1,5 @@
+package com.google.android.piyush.dopamine.fragments
+
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
@@ -9,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SearchView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -46,6 +49,17 @@ class Home : Fragment() {
     private lateinit var homeViewModelFactory: HomeViewModelFactory
     private lateinit var searchViewModelFactory: SearchViewModelFactory
     private lateinit var homeAdapter: HomeAdapter
+
+    private val voiceSearchLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            data?.firstOrNull()?.let { voiceResult ->
+                fragmentHomeBinding?.searchVideo?.setQuery(voiceResult, true)
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -195,7 +209,7 @@ class Home : Fragment() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (!query.isNullOrBlank()) {
                     databaseViewModel.insertSearchVideos(
-                        EntityVideoSearch(Random.nextInt(1, 100000), query)
+                        EntityVideoSearch(0, query)
                     )
                     performSearch(query, binding)
                 }
@@ -222,23 +236,6 @@ class Home : Fragment() {
     private fun performSearch(query: String, binding: FragmentHomeBinding) {
         if (NetworkUtilities.isNetworkAvailable(requireContext())) {
             searchViewModel.searchVideos(query)
-            searchViewModel.searchVideos.observe(viewLifecycleOwner) { resource ->
-                when (resource) {
-                    is YoutubeResource.Loading -> {}
-                    is YoutubeResource.Success -> {
-                        binding.searchList.apply {
-                            layoutManager = LinearLayoutManager(context)
-                            adapter = SearchAdapter(context, resource.data) { video ->
-                                val sharedViewModel = ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
-                                sharedViewModel.selectVideo(video)
-                            }
-                        }
-                    }
-                    is YoutubeResource.Error -> {
-                        ToastUtilities.showToast(requireContext(), "Search error: ${resource.exception.message}")
-                    }
-                }
-            }
         } else {
             NetworkUtilities.showNetworkError(requireContext())
         }
@@ -249,14 +246,6 @@ class Home : Fragment() {
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something...")
-        startActivityForResult(intent, Utilities.PERMISSION_REQUEST_CODE)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == Utilities.PERMISSION_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            val result = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-            fragmentHomeBinding?.searchVideo?.setQuery(result?.get(0), true)
-        }
+        voiceSearchLauncher.launch(intent)
     }
 }

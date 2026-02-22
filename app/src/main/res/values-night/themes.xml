@@ -1,5 +1,5 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-
+<resources>
+    <!-- Dark Theme override -->
     <style name="Base.Theme.Dopamine" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/md_theme_dark_primary</item>
         <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
@@ -29,11 +29,6 @@
         <item name="colorPrimaryInverse">@color/md_theme_dark_inversePrimary</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:windowActivityTransitions">true</item>
     </style>
-
-    <style name="Widget.BottomNavigationView"
-        parent="Widget.Design.BottomNavigationView">
-        <item name="fontFamily">@font/circular_spotify</item>
-    </style>
-
 </resources>

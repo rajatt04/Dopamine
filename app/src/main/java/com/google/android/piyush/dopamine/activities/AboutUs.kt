@@ -16,11 +16,12 @@ class AboutUs(context: Context) : MaterialAlertDialogBuilder(context) {
 
     private var binding: ActivityAboutUsBinding = ActivityAboutUsBinding.inflate(LayoutInflater.from(context))
     private var developersViewModel: DevelopersViewModel
+    private val devObserver: androidx.lifecycle.Observer<YoutubeResource<List<com.google.android.piyush.youtube.utilities.Developer>>>
     init {
         setView(binding.root)
         developersViewModel = DevelopersViewModel()
 
-        developersViewModel.devModel.observeForever {
+        devObserver = androidx.lifecycle.Observer {
             when(it){
                 is YoutubeResource.Loading -> {}
                 is YoutubeResource.Success -> {
@@ -106,6 +107,13 @@ class AboutUs(context: Context) : MaterialAlertDialogBuilder(context) {
                     }
                 }
             }
+        }
+
+        developersViewModel.devModel.observeForever(devObserver)
+
+        // Remove observer when dialog is dismissed to prevent memory leak
+        setOnDismissListener {
+            developersViewModel.devModel.removeObserver(devObserver)
         }
     }
 }
