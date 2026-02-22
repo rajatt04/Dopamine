@@ -1,5 +1,6 @@
 package com.google.android.piyush.dopamine.utilities
 
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.animation.OvershootInterpolator
 import java.text.DecimalFormat
@@ -43,6 +44,53 @@ object FormatUtils {
     }
 
     /**
+     * Animates a like/dislike button with a burst effect:
+     * scale down → pop up with overshoot + slight rotation.
+     */
+    fun animateLikeBurst(view: View) {
+        view.animate()
+            .scaleX(0.5f).scaleY(0.5f).rotation(-15f).setDuration(80)
+            .withEndAction {
+                view.animate()
+                    .scaleX(1.2f).scaleY(1.2f).rotation(10f).setDuration(150)
+                    .setInterpolator(OvershootInterpolator(3f))
+                    .withEndAction {
+                        view.animate()
+                            .scaleX(1.0f).scaleY(1.0f).rotation(0f).setDuration(120)
+                            .start()
+                    }.start()
+            }.start()
+    }
+
+    /**
+     * Animates a subscribe button with a scale morph effect.
+     */
+    fun animateSubscribe(view: View) {
+        view.animate()
+            .scaleX(0.85f).scaleY(0.85f).setDuration(100)
+            .withEndAction {
+                view.animate()
+                    .scaleX(1.05f).scaleY(1.05f).setDuration(150)
+                    .setInterpolator(OvershootInterpolator(2.5f))
+                    .withEndAction {
+                        view.animate()
+                            .scaleX(1.0f).scaleY(1.0f).setDuration(100)
+                            .start()
+                    }.start()
+            }.start()
+    }
+
+    /**
+     * Triggers haptic feedback on a view (light click feel).
+     */
+    fun triggerHaptic(view: View) {
+        view.performHapticFeedback(
+            HapticFeedbackConstants.CONFIRM,
+            HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+        )
+    }
+
+    /**
      * Formats milliseconds into a human-readable time string (e.g., "1:23:45" or "3:45").
      */
     fun formatTime(millis: Long): String {
@@ -57,3 +105,4 @@ object FormatUtils {
         }
     }
 }
+

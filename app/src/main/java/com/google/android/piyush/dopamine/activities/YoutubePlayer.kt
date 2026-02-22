@@ -1,18 +1,23 @@
 package com.google.android.piyush.dopamine.activities
 
 import android.app.Application
+import android.app.DownloadManager
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.View
-import android.view.WindowInsets
-import android.view.WindowInsetsController
+import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -21,16 +26,20 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
-import com.google.android.material.checkbox.MaterialCheckBox
+import com.google.android.material.color.MaterialColors
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.piyush.database.entities.EntityFavouritePlaylist
 import com.google.android.piyush.database.entities.EntityRecentVideos
 import com.google.android.piyush.database.viewModel.DatabaseViewModel
 import com.google.android.piyush.dopamine.R
+import com.google.android.piyush.dopamine.adapters.CommentsAdapter
 import com.google.android.piyush.dopamine.adapters.YoutubeChannelPlaylistsAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityYoutubePlayerBinding
 import com.google.android.piyush.dopamine.fragments.AddToPlaylistSheet
 import com.google.android.piyush.dopamine.player.ExoYouTubePlayer
+import com.google.android.piyush.dopamine.player.NewPipeStreamExtractor
 import com.google.android.piyush.dopamine.player.PlayerSettingsSheet
+import com.google.android.piyush.dopamine.utilities.FormatUtils
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.YoutubePlayerViewModel
 import com.google.android.piyush.dopamine.viewModels.YoutubePlayerViewModelFactory
@@ -38,11 +47,14 @@ import com.google.android.piyush.youtube.model.Item
 import com.google.android.piyush.youtube.model.channelDetails.Item as ChannelItem
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeResource
-import java.text.DecimalFormat
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import com.google.android.piyush.dopamine.utilities.FormatUtils
-import kotlin.random.Random
 
 @Suppress("DEPRECATION")
 class YoutubePlayer : AppCompatActivity() {
@@ -53,8 +65,16 @@ class YoutubePlayer : AppCompatActivity() {
 
     private var currentVideoId: String = ""
     private var currentChannelId: String = ""
+    private var currentVideoTitle: String = ""
 
+    // Like/Dislike state
+    private var isLiked = false
+    private var isDisliked = false
 
+    // Bell notification state: 0=all, 1=personalized, 2=none
+    private var bellState = 0
+
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     companion object {
         private const val TAG = "YoutubePlayer"
@@ -179,6 +199,7 @@ class YoutubePlayer : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
+        // PIP
         binding.btnPip.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                 packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
@@ -186,10 +207,12 @@ class YoutubePlayer : AppCompatActivity() {
             }
         }
 
+        // Custom Playlist
         binding.btnCustomPlaylist.setOnClickListener {
             AddToPlaylistSheet().show(supportFragmentManager, AddToPlaylistSheet.TAG)
         }
 
+        // Description expand/collapse
         var isDescriptionExpanded = false
         binding.btnShowMore.setOnClickListener {
             isDescriptionExpanded = !isDescriptionExpanded
@@ -201,7 +224,115 @@ class YoutubePlayer : AppCompatActivity() {
                 binding.btnShowMore.text = "Show More"
             }
         }
+
+        // Share
+        binding.btnShare.setOnClickListener {
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_SUBJECT, currentVideoTitle)
+                putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v=$currentVideoId")
+            }
+            startActivity(Intent.createChooser(shareIntent, "Share via"))
+        }
+
+        // Download
+        binding.btnDownload.setOnClickListener {
+            downloadVideo()
+        }
+
+        // Like button
+        binding.btnLikeContainer.setOnClickListener {
+            toggleLike()
+        }
+
+        // Dislike button
+        binding.btnDislikeContainer.setOnClickListener {
+            toggleDislike()
+        }
+
+        // Bell toggle
+        binding.btnBell.setOnClickListener {
+            bellState = (bellState + 1) % 3
+            updateBellIcon()
+            FormatUtils.animateBounce(binding.btnBell)
+            FormatUtils.triggerHaptic(binding.btnBell)
+        }
+
+        // Load more comments
+        binding.btnShowAllComments.setOnClickListener {
+            if (youtubePlayerViewModel.commentNextPageToken != null) {
+                youtubePlayerViewModel.getCommentThreads(currentVideoId, isLoadMore = true)
+            }
+        }
     }
+
+    private fun toggleLike() {
+        isLiked = !isLiked
+        if (isLiked) isDisliked = false // Mutual exclusion
+
+        updateLikeDislikeUI()
+        FormatUtils.animateLikeBurst(binding.imgLike)
+        FormatUtils.triggerHaptic(binding.btnLikeContainer)
+
+        // Persist to database
+        if (isLiked) {
+            databaseViewModel.insertFavouriteVideos(
+                EntityFavouritePlaylist(
+                    videoId = currentVideoId,
+                    thumbnail = cachedThumbnail,
+                    title = currentVideoTitle,
+                    channelId = currentChannelId,
+                    channelTitle = cachedChannelTitle
+                )
+            )
+        } else {
+            databaseViewModel.deleteFavouriteVideo(currentVideoId)
+        }
+    }
+
+    private fun toggleDislike() {
+        isDisliked = !isDisliked
+        if (isDisliked) {
+            // Unlike if currently liked
+            if (isLiked) {
+                isLiked = false
+                databaseViewModel.deleteFavouriteVideo(currentVideoId)
+            }
+        }
+
+        updateLikeDislikeUI()
+        FormatUtils.animateLikeBurst(binding.imgDislike)
+        FormatUtils.triggerHaptic(binding.btnDislikeContainer)
+    }
+
+    private fun updateLikeDislikeUI() {
+        val activeColor = MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorPrimary)
+        val defaultColor = MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSecondaryContainer)
+
+        // Like icon
+        binding.imgLike.setImageResource(
+            if (isLiked) R.drawable.ic_like_filled else R.drawable.ic_like_video
+        )
+        binding.imgLike.imageTintList = ColorStateList.valueOf(if (isLiked) activeColor else defaultColor)
+
+        // Dislike icon
+        binding.imgDislike.setImageResource(
+            if (isDisliked) R.drawable.ic_dislike_filled else R.drawable.ic_dislike
+        )
+        binding.imgDislike.imageTintList = ColorStateList.valueOf(if (isDisliked) activeColor else defaultColor)
+    }
+
+    private fun updateBellIcon() {
+        when (bellState) {
+            0 -> binding.btnBell.setImageResource(R.drawable.ic_notifications_active)
+            1 -> binding.btnBell.setImageResource(R.drawable.ic_notifications)
+            2 -> binding.btnBell.setImageResource(R.drawable.ic_notifications)
+        }
+    }
+
+    // Cached data for like button persistence
+    private var cachedThumbnail: String? = null
+    private var cachedChannelTitle: String? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setupObservers() {
@@ -235,18 +366,44 @@ class YoutubePlayer : AppCompatActivity() {
             }
         }
 
+        // Check if this video is already liked
         databaseViewModel.isFavouriteVideo(currentVideoId)
         databaseViewModel.isFavourite.observe(this) { videoId ->
-            binding.btnLike.isChecked = videoId == currentVideoId
+            isLiked = videoId == currentVideoId
+            updateLikeDislikeUI()
         }
 
+        // Subscribe state
         databaseViewModel.isSubscribed.observe(this) { isSubscribed ->
-            if (isSubscribed) {
-                binding.btnSubscribe.text = "Subscribed"
-                binding.btnSubscribe.setIconResource(R.drawable.rounded_done_24)
-            } else {
-                binding.btnSubscribe.text = "Subscribe"
-                binding.btnSubscribe.setIconResource(0)
+            updateSubscribeUI(isSubscribed)
+        }
+
+        // Comments
+        setupCommentsObserver()
+    }
+
+    private fun setupCommentsObserver() {
+        youtubePlayerViewModel.getCommentThreads(currentVideoId)
+        youtubePlayerViewModel.commentThreads.observe(this) { resource ->
+            when (resource) {
+                is YoutubeResource.Success -> {
+                    val comments = resource.data.items ?: emptyList()
+                    binding.commentsRecyclerView.layoutManager =
+                        LinearLayoutManager(this@YoutubePlayer)
+                    binding.commentsRecyclerView.adapter =
+                        CommentsAdapter(this@YoutubePlayer, comments)
+
+                    binding.textCommentsHeader.text = "Comments (${comments.size})"
+
+                    // Show "View all comments" if there's more to load
+                    binding.btnShowAllComments.visibility =
+                        if (youtubePlayerViewModel.commentNextPageToken != null) View.VISIBLE else View.GONE
+                }
+                is YoutubeResource.Error -> {
+                    binding.textCommentsHeader.text = "Comments"
+                    binding.btnShowAllComments.visibility = View.GONE
+                }
+                else -> {}
             }
         }
     }
@@ -254,6 +411,10 @@ class YoutubePlayer : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updateVideoUI(item: Item) {
         item.snippet?.let { snippet ->
+            currentVideoTitle = snippet.title ?: ""
+            cachedThumbnail = snippet.thumbnails?.high?.url
+            cachedChannelTitle = snippet.channelTitle
+
             binding.textTitle.text = snippet.title
             binding.textDescription.text = snippet.description
 
@@ -264,32 +425,10 @@ class YoutubePlayer : AppCompatActivity() {
             val likeCount = FormatUtils.formatCount(item.statistics?.likeCount?.toLong() ?: 0)
 
             binding.metaInfoText.text = "$viewCount views"
-            binding.btnLike.text = likeCount
+            binding.txtLikeCount.text = likeCount
 
-            setupLikeButton(snippet)
             handleRecentVideo(item)
             saveToPreferences(item, viewCount)
-        }
-    }
-
-    private fun setupLikeButton(snippet: com.google.android.piyush.youtube.model.Snippet) {
-        binding.btnLike.addOnCheckedStateChangedListener { _, state ->
-            val isChecked = state == MaterialCheckBox.STATE_CHECKED
-            FormatUtils.animateBounce(binding.btnLike)
-
-            if (isChecked) {
-                databaseViewModel.insertFavouriteVideos(
-                    EntityFavouritePlaylist(
-                        videoId = currentVideoId,
-                        thumbnail = snippet.thumbnails?.high?.url,
-                        title = snippet.title,
-                        channelId = currentChannelId,
-                        channelTitle = snippet.channelTitle
-                    )
-                )
-            } else {
-                databaseViewModel.deleteFavouriteVideo(currentVideoId)
-            }
         }
     }
 
@@ -308,11 +447,54 @@ class YoutubePlayer : AppCompatActivity() {
         }
     }
 
+    private fun updateSubscribeUI(isSubscribed: Boolean) {
+        if (isSubscribed) {
+            binding.btnSubscribe.text = "Subscribed"
+            binding.btnSubscribe.setIconResource(R.drawable.rounded_done_24)
+            // Switch to gray tonal style
+            binding.btnSubscribe.setBackgroundColor(
+                MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorSurfaceContainerHigh)
+            )
+            binding.btnSubscribe.setTextColor(
+                MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSurface)
+            )
+            binding.btnSubscribe.iconTint = ColorStateList.valueOf(
+                MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSurface)
+            )
+            // Show bell
+            binding.btnBell.visibility = View.VISIBLE
+        } else {
+            binding.btnSubscribe.text = "Subscribe"
+            binding.btnSubscribe.setIconResource(0)
+            // Switch to filled dark style
+            binding.btnSubscribe.setBackgroundColor(
+                MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSurface)
+            )
+            binding.btnSubscribe.setTextColor(
+                MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorSurface)
+            )
+            // Hide bell
+            binding.btnBell.visibility = View.GONE
+        }
+    }
+
     private fun setupSubscribeButton(item: ChannelItem) {
         binding.btnSubscribe.setOnClickListener {
             val isCurrentlySubscribed = databaseViewModel.isSubscribed.value ?: false
+
+            FormatUtils.animateSubscribe(binding.btnSubscribe)
+            FormatUtils.triggerHaptic(binding.btnSubscribe)
+
             if (isCurrentlySubscribed) {
-                databaseViewModel.deleteSubscription(currentChannelId)
+                // Confirm unsubscribe
+                MaterialAlertDialogBuilder(this)
+                    .setTitle("Unsubscribe")
+                    .setMessage("Are you sure you want to unsubscribe from ${item.snippet?.title}?")
+                    .setPositiveButton("Unsubscribe") { _, _ ->
+                        databaseViewModel.deleteSubscription(currentChannelId)
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
             } else {
                 item.snippet?.let { snippet ->
                     databaseViewModel.insertSubscription(
@@ -364,6 +546,38 @@ class YoutubePlayer : AppCompatActivity() {
         }
     }
 
+    private fun downloadVideo() {
+        Snackbar.make(binding.root, "Preparing download...", Snackbar.LENGTH_SHORT).show()
+
+        scope.launch {
+            try {
+                val streamUrl = NewPipeStreamExtractor.extractStreamUrl(currentVideoId)
+                if (streamUrl != null) {
+                    val request = DownloadManager.Request(Uri.parse(streamUrl))
+                        .setTitle(currentVideoTitle.ifEmpty { "Dopamine Video" })
+                        .setDescription("Downloading via Dopamine")
+                        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                        .setDestinationInExternalPublicDir(
+                            Environment.DIRECTORY_DOWNLOADS,
+                            "Dopamine/${currentVideoTitle.take(50).replace("[^a-zA-Z0-9 ]".toRegex(), "")}.mp4"
+                        )
+                        .setAllowedOverMetered(true)
+                        .setAllowedOverRoaming(true)
+
+                    val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+                    downloadManager.enqueue(request)
+
+                    Snackbar.make(binding.root, "Download started", Snackbar.LENGTH_SHORT).show()
+                } else {
+                    Snackbar.make(binding.root, "Could not extract video stream", Snackbar.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Download error", e)
+                Snackbar.make(binding.root, "Download failed: ${e.message}", Snackbar.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     private fun enterPipMode() {
         val params = android.app.PictureInPictureParams.Builder()
@@ -400,7 +614,7 @@ class YoutubePlayer : AppCompatActivity() {
 
     override fun onDestroy() {
         binding.YtPlayer.release()
+        scope.cancel()
         super.onDestroy()
     }
-
 }

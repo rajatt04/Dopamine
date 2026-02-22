@@ -142,90 +142,90 @@
                     app:layout_constraintStart_toStartOf="@id/textTitle"
                     app:layout_constraintTop_toBottomOf="@id/textTitle" />
 
-                <!-- Channel Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/channelCard"
-                    android:layout_width="match_parent"
+                <!-- Channel Row -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/channelImage"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="16dp"
+                    android:scaleType="centerCrop"
+                    app:layout_constraintStart_toStartOf="@id/textTitle"
+                    app:layout_constraintTop_toBottomOf="@id/metaInfoText"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                    tools:srcCompat="@tools:sample/avatars" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/channelName"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/circular_spotify"
+                    android:maxLines="1"
+                    android:text="@string/channel_title"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toTopOf="@id/channelSubscribers"
+                    app:layout_constraintEnd_toStartOf="@id/btnSubscribe"
+                    app:layout_constraintStart_toEndOf="@id/channelImage"
+                    app:layout_constraintTop_toTopOf="@id/channelImage"
+                    app:layout_constraintVertical_chainStyle="packed" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/channelSubscribers"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.7"
+                    android:fontFamily="@font/proxima_nova"
+                    android:text="1M Subscribers"
+                    android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="@id/channelImage"
+                    app:layout_constraintEnd_toStartOf="@id/btnSubscribe"
+                    app:layout_constraintStart_toStartOf="@id/channelName"
+                    app:layout_constraintTop_toBottomOf="@id/channelName" />
+
+                <!-- Subscribe Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSubscribe"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="4dp"
+                    android:text="Subscribe"
+                    android:textAllCaps="false"
+                    android:textSize="13sp"
+                    app:cornerRadius="18dp"
+                    app:layout_constraintBottom_toBottomOf="@id/channelImage"
+                    app:layout_constraintEnd_toStartOf="@id/btnBell"
+                    app:layout_constraintTop_toTopOf="@id/channelImage" />
+
+                <!-- Bell icon -->
+                <ImageButton
+                    android:id="@+id/btnBell"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
                     android:layout_marginEnd="16dp"
-                    android:layout_marginTop="20dp"
-                    style="?attr/materialCardViewFilledStyle"
-                    app:cardBackgroundColor="@android:color/transparent"
-                    app:strokeWidth="0dp"
-                    app:layout_constraintTop_toBottomOf="@id/metaInfoText">
-
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-                        
-                        <com.google.android.material.imageview.ShapeableImageView
-                            android:id="@+id/channelImage"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:scaleType="centerCrop"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-                            tools:srcCompat="@tools:sample/avatars" />
-
-                        <com.google.android.material.textview.MaterialTextView
-                            android:id="@+id/channelName"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:layout_marginEnd="16dp"
-                            android:ellipsize="end"
-                            android:fontFamily="@font/circular_spotify"
-                            android:maxLines="1"
-                            android:text="@string/channel_title"
-                            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                            android:textStyle="bold"
-                            android:textColor="?attr/colorOnSurface"
-                            app:layout_constraintBottom_toTopOf="@id/channelSubscribers"
-                            app:layout_constraintEnd_toStartOf="@id/btnSubscribe"
-                            app:layout_constraintStart_toEndOf="@id/channelImage"
-                            app:layout_constraintTop_toTopOf="@id/channelImage"
-                            app:layout_constraintVertical_chainStyle="packed" />
-
-                        <com.google.android.material.textview.MaterialTextView
-                            android:id="@+id/channelSubscribers"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/proxima_nova"
-                            android:text="1M Subscribers"
-                            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            app:layout_constraintBottom_toBottomOf="@id/channelImage"
-                            app:layout_constraintEnd_toEndOf="@id/channelName"
-                            app:layout_constraintStart_toStartOf="@id/channelName"
-                            app:layout_constraintTop_toBottomOf="@id/channelName" />
-                            
-                         <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnSubscribe"
-                            style="@style/Widget.Material3.Button.TonalButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Subscribe"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintBottom_toBottomOf="parent"/>
-
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                </com.google.android.material.card.MaterialCardView>
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Notifications"
+                    android:src="@drawable/ic_notifications_active"
+                    android:visibility="gone"
+                    app:tint="?attr/colorOnSurface"
+                    app:layout_constraintBottom_toBottomOf="@id/channelImage"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/channelImage" />
 
                 <!-- Actions ScrollView -->
                 <HorizontalScrollView
                     android:id="@+id/actionsScroll"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="16dp"
                     android:clipToPadding="false"
                     android:paddingStart="16dp"
                     android:paddingEnd="16dp"
                     android:scrollbars="none"
-                    app:layout_constraintTop_toBottomOf="@id/channelCard">
+                    app:layout_constraintTop_toBottomOf="@id/channelImage">
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -233,25 +233,103 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
-                        <!-- Like Button (More Expressive Pill Shape) -->
-                        <com.google.android.material.checkbox.MaterialCheckBox
-                            android:id="@+id/btnLike"
+                        <!-- Like / Dislike Pill -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/likeDislikePill"
+                            android:layout_width="wrap_content"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="8dp"
+                            app:cardBackgroundColor="?attr/colorSecondaryContainer"
+                            app:cardCornerRadius="20dp"
+                            app:cardElevation="0dp"
+                            app:strokeWidth="0dp">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <LinearLayout
+                                    android:id="@+id/btnLikeContainer"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="match_parent"
+                                    android:background="?attr/selectableItemBackgroundBorderless"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:gravity="center"
+                                    android:orientation="horizontal"
+                                    android:paddingStart="14dp"
+                                    android:paddingEnd="14dp">
+
+                                    <ImageView
+                                        android:id="@+id/imgLike"
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:src="@drawable/ic_like_video"
+                                        app:tint="?attr/colorOnSecondaryContainer" />
+
+                                    <com.google.android.material.textview.MaterialTextView
+                                        android:id="@+id/txtLikeCount"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="6dp"
+                                        android:fontFamily="@font/proxima_nova"
+                                        android:text="@string/like"
+                                        android:textColor="?attr/colorOnSecondaryContainer"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+
+                                <View
+                                    android:layout_width="1dp"
+                                    android:layout_height="24dp"
+                                    android:alpha="0.3"
+                                    android:background="?attr/colorOnSecondaryContainer" />
+
+                                <LinearLayout
+                                    android:id="@+id/btnDislikeContainer"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="match_parent"
+                                    android:background="?attr/selectableItemBackgroundBorderless"
+                                    android:clickable="true"
+                                    android:focusable="true"
+                                    android:gravity="center"
+                                    android:orientation="horizontal"
+                                    android:paddingStart="14dp"
+                                    android:paddingEnd="14dp">
+
+                                    <ImageView
+                                        android:id="@+id/imgDislike"
+                                        android:layout_width="20dp"
+                                        android:layout_height="20dp"
+                                        android:src="@drawable/ic_dislike"
+                                        app:tint="?attr/colorOnSecondaryContainer" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnShare"
                             style="@style/Widget.Material3.Button.TonalButton.Icon"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="8dp"
-                            android:button="@null"
-                            android:drawableStart="@drawable/ic_like_video"
-                            android:drawablePadding="8dp"
-                            android:gravity="center"
-                            android:minHeight="44dp"
-                            android:paddingStart="20dp"
-                            android:paddingEnd="20dp"
-                            android:text="@string/like"
-                            android:textColor="?attr/colorOnSecondaryContainer"
-                            app:checkedIcon="@drawable/ic_favourite"
-                            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-                             />
+                            android:minHeight="40dp"
+                            android:text="Share"
+                            app:icon="@drawable/ic_share"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnDownload"
+                            style="@style/Widget.Material3.Button.TonalButton.Icon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:minHeight="40dp"
+                            android:text="Download"
+                            app:icon="@drawable/ic_download"
+                            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnAddToPlaylist"
@@ -259,22 +337,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="8dp"
-                            android:minHeight="44dp"
+                            android:minHeight="40dp"
                             android:text="Save"
-                            android:textColor="?attr/colorOnSecondaryContainer"
                             app:icon="@drawable/round_add_24"
-                            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnCustomPlaylist"
-                            style="@style/Widget.Material3.Button.TonalButton.Icon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:minHeight="44dp"
-                            android:text="Playlist"
-                            android:textColor="?attr/colorOnSecondaryContainer"
-                            app:icon="@drawable/ic_library"
                             app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 
                         <com.google.android.material.button.MaterialButton
@@ -282,9 +347,8 @@
                             style="@style/Widget.Material3.Button.TonalButton.Icon"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:minHeight="44dp"
+                            android:minHeight="40dp"
                             android:text="PIP"
-                            android:textColor="?attr/colorOnSecondaryContainer"
                             app:icon="@drawable/ic_picture_in_picture"
                             app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 
