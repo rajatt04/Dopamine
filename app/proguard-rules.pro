@@ -32,3 +32,6 @@
 # OkHttp
 -dontwarn okhttp3.**
 -dontwarn okio.**
+
+# Jsoup optional dependencies
+-dontwarn com.google.re2j.**
