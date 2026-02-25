@@ -13,6 +13,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
+        buildConfigField("String", "YOUTUBE_API_KEYS", "\"${project.findProperty("YOUTUBE_API_KEYS") ?: ""}\"")
+        buildConfigField("String", "YOUTUBE_EXTRA_KEYS", "\"${project.findProperty("YOUTUBE_EXTRA_KEYS") ?: ""}\"")
     }
 
     buildTypes {
@@ -30,6 +33,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 

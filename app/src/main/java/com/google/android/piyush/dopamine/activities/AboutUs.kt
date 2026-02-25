@@ -9,14 +9,15 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.databinding.ActivityAboutUsBinding
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
-import com.google.android.piyush.youtube.utilities.DevelopersViewModel
+import com.google.android.piyush.youtube.model.DevelopersViewModel
+import com.google.android.piyush.youtube.model.Developer
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 
 class AboutUs(context: Context) : MaterialAlertDialogBuilder(context) {
 
     private var binding: ActivityAboutUsBinding = ActivityAboutUsBinding.inflate(LayoutInflater.from(context))
     private var developersViewModel: DevelopersViewModel
-    private val devObserver: androidx.lifecycle.Observer<YoutubeResource<List<com.google.android.piyush.youtube.utilities.Developer>>>
+    private val devObserver: androidx.lifecycle.Observer<YoutubeResource<List<Developer>>>
     init {
         setView(binding.root)
         developersViewModel = DevelopersViewModel()

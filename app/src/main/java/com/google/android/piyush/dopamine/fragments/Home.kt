@@ -107,6 +107,43 @@ class Home : Fragment() {
         }
 
         if(NetworkUtilities.isNetworkAvailable(requireContext())) {
+            // Register reGetVideos observer ONCE (for retry scenario)
+            homeViewModel.reGetVideos.observe(viewLifecycleOwner) { videos ->
+                when (videos) {
+                    is YoutubeResource.Loading -> {
+                        binding.shimmerRecyclerView.visibility = View.VISIBLE
+                        binding.shimmerRecyclerView.startShimmer()
+                    }
+                    is YoutubeResource.Success -> {
+                        binding.shimmerRecyclerView.visibility = View.INVISIBLE
+                        binding.shimmerRecyclerView.stopShimmer()
+                        binding.recyclerView.apply {
+                            setHasFixedSize(true)
+                            layoutManager = LinearLayoutManager(context)
+                            homeAdapter = HomeAdapter(requireContext(), videos.data) { video ->
+                                val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
+                                sharedViewModel.selectVideo(video)
+                            }
+                            adapter = homeAdapter
+                        }
+                    }
+                    is YoutubeResource.Error -> {
+                        binding.shimmerRecyclerView.visibility = View.INVISIBLE
+                        binding.shimmerRecyclerView.stopShimmer()
+                        MaterialAlertDialogBuilder(requireContext())
+                            .apply {
+                                this.setTitle("Something went wrong")
+                                this.setMessage(videos.exception.message.toString())
+                                this.setIcon(R.drawable.ic_dialog_error)
+                                this.setCancelable(false)
+                                this.setPositiveButton("Try again later") { dialog, _ ->
+                                    dialog?.dismiss()
+                                }.create().show()
+                            }
+                    }
+                }
+            }
+
             homeViewModel.videos.observe(viewLifecycleOwner) {videos ->
                 when (videos) {
                     is YoutubeResource.Loading -> {
@@ -138,39 +175,6 @@ class Home : Fragment() {
                                 }
                                 this.setPositiveButton("Retry") { _, _ ->
                                     homeViewModel.reGetHomeVideos()
-                                    homeViewModel.reGetVideos.observe(viewLifecycleOwner){ videos ->
-                                        when (videos) {
-                                            is YoutubeResource.Loading -> {
-                                                binding.shimmerRecyclerView.visibility = View.VISIBLE
-                                                binding.shimmerRecyclerView.startShimmer()
-                                            }
-                                            is YoutubeResource.Success -> {
-                                                binding.shimmerRecyclerView.visibility = View.INVISIBLE
-                                                binding.shimmerRecyclerView.stopShimmer()
-                                            binding.recyclerView.apply {
-                                                    setHasFixedSize(true)
-                                                    layoutManager = LinearLayoutManager(context)
-                                                    homeAdapter = HomeAdapter(requireContext(), videos.data) { video ->
-                                                        val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
-                                                        sharedViewModel.selectVideo(video)
-                                                    }
-                                                    adapter = homeAdapter
-                                                }
-                                            }
-                                            is YoutubeResource.Error -> {
-                                                MaterialAlertDialogBuilder(requireContext())
-                                                    .apply {
-                                                        this.setTitle("Something went wrong")
-                                                        this.setMessage(videos.exception.message.toString())
-                                                        this.setIcon(R.drawable.ic_dialog_error)
-                                                        this.setCancelable(false)
-                                                        this.setPositiveButton("Try again later") { dialog, _ ->
-                                                            dialog?.dismiss()
-                                                        }.create().show()
-                                                    }
-                                            }
-                                        }
-                                    }
                                 }.create().show()
                             }
                     }

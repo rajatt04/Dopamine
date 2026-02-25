@@ -31,7 +31,7 @@ import com.google.android.piyush.dopamine.databinding.ActivityDopamineUserProfil
 import com.google.android.piyush.dopamine.utilities.CustomDialog
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
 import com.google.android.piyush.dopamine.utilities.Utilities
-import com.google.android.piyush.youtube.utilities.DopamineVersionViewModel
+import com.google.android.piyush.youtube.model.DopamineVersionViewModel
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 
 class DopamineUserProfile : AppCompatActivity() {

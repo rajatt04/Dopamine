@@ -22,7 +22,7 @@ import com.google.android.material.carousel.FullScreenCarouselStrategy
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.databinding.ActivityAboutDopamineBinding
 import com.google.android.piyush.dopamine.utilities.Utilities
-import com.google.android.piyush.youtube.utilities.Photos
+import com.google.android.piyush.youtube.model.Photos
 import kotlin.random.Random
 
 class AboutDopamine : AppCompatActivity() {

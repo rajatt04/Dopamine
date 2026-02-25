@@ -61,7 +61,7 @@ class HomeViewModel(
                 _reGetVideos.postValue(
                     YoutubeResource.Loading
                 )
-                val response = youtubeRepositoryImpl.reGetHomeVideos()
+                val response = youtubeRepositoryImpl.getHomeVideos(useExtraKey = true)
                 if(response.items.isNullOrEmpty()) {
                     _reGetVideos.postValue(
                         YoutubeResource.Error(

@@ -7,12 +7,12 @@ import com.google.android.piyush.youtube.model.channelDetails.YoutubeChannel
 import com.google.android.piyush.youtube.model.channelPlaylists.ChannelPlaylists
 
 interface YoutubeRepository {
-    suspend fun getHomeVideos() : Youtube
-    suspend fun getLibraryVideos(playListId : String) : Youtube
-    suspend fun getSearchVideos(query : String) : SearchTube
+    suspend fun getHomeVideos(useExtraKey: Boolean = false) : Youtube
+    suspend fun getLibraryVideos(playListId : String, useExtraKey: Boolean = false) : Youtube
+    suspend fun getSearchVideos(query : String, useExtraKey: Boolean = false) : SearchTube
     suspend fun getChannelDetails(channelId : String) : YoutubeChannel
     suspend fun getChannelsPlaylists(channelId : String) : ChannelPlaylists
-    suspend fun getPlaylistVideos(playListId : String) : Youtube
-    suspend fun getVideoDetails(videoId : String) : Youtube
+    suspend fun getPlaylistVideos(playListId : String, useExtraKey: Boolean = false) : Youtube
+    suspend fun getVideoDetails(videoId : String, useExtraKey: Boolean = false) : Youtube
     suspend fun getCommentThreads(videoId: String, order: String = "relevance", pageToken: String? = null): CommentThreads
 }

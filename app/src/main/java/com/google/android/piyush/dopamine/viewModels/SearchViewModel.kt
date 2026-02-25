@@ -45,7 +45,7 @@ class SearchViewModel(
         viewModelScope.launch {
             try {
                 _reGetSearchVideos.postValue(YoutubeResource.Loading)
-                val videos = youtubeRepositoryImpl.reGetSearchVideos(query)
+                val videos = youtubeRepositoryImpl.getSearchVideos(query, useExtraKey = true)
                 if(videos.items.isNullOrEmpty()){
                     _reGetSearchVideos.postValue(
                         YoutubeResource.Error(

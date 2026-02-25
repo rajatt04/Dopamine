@@ -53,8 +53,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Suppress("DEPRECATION")
 class YoutubePlayer : AppCompatActivity() {
@@ -83,7 +84,6 @@ class YoutubePlayer : AppCompatActivity() {
         private const val KEY_CHANNEL_ID = "channelId"
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -511,9 +511,8 @@ class YoutubePlayer : AppCompatActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun handleRecentVideo(item: Item) {
-        val currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("hh:mm a"))
+        val currentTime = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
         databaseViewModel.isRecentVideo(currentVideoId)
         databaseViewModel.isRecent.observe(this) { recentVideoId ->
             if (recentVideoId == currentVideoId) {
@@ -578,8 +577,8 @@ class YoutubePlayer : AppCompatActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun enterPipMode() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val params = android.app.PictureInPictureParams.Builder()
             .setAspectRatio(android.util.Rational(16, 9))
             .build()

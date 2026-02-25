@@ -53,8 +53,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Suppress("DEPRECATION")
 class YoutubePlayerFragment : Fragment() {
@@ -110,7 +111,6 @@ class YoutubePlayerFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_youtube_player, container, false)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initViews(view)
@@ -299,7 +299,6 @@ class YoutubePlayerFragment : Fragment() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun setupObservers() {
         sharedViewModel.currentVideo.observe(viewLifecycleOwner) { video ->
             if (video != null && currentVideoId != video.videoId) {
@@ -315,7 +314,6 @@ class YoutubePlayerFragment : Fragment() {
         setupInnerObservers()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun fetchVideoDetails() {
         youtubePlayerViewModel.getVideoDetails(currentVideoId)
         youtubePlayerViewModel.getChannelDetails(currentChannelId)
@@ -327,7 +325,6 @@ class YoutubePlayerFragment : Fragment() {
     private var cachedThumbnail: String? = null
     private var cachedChannelTitle: String? = null
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun setupInnerObservers() {
         youtubePlayerViewModel.videoDetails.observe(viewLifecycleOwner) { resource ->
             if (resource is YoutubeResource.Success) resource.data.items?.firstOrNull()?.let { updateVideoUI(it) }
@@ -366,7 +363,6 @@ class YoutubePlayerFragment : Fragment() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateVideoUI(item: Item) {
         item.snippet?.let {
             currentVideoTitle = it.title ?: ""
@@ -427,9 +423,8 @@ class YoutubePlayerFragment : Fragment() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun handleRecentVideo(item: Item) {
-        val time = LocalTime.now().format(DateTimeFormatter.ofPattern("hh:mm a"))
+        val time = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
         databaseViewModel.isRecentVideo(currentVideoId)
         databaseViewModel.isRecent.observe(viewLifecycleOwner) { if (it == currentVideoId) databaseViewModel.updateRecentVideo(currentVideoId, time) else databaseViewModel.insertRecentVideos(EntityRecentVideos(0, currentVideoId, item.snippet?.thumbnails?.high?.url, item.snippet?.title, time, currentChannelId)) }
     }

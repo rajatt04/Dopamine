@@ -77,11 +77,10 @@ class DatabaseViewModel(
         }
     }
 
-    fun isFavouriteVideo(videoId: String) : String {
+    fun isFavouriteVideo(videoId: String) {
         viewModelScope.launch {
-          _isFavourite.value =  dopamineDatabaseRepository.isFavouriteVideo(videoId)
+            _isFavourite.value = dopamineDatabaseRepository.isFavouriteVideo(videoId)
         }
-        return _isFavourite.value.toString()
     }
 
     fun deleteFavouriteVideo(videoId: String) {
@@ -108,11 +107,10 @@ class DatabaseViewModel(
         }
     }
 
-    fun isRecentVideo(videoId: String) : String {
+    fun isRecentVideo(videoId: String) {
         viewModelScope.launch {
-           _isRecent.value = dopamineDatabaseRepository.isRecentVideo(videoId)
+            _isRecent.value = dopamineDatabaseRepository.isRecentVideo(videoId)
         }
-        return _isRecent.value.toString()
     }
 
     fun updateRecentVideo(videoId: String,time : String) {
@@ -160,74 +158,86 @@ class DatabaseViewModel(
     val defaultMasterDev = database.writableDatabase.execSQL("CREATE TABLE IF NOT EXISTS DopamineMastersDev (playlistName TEXT PRIMARY KEY, playlistDescription TEXT)")
     fun createCustomPlaylist(playlistsData: CustomPlaylistView) {
         val writableDatabase = database.writableDatabase
-        val newPlaylistName = stringify(playlistsData.playListName)
-        val query = "CREATE TABLE IF NOT EXISTS $newPlaylistName (videoId TEXT PRIMARY KEY, title TEXT, thumbnail TEXT, channelId TEXT, publishedAt TEXT , viewCount TEXT, channelTitle TEXT , duration TEXT)"
+        val newPlaylistName = sanitizeTableName(playlistsData.playListName)
         writableDatabase.execSQL("CREATE TABLE IF NOT EXISTS DopamineMastersDev (playlistName TEXT PRIMARY KEY, playlistDescription TEXT)")
-        writableDatabase.execSQL("INSERT INTO DopamineMastersDev VALUES (\"${stringify(playlistsData.playListName)}\",\"${playlistsData.playListDescription}\") ")
+        val values = ContentValues().apply {
+            put("playlistName", sanitizeTableName(playlistsData.playListName))
+            put("playlistDescription", playlistsData.playListDescription)
+        }
+        writableDatabase.insert("DopamineMastersDev", 1, values)
+        val query = "CREATE TABLE IF NOT EXISTS $newPlaylistName (videoId TEXT PRIMARY KEY, title TEXT, thumbnail TEXT, channelId TEXT, publishedAt TEXT, viewCount TEXT, channelTitle TEXT, duration TEXT)"
         writableDatabase.execSQL(query)
     }
 
-    fun addItemsInCustomPlaylist(playlistName: String,playlistsData: CustomPlaylists) {
+    fun addItemsInCustomPlaylist(playlistName: String, playlistsData: CustomPlaylists) {
         val writableDatabase = database.writableDatabase
-        val newPlaylistName = stringify(playlistName)
-        val title = playlistsData.title
-        if(!title.isNullOrEmpty()){
-           title.replace('"', ' ')
+        val newPlaylistName = sanitizeTableName(playlistName)
+        val values = ContentValues().apply {
+            put("videoId", playlistsData.videoId)
+            put("title", playlistsData.title?.replace('"', ' '))
+            put("thumbnail", playlistsData.thumbnail)
+            put("channelId", playlistsData.channelId)
+            put("publishedAt", playlistsData.publishedAt)
+            put("viewCount", playlistsData.viewCount)
+            put("channelTitle", playlistsData.channelTitle)
+            put("duration", playlistsData.duration)
         }
-        val query = "INSERT INTO $newPlaylistName VALUES (\"${playlistsData.videoId}\",\"${playlistsData.title}\",\"${playlistsData.thumbnail}\",\"${playlistsData.channelId}\",\"${playlistsData.publishedAt}\",\"${playlistsData.viewCount}\",\"${playlistsData.channelTitle}\",\"${playlistsData.duration}\")"
-        writableDatabase.execSQL(query)
+        writableDatabase.insert(newPlaylistName, 1, values)
     }
 
     fun userFromPhoneAuth() {
-        val usersFavoritePlayListDescription =  "You can store your favorite videos here"
+        val usersFavoritePlayListDescription = "You can store your favorite videos here"
         val writableDatabase = database.writableDatabase
-        writableDatabase.execSQL("CREATE TABLE IF NOT EXISTS dopaminePlaylist (videoId TEXT PRIMARY KEY, title TEXT, thumbnail TEXT, channelId TEXT, publishedAt TEXT , viewCount TEXT, channelTitle TEXT , duration TEXT)")
-        writableDatabase.execSQL("INSERT INTO DopamineMastersDev VALUES (\"dopaminePlaylist\",\"$usersFavoritePlayListDescription\")")
+        writableDatabase.execSQL("CREATE TABLE IF NOT EXISTS dopaminePlaylist (videoId TEXT PRIMARY KEY, title TEXT, thumbnail TEXT, channelId TEXT, publishedAt TEXT, viewCount TEXT, channelTitle TEXT, duration TEXT)")
+        val values = ContentValues().apply {
+            put("playlistName", "dopaminePlaylist")
+            put("playlistDescription", usersFavoritePlayListDescription)
+        }
+        writableDatabase.insert("DopamineMastersDev", 1, values)
     }
 
-    fun getPlaylist() : List<CustomPlaylistView>{
+    fun getPlaylist(): List<CustomPlaylistView> {
         val writableDatabase = database.writableDatabase
         val list = mutableListOf<CustomPlaylistView>()
-        val data  = writableDatabase.query("SELECT * FROM DopamineMastersDev ORDER BY playlistName ASC")
-        while (data.moveToNext()){
-            list.add(
-                CustomPlaylistView(
-                    stringify(
-                        data.getString(0)
-                    ),
-                    data.getString(1)
+        writableDatabase.query("SELECT * FROM DopamineMastersDev ORDER BY playlistName ASC").use { data ->
+            while (data.moveToNext()) {
+                list.add(
+                    CustomPlaylistView(
+                        displayName(data.getString(0)),
+                        data.getString(1)
+                    )
                 )
-            )
+            }
         }
         Log.d(ContentValues.TAG, " -> viewModel : Database || GetPlaylist : $list")
         return list
     }
 
-    fun getPlaylistsFromDatabase() : List<String>{
+    fun getPlaylistsFromDatabase(): List<String> {
         val writableDatabase = database.writableDatabase
         val list = mutableListOf<String>()
-        val query = "SELECT name FROM sqlite_master Where type=\"table\" except \n" +
-                "select name from sqlite_master where name=\"android_metadata\" Except  select name from sqlite_master where name= \"recent_videos\" except  select name from sqlite_master where name= \"room_master_table\" except  \n" +
-                " select name from sqlite_master where name= \"sqlite_sequence\" except  select name from sqlite_master where name= \"search_table\" except  select name from sqlite_master where name= \"favorite_playlist\" except  select name from sqlite_master where name= \"DopamineMastersDev\" "
-        val data  = writableDatabase.query(query)
-        while(data.moveToNext()){
-            list.add(
-                stringify(data.getString(0))
-            )
-            Log.d("list",list.toString())
+        val excludedTables = setOf(
+            "android_metadata", "recent_videos", "room_master_table",
+            "sqlite_sequence", "search_table", "favorite_playlist",
+            "DopamineMastersDev", "subscription_table"
+        )
+        writableDatabase.query("SELECT name FROM sqlite_master WHERE type='table'").use { data ->
+            while (data.moveToNext()) {
+                val tableName = data.getString(0)
+                if (tableName !in excludedTables) {
+                    list.add(displayName(tableName))
+                }
+            }
         }
         Log.d(ContentValues.TAG, " -> viewModel : Database || GetAllPlaylist : $list")
         return list
     }
 
-    fun isExistsDataInPlaylist(playlistName: String,videoId: String) : Boolean {
+    fun isExistsDataInPlaylist(playlistName: String, videoId: String): Boolean {
         val writableDatabase = database.writableDatabase
-        val newPlaylistName = stringify(playlistName)
-        val query = "SELECT videoId FROM $newPlaylistName WHERE videoId = \"$videoId\" "
-        val data = writableDatabase.query(query)
-        while (data.moveToNext()) {
-            val dbTableVideoId= data.getString(0)
-            if(dbTableVideoId == videoId){
+        val newPlaylistName = sanitizeTableName(playlistName)
+        writableDatabase.query("SELECT videoId FROM $newPlaylistName WHERE videoId = ?", arrayOf(videoId)).use { data ->
+            if (data.moveToFirst()) {
                 Log.d(ContentValues.TAG, " -> viewModel : Database || isExistsDataInPlaylist : $newPlaylistName || True")
                 return true
             }
@@ -236,84 +246,80 @@ class DatabaseViewModel(
         return false
     }
 
-    fun countTheNumberOfCustomPlaylist() : Int {
+    fun countTheNumberOfCustomPlaylist(): Int {
         val writableDatabase = database.writableDatabase
-
-        val query = "SELECT COUNT(*) FROM DopamineMastersDev"
-        val data = writableDatabase.query(
-            query
-        )
         var count = 0
-        while (data.moveToNext()){
-            count = data.getInt(0)
+        writableDatabase.query("SELECT COUNT(*) FROM DopamineMastersDev").use { data ->
+            if (data.moveToFirst()) {
+                count = data.getInt(0)
+            }
         }
         Log.d(ContentValues.TAG, " -> viewModel : Database || countTheNumberOfCustomPlaylist : $count")
         return count
     }
 
-    fun deleteVideoFromPlaylist(playlistName: String,videoId: String){
+    fun deleteVideoFromPlaylist(playlistName: String, videoId: String) {
         val writableDatabase = database.writableDatabase
-        val newPlaylistName = stringify(playlistName)
-        val query = "DELETE FROM $newPlaylistName WHERE videoId = \"$videoId\" "
-        writableDatabase.execSQL(query)
+        val newPlaylistName = sanitizeTableName(playlistName)
+        writableDatabase.execSQL("DELETE FROM $newPlaylistName WHERE videoId = ?", arrayOf(videoId))
     }
 
-    fun isPlaylistExist(playlistName : String) : Boolean {
+    fun isPlaylistExist(playlistName: String): Boolean {
         val writableDatabase = database.writableDatabase
-        val query = writableDatabase.query("SELECT playlistName FROM DopamineMastersDev WHERE playlistName = \"$playlistName\" ")
-        while (query.moveToNext()){
-            val dbTableName = query.getString(0)
-            if(query.getString(0).isNotEmpty()){
-                if(dbTableName == playlistName){
-                    Log.d(ContentValues.TAG, " -> viewModel : Database || isPlaylistExist : $playlistName || True")
-                    return true
-                }
+        val sanitized = sanitizeTableName(playlistName)
+        writableDatabase.query("SELECT playlistName FROM DopamineMastersDev WHERE playlistName = ?", arrayOf(sanitized)).use { cursor ->
+            if (cursor.moveToFirst()) {
+                Log.d(ContentValues.TAG, " -> viewModel : Database || isPlaylistExist : $playlistName || True")
+                return true
             }
         }
         Log.d(ContentValues.TAG, " -> viewModel : Database || isPlaylistExist : $playlistName || False")
         return false
     }
 
-    fun getPlaylistData(playlistName : String) : List<CustomPlaylists> {
+    fun getPlaylistData(playlistName: String): List<CustomPlaylists> {
         val writableDatabase = database.writableDatabase
-        val newPlaylistName = stringify(playlistName)
+        val newPlaylistName = sanitizeTableName(playlistName)
         val list = mutableListOf<CustomPlaylists>()
-        val query = writableDatabase.query("SELECT * FROM $newPlaylistName")
-        while (query.moveToNext()){
-            list.add(
-                CustomPlaylists(
-                    query.getString(0),
-                    query.getString(1),
-                    query.getString(2),
-                    query.getString(3),
-                    query.getString(4),
-                    query.getString(5),
-                    query.getString(6),
-                    query.getString(7)
+        writableDatabase.query("SELECT * FROM $newPlaylistName").use { cursor ->
+            while (cursor.moveToNext()) {
+                list.add(
+                    CustomPlaylists(
+                        cursor.getString(0),
+                        cursor.getString(1),
+                        cursor.getString(2),
+                        cursor.getString(3),
+                        cursor.getString(4),
+                        cursor.getString(5),
+                        cursor.getString(6),
+                        cursor.getString(7)
+                    )
                 )
-            )
+            }
         }
         Log.d(ContentValues.TAG, " -> viewModel : Database || getPlaylistData : $list")
         return list
     }
 
+    /**
+     * Converts a display name into a safe SQLite table name.
+     * Replaces spaces with underscores, strips unsafe characters.
+     */
+    private fun sanitizeTableName(name: String): String {
+        if (name.isBlank()) return "Null"
+        return name
+            .replace(" ", "_")
+            .replace("(", "_")
+            .replace(")", "_")
+            .replace(Regex("[^a-zA-Z0-9_]"), "")
+    }
 
-    private fun stringify(playlistName: String): String {
-        val name = if(playlistName.isNotEmpty()){
-            if(playlistName.contains(" ")){
-                playlistName.replace(" ","_")
-            } else{
-                playlistName.replace("_"," ")
-            }
-        } else {
-            "Null"
-        }
-
-        val nameRecheck = if(name.contains('(') && name.contains(')')){
-            name.replace('(','_').replace(')','_')
-        }else{
-          return name
-        }
-        return nameRecheck
+    /**
+     * Converts a sanitized table name back to a display name.
+     * Replaces underscores with spaces for UI display.
+     */
+    private fun displayName(tableName: String): String {
+        if (tableName.isBlank()) return "Null"
+        return tableName.replace("_", " ")
     }
 }

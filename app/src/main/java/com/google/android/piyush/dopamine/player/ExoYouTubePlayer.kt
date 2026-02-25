@@ -30,6 +30,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import com.google.android.piyush.dopamine.utilities.FormatUtils
 
 /**
  * Custom YouTube-style player using NewPipe Extractor + ExoPlayer.
@@ -398,7 +399,7 @@ class ExoYouTubePlayer @JvmOverloads constructor(
                 if (fromUser) {
                     val duration = exoPlayer?.duration ?: 0L
                     val newPos = (duration * progress / 1000L)
-                    textCurrentTime.text = formatTime(newPos)
+                    textCurrentTime.text = FormatUtils.formatTime(newPos)
                 }
             }
 
@@ -537,12 +538,12 @@ class ExoYouTubePlayer @JvmOverloads constructor(
             seekBar.progress = (position * 1000 / duration).toInt()
             seekBar.secondaryProgress = buffered * 10
         }
-        textCurrentTime.text = formatTime(position)
+        textCurrentTime.text = FormatUtils.formatTime(position)
     }
 
     private fun updateDuration() {
         val dur = exoPlayer?.duration ?: 0L
-        textDuration.text = formatTime(dur)
+        textDuration.text = FormatUtils.formatTime(dur)
         seekBar.max = 1000
     }
 
@@ -558,18 +559,6 @@ class ExoYouTubePlayer @JvmOverloads constructor(
             centerControls.visibility = View.INVISIBLE
         } else {
             centerControls.visibility = View.VISIBLE
-        }
-    }
-
-    private fun formatTime(millis: Long): String {
-        val totalSeconds = millis / 1000
-        val hours = totalSeconds / 3600
-        val minutes = (totalSeconds % 3600) / 60
-        val seconds = totalSeconds % 60
-        return if (hours > 0) {
-            String.format("%d:%02d:%02d", hours, minutes, seconds)
-        } else {
-            String.format("%d:%02d", minutes, seconds)
         }
     }
 }
