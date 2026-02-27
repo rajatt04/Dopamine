@@ -35,3 +35,31 @@
 
 # Jsoup optional dependencies
 -dontwarn com.google.re2j.**
+
+# ========== Hilt / Dagger ==========
+-dontwarn dagger.hilt.**
+-keep class dagger.hilt.** { *; }
+-keep class javax.inject.** { *; }
+-keep class * extends dagger.hilt.android.internal.managers.ViewComponentManager$FragmentContextWrapper { *; }
+
+# ========== Ktor CIO Client ==========
+-dontwarn io.ktor.**
+-keep class io.ktor.** { *; }
+
+# ========== kotlinx.serialization ==========
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+-keepclassmembers @kotlinx.serialization.Serializable class ** {
+    *** Companion;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class **$$serializer { *; }
+
+# ========== YouTube API Models ==========
+-keep class com.google.android.piyush.youtube.model.** { *; }
+-keep class com.google.android.piyush.database.entities.** { *; }
+-keep class com.google.android.piyush.database.model.** { *; }
+
+# ========== Preserve line numbers for crash reports ==========
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile

@@ -19,3 +19,17 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# ========== Youtube Module Rules ==========
+# Keep all serializable API model classes
+-keep class com.google.android.piyush.youtube.model.** { *; }
+
+# Ktor CIO engine
+-dontwarn io.ktor.**
+-keep class io.ktor.** { *; }
+
+# kotlinx.serialization
+-keepclassmembers @kotlinx.serialization.Serializable class ** {
+    *** Companion;
+    kotlinx.serialization.KSerializer serializer(...);
+}

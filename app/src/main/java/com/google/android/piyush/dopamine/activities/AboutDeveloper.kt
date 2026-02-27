@@ -20,6 +20,9 @@ import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.youtube.model.DevelopersViewModel
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
 class AboutDeveloper : AppCompatActivity() {
     private lateinit var binding: ActivityAboutDeveloperBinding
     private lateinit var developersViewModel: DevelopersViewModel

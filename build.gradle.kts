@@ -5,4 +5,5 @@ plugins {
     alias(libs.plugins.android.library) apply false
     kotlin("jvm") version "2.1.0"
     id("com.google.devtools.ksp") version "2.1.0-1.0.29" apply false
+    alias(libs.plugins.hilt.android) apply false
 }

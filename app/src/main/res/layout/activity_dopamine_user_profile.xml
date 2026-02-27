@@ -61,9 +61,10 @@
                     android:layout_width="72dp"
                     android:layout_height="72dp"
                     android:scaleType="centerCrop"
+                    android:padding="4dp"
                     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                     app:strokeColor="?attr/colorOnPrimaryContainer"
-                    app:strokeWidth="2dp" />
+                    app:strokeWidth="4dp" />
 
                 <LinearLayout
                     android:layout_width="0dp"

@@ -25,6 +25,9 @@ import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.youtube.model.Photos
 import kotlin.random.Random
 
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
 class AboutDopamine : AppCompatActivity() {
     private lateinit var binding: ActivityAboutDopamineBinding
 

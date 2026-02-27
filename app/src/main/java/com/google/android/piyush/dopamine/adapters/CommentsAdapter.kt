@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.imageview.ShapeableImageView
@@ -12,13 +14,16 @@ import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.youtube.model.CommentThreadItem
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 class CommentsAdapter(
     private val context: Context,
-    private val comments: List<CommentThreadItem>
-) : RecyclerView.Adapter<CommentsAdapter.ViewHolder>() {
+    comments: List<CommentThreadItem>
+) : ListAdapter<CommentThreadItem, CommentsAdapter.ViewHolder>(CommentDiffCallback()) {
+
+    init {
+        submitList(comments)
+    }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val authorImage: ShapeableImageView = itemView.findViewById(R.id.authorImage)
@@ -33,14 +38,14 @@ class CommentsAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = comments[position].snippet?.topLevelComment?.snippet
-        
+        val item = getItem(position).snippet?.topLevelComment?.snippet
+
         holder.commentText.text = item?.textDisplay
         holder.likeCount.text = item?.likeCount?.toString() ?: "0"
 
         val authorName = item?.authorDisplayName ?: "Anonymous"
         val publishedAt = item?.publishedAt ?: ""
-        
+
         val timeAgo = if (publishedAt.isNotEmpty() && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             try {
                 val odt = OffsetDateTime.parse(publishedAt)
@@ -59,11 +64,9 @@ class CommentsAdapter(
             .into(holder.authorImage)
     }
 
-    override fun getItemCount(): Int = comments.size
-
     private fun formatTimeAgo(dateTime: LocalDateTime): String {
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return ""
-        
+
         val now = LocalDateTime.now()
         val seconds = ChronoUnit.SECONDS.between(dateTime, now)
         val minutes = ChronoUnit.MINUTES.between(dateTime, now)
@@ -80,5 +83,19 @@ class CommentsAdapter(
             minutes > 0 -> "$minutes m"
             else -> "$seconds s"
         }
+    }
+}
+
+private class CommentDiffCallback : DiffUtil.ItemCallback<CommentThreadItem>() {
+    override fun areItemsTheSame(oldItem: CommentThreadItem, newItem: CommentThreadItem): Boolean {
+        // CommentThreadItem has no direct id field; use the comment text + author as identity
+        val oldSnippet = oldItem.snippet?.topLevelComment?.snippet
+        val newSnippet = newItem.snippet?.topLevelComment?.snippet
+        return oldSnippet?.authorDisplayName == newSnippet?.authorDisplayName
+                && oldSnippet?.publishedAt == newSnippet?.publishedAt
+    }
+
+    override fun areContentsTheSame(oldItem: CommentThreadItem, newItem: CommentThreadItem): Boolean {
+        return oldItem == newItem
     }
 }

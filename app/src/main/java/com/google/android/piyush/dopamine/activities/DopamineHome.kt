@@ -18,6 +18,9 @@ import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.DopamineHomeViewModel
 import com.google.android.piyush.dopamine.viewModels.SharedViewModel
 
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
 class DopamineHome : AppCompatActivity() {
 
     private val viewModel : DopamineHomeViewModel by viewModels<DopamineHomeViewModel>()

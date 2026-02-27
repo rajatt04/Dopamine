@@ -9,6 +9,9 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.android.piyush.dopamine.databinding.FragmentLibraryBinding
 
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
 class Library : Fragment() {
 
     private var _binding: FragmentLibraryBinding? = null

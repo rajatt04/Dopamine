@@ -12,11 +12,15 @@ import com.google.android.piyush.database.viewModel.DatabaseViewModel
 import com.google.android.piyush.dopamine.adapters.SubscriptionsAdapter
 import com.google.android.piyush.dopamine.databinding.FragmentSubscriptionsBinding
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.fragment.app.activityViewModels
+
+@AndroidEntryPoint
 class SubscriptionsFragment : Fragment() {
 
     private var _binding: FragmentSubscriptionsBinding? = null
     private val binding get() = _binding!!
-    private lateinit var databaseViewModel: DatabaseViewModel
+    private val databaseViewModel: DatabaseViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,7 +33,7 @@ class SubscriptionsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        databaseViewModel = DatabaseViewModel(requireActivity().application)
+
         
         setupRecyclerView()
         setupRefreshLayout()

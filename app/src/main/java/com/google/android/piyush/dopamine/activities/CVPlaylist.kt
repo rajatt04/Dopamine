@@ -11,13 +11,19 @@ import com.google.android.piyush.database.viewModel.DatabaseViewModel
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.CustomPlaylistsVDataAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityCvplaylistBinding
+import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 
+import androidx.activity.viewModels
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
 class CVPlaylist : AppCompatActivity() {
-    private lateinit var databaseViewModel: DatabaseViewModel
+    private val databaseViewModel: DatabaseViewModel by viewModels()
     private lateinit var binding : ActivityCvplaylistBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        databaseViewModel = DatabaseViewModel(application)
+
         binding = ActivityCvplaylistBinding.inflate(layoutInflater)
         setContentView(binding.root)
         enableEdgeToEdge()
@@ -29,13 +35,16 @@ class CVPlaylist : AppCompatActivity() {
 
         val playlist = intent.getStringExtra("playlistName")
         if(playlist != null) {
-            binding.materialTextView.text = playlist
-            binding.customPlayListVideos.apply {
-                setHasFixedSize(false)
-                layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
-                adapter = CustomPlaylistsVDataAdapter(databaseViewModel.getPlaylistData(playlist),context)
+            lifecycleScope.launch {
+                val data = databaseViewModel.getPlaylistData(playlist)
+                binding.materialTextView.text = playlist
+                binding.customPlayListVideos.apply {
+                    setHasFixedSize(false)
+                    layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+                    adapter = CustomPlaylistsVDataAdapter(data,context)
+                }
+                Log.d(TAG, " -> Activity : CVPlaylist || PlaylistData : $playlist")
             }
-            Log.d(TAG, " -> Activity : CVPlaylist || PlaylistData : $playlist")
         }
     }
 }

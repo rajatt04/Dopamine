@@ -23,7 +23,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
+
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -43,10 +43,9 @@ import com.google.android.piyush.dopamine.utilities.FormatUtils
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.SharedViewModel
 import com.google.android.piyush.dopamine.viewModels.YoutubePlayerViewModel
-import com.google.android.piyush.dopamine.viewModels.YoutubePlayerViewModelFactory
 import com.google.android.piyush.youtube.model.Item
 import com.google.android.piyush.youtube.model.channelDetails.Item as ChannelItem
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
+
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +56,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.fragment.app.viewModels
+
+@AndroidEntryPoint
 @Suppress("DEPRECATION")
 class YoutubePlayerFragment : Fragment() {
 
@@ -81,8 +84,8 @@ class YoutubePlayerFragment : Fragment() {
     private lateinit var btnMiniPlay: ImageButton
     private lateinit var btnMiniClose: ImageButton
 
-    private lateinit var youtubePlayerViewModel: YoutubePlayerViewModel
-    private lateinit var databaseViewModel: DatabaseViewModel
+    private val youtubePlayerViewModel: YoutubePlayerViewModel by viewModels()
+    private val databaseViewModel: DatabaseViewModel by activityViewModels()
     private val sharedViewModel: SharedViewModel by activityViewModels()
 
     private var currentVideoId: String = ""
@@ -114,7 +117,6 @@ class YoutubePlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initViews(view)
-        initViewModels()
         setupPlayer()
         setupClickListeners()
         setupObservers()
@@ -142,12 +144,6 @@ class YoutubePlayerFragment : Fragment() {
         txtLikeCount = view.findViewById(R.id.txtLikeCount)
     }
 
-    private fun initViewModels() {
-        val repository = YoutubeRepositoryImpl()
-        val factory = YoutubePlayerViewModelFactory(repository)
-        youtubePlayerViewModel = ViewModelProvider(this, factory)[YoutubePlayerViewModel::class.java]
-        databaseViewModel = DatabaseViewModel(requireActivity().application)
-    }
 
     private fun setupPlayer() {
         youtubePlayer.setShowControls(false)

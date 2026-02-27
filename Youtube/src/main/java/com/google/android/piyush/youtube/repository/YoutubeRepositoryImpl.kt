@@ -9,7 +9,35 @@ import com.google.android.piyush.youtube.model.channelPlaylists.ChannelPlaylists
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.plugins.ServerResponseException
+import java.io.IOException
+import java.net.ConnectException
+
 class YoutubeRepositoryImpl : YoutubeRepository {
+
+    private suspend inline fun <T> safeApiCall(crossinline apiCall: suspend () -> T): T {
+        return try {
+            apiCall()
+        } catch (e: HttpRequestTimeoutException) {
+            throw Exception("Connection timed out. Please check your internet connection and try again.")
+        } catch (e: ConnectException) {
+            throw Exception("Unable to connect to the server. Please check your internet connection.")
+        } catch (e: IOException) {
+            throw Exception("Network error. Please check your internet connection.")
+        } catch (e: ClientRequestException) {
+            if (e.response.status.value == 403) {
+                throw Exception("The request cannot be completed because you have exceeded your quota.")
+            } else {
+                throw Exception("Client error: ${e.response.status.description}")
+            }
+        } catch (e: ServerResponseException) {
+            throw Exception("Server unreachable. Please try again later.")
+        } catch (e: Exception) {
+            throw Exception("An unexpected error occurred.")
+        }
+    }
 
     /**
      * Returns the appropriate API key based on whether we want the extra (fallback) keys.
@@ -18,7 +46,7 @@ class YoutubeRepositoryImpl : YoutubeRepository {
         return if (useExtraKey) YoutubeClient.EXTRA_KEYS else YoutubeClient.API_KEY
     }
 
-    override suspend fun getCommentThreads(videoId: String, order: String, pageToken: String?): CommentThreads {
+    override suspend fun getCommentThreads(videoId: String, order: String, pageToken: String?): CommentThreads = safeApiCall {
         val response = YoutubeClient.CLIENT.get(
             YoutubeClient.YOUTUBE + YoutubeClient.COMMENT_THREADS
         ){
@@ -33,10 +61,10 @@ class YoutubeRepositoryImpl : YoutubeRepository {
                 parameters.append("key", apiKey())
             }
         }
-        return response.body()
+        response.body()
     }
 
-    override suspend fun getHomeVideos(useExtraKey: Boolean): Youtube {
+    override suspend fun getHomeVideos(useExtraKey: Boolean): Youtube = safeApiCall {
         val response = YoutubeClient.CLIENT.get(
             YoutubeClient.YOUTUBE + YoutubeClient.VIDEO
         ){
@@ -48,10 +76,10 @@ class YoutubeRepositoryImpl : YoutubeRepository {
                 parameters.append("key", apiKey(useExtraKey))
             }
         }
-        return response.body()
+        response.body()
     }
 
-    override suspend fun getLibraryVideos(playListId: String, useExtraKey: Boolean): Youtube {
+    override suspend fun getLibraryVideos(playListId: String, useExtraKey: Boolean): Youtube = safeApiCall {
         val response = YoutubeClient.CLIENT.get(
             YoutubeClient.YOUTUBE + YoutubeClient.PLAYLIST
         ){
@@ -62,10 +90,10 @@ class YoutubeRepositoryImpl : YoutubeRepository {
                 parameters.append("key", apiKey(useExtraKey))
             }
         }
-        return response.body()
+        response.body()
     }
 
-    override suspend fun getSearchVideos(query: String, useExtraKey: Boolean): SearchTube {
+    override suspend fun getSearchVideos(query: String, useExtraKey: Boolean): SearchTube = safeApiCall {
         val response = YoutubeClient.CLIENT.get(
             YoutubeClient.YOUTUBE + YoutubeClient.SEARCH
         ){
@@ -76,10 +104,10 @@ class YoutubeRepositoryImpl : YoutubeRepository {
                 parameters.append("key", apiKey(useExtraKey))
             }
         }
-        return response.body()
+        response.body()
     }
 
-    override suspend fun getChannelDetails(channelId: String): YoutubeChannel {
+    override suspend fun getChannelDetails(channelId: String): YoutubeChannel = safeApiCall {
         val response = YoutubeClient.CLIENT.get(
             YoutubeClient.YOUTUBE + YoutubeClient.CHANNEL
         ){
@@ -89,10 +117,10 @@ class YoutubeRepositoryImpl : YoutubeRepository {
                 parameters.append("key", apiKey())
             }
         }
-        return response.body()
+        response.body()
     }
 
-    override suspend fun getChannelsPlaylists(channelId: String): ChannelPlaylists {
+    override suspend fun getChannelsPlaylists(channelId: String): ChannelPlaylists = safeApiCall {
         val response = YoutubeClient.CLIENT.get(
             YoutubeClient.YOUTUBE + YoutubeClient.PLAYLISTS
         ) {
@@ -103,10 +131,10 @@ class YoutubeRepositoryImpl : YoutubeRepository {
                 parameters.append("key", apiKey())
             }
         }
-        return response.body()
+        response.body()
     }
 
-    override suspend fun getPlaylistVideos(playListId: String, useExtraKey: Boolean): Youtube {
+    override suspend fun getPlaylistVideos(playListId: String, useExtraKey: Boolean): Youtube = safeApiCall {
         val response = YoutubeClient.CLIENT.get(
             YoutubeClient.YOUTUBE + YoutubeClient.PLAYLIST
             ){
@@ -117,10 +145,10 @@ class YoutubeRepositoryImpl : YoutubeRepository {
                 parameters.append("key", apiKey(useExtraKey))
             }
         }
-        return response.body()
+        response.body()
     }
 
-    override suspend fun getVideoDetails(videoId: String, useExtraKey: Boolean): Youtube {
+    override suspend fun getVideoDetails(videoId: String, useExtraKey: Boolean): Youtube = safeApiCall {
         val response = YoutubeClient.CLIENT.get(
             YoutubeClient.YOUTUBE + YoutubeClient.VIDEO
         ){
@@ -130,6 +158,6 @@ class YoutubeRepositoryImpl : YoutubeRepository {
                 parameters.append("key", apiKey(useExtraKey))
             }
         }
-        return response.body()
+        response.body()
     }
 }

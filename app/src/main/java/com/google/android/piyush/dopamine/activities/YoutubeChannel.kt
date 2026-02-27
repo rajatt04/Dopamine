@@ -7,7 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.ViewModelProvider
+
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.piyush.database.viewModel.DatabaseViewModel
@@ -16,30 +16,25 @@ import com.google.android.piyush.dopamine.adapters.YoutubeChannelPlaylistsAdapte
 import com.google.android.piyush.dopamine.databinding.ActivityYoutubeChannelBinding
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.YoutubeChannelViewModel
-import com.google.android.piyush.dopamine.viewModels.YoutubeChannelViewModelFactory
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
+
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.activity.viewModels
+
+@AndroidEntryPoint
 class YoutubeChannel : AppCompatActivity() {
 
     private val TAG = "YoutubeChannel"
     private lateinit var binding: ActivityYoutubeChannelBinding
-    private lateinit var youtubeRepositoryImpl: YoutubeRepositoryImpl
-    private lateinit var youtubeChannelViewModel: YoutubeChannelViewModel
-    private lateinit var youtubeChannelViewModelFactory: YoutubeChannelViewModelFactory
-    private lateinit var databaseViewModel: DatabaseViewModel
+    private val youtubeChannelViewModel: YoutubeChannelViewModel by viewModels()
+    private val databaseViewModel: DatabaseViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityYoutubeChannelBinding.inflate(layoutInflater)
-        databaseViewModel = DatabaseViewModel(application)
-        youtubeRepositoryImpl = YoutubeRepositoryImpl()
-        youtubeChannelViewModelFactory = YoutubeChannelViewModelFactory(youtubeRepositoryImpl)
-        youtubeChannelViewModel = ViewModelProvider(
-            this,
-            youtubeChannelViewModelFactory
-        )[YoutubeChannelViewModel::class.java]
+
         setContentView(binding.root)
 
         enableEdgeToEdge()

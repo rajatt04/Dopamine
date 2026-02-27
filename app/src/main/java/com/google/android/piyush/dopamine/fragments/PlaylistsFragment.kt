@@ -9,12 +9,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.piyush.database.viewModel.DatabaseViewModel
 import com.google.android.piyush.dopamine.adapters.CustomPlayListVAdapter
 import com.google.android.piyush.dopamine.databinding.FragmentPlaylistsBinding
+import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.fragment.app.activityViewModels
+
+@AndroidEntryPoint
 class PlaylistsFragment : Fragment() {
 
     private var _binding: FragmentPlaylistsBinding? = null
     private val binding get() = _binding!!
-    private lateinit var databaseViewModel: DatabaseViewModel
+    private val databaseViewModel: DatabaseViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -27,7 +33,7 @@ class PlaylistsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        databaseViewModel = DatabaseViewModel(requireActivity().application)
+
         
         binding.swipeRefreshLayout.setOnRefreshListener {
             loadPlaylists()
@@ -37,20 +43,22 @@ class PlaylistsFragment : Fragment() {
     }
 
     private fun loadPlaylists() {
-        val playlists = databaseViewModel.getPlaylist()
-        if (playlists.isEmpty()) {
-            binding.emptyState.visibility = View.VISIBLE
-            binding.recyclerView.visibility = View.GONE
-        } else {
-            binding.emptyState.visibility = View.GONE
-            binding.recyclerView.visibility = View.VISIBLE
-            binding.recyclerView.apply {
-                setHasFixedSize(true)
-                layoutManager = LinearLayoutManager(context)
-                adapter = CustomPlayListVAdapter(requireContext(), playlists)
+        viewLifecycleOwner.lifecycleScope.launch {
+            val playlists = databaseViewModel.getPlaylist()
+            if (playlists.isEmpty()) {
+                binding.emptyState.visibility = View.VISIBLE
+                binding.recyclerView.visibility = View.GONE
+            } else {
+                binding.emptyState.visibility = View.GONE
+                binding.recyclerView.visibility = View.VISIBLE
+                binding.recyclerView.apply {
+                    setHasFixedSize(true)
+                    layoutManager = LinearLayoutManager(context)
+                    adapter = CustomPlayListVAdapter(requireContext(), playlists)
+                }
             }
+            binding.swipeRefreshLayout.isRefreshing = false
         }
-        binding.swipeRefreshLayout.isRefreshing = false
     }
 
     override fun onDestroyView() {

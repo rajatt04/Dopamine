@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.hilt.android)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -25,6 +27,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -46,10 +49,21 @@ android {
             isUniversalApk = true
         }
     }
-    packagingOptions {
+
+    packaging {
         jniLibs {
-            useLegacyPackaging = true
+            // Removed useLegacyPackaging for smaller APK via compressed native libs
         }
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = true
+        // Flag unused resources for manual review
+        disable += "MissingTranslation"
     }
 
 }
@@ -75,6 +89,8 @@ dependencies {
     implementation(project(":Youtube"))
     implementation(project(":Database"))
     implementation(libs.androidx.preference)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

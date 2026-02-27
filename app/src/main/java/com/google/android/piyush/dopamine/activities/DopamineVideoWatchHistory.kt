@@ -1,6 +1,6 @@
 package com.google.android.piyush.dopamine.activities
 
-import android.app.Application
+
 import android.content.ContentValues
 import android.os.Bundle
 import android.util.Log
@@ -15,16 +15,20 @@ import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.RecentVideosAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityDopamineVideoWatchHistoryBinding
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.activity.viewModels
+
+@AndroidEntryPoint
 class DopamineVideoWatchHistory : AppCompatActivity() {
 
     private lateinit var binding: ActivityDopamineVideoWatchHistoryBinding
-    private lateinit var databaseViewModel: DatabaseViewModel
+    private val databaseViewModel: DatabaseViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityDopamineVideoWatchHistoryBinding.inflate(layoutInflater)
-        databaseViewModel = DatabaseViewModel(applicationContext as Application)
+
         setContentView(binding.root)
 
         enableEdgeToEdge()

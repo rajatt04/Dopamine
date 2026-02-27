@@ -23,7 +23,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.lifecycle.ViewModelProvider
+
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.color.MaterialColors
@@ -42,10 +42,9 @@ import com.google.android.piyush.dopamine.player.PlayerSettingsSheet
 import com.google.android.piyush.dopamine.utilities.FormatUtils
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.YoutubePlayerViewModel
-import com.google.android.piyush.dopamine.viewModels.YoutubePlayerViewModelFactory
 import com.google.android.piyush.youtube.model.Item
 import com.google.android.piyush.youtube.model.channelDetails.Item as ChannelItem
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
+
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
@@ -57,12 +56,16 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.activity.viewModels
+
+@AndroidEntryPoint
 @Suppress("DEPRECATION")
 class YoutubePlayer : AppCompatActivity() {
 
     private lateinit var binding: ActivityYoutubePlayerBinding
-    private lateinit var youtubePlayerViewModel: YoutubePlayerViewModel
-    private lateinit var databaseViewModel: DatabaseViewModel
+    private val youtubePlayerViewModel: YoutubePlayerViewModel by viewModels()
+    private val databaseViewModel: DatabaseViewModel by viewModels()
 
     private var currentVideoId: String = ""
     private var currentChannelId: String = ""
@@ -90,7 +93,7 @@ class YoutubePlayer : AppCompatActivity() {
         binding = ActivityYoutubePlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        initViewModels()
+
         setupWindowInsets()
         getIntentData()
         setupPlayer()
@@ -98,12 +101,6 @@ class YoutubePlayer : AppCompatActivity() {
         setupObservers()
     }
 
-    private fun initViewModels() {
-        val repository = YoutubeRepositoryImpl()
-        val factory = YoutubePlayerViewModelFactory(repository)
-        youtubePlayerViewModel = ViewModelProvider(this, factory)[YoutubePlayerViewModel::class.java]
-        databaseViewModel = DatabaseViewModel(applicationContext as Application)
-    }
 
     private fun setupWindowInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
@@ -550,7 +547,7 @@ class YoutubePlayer : AppCompatActivity() {
 
         scope.launch {
             try {
-                val streamUrl = NewPipeStreamExtractor.extractStreamUrl(currentVideoId)
+                val streamUrl = kotlinx.coroutines.withContext(Dispatchers.IO) { NewPipeStreamExtractor.extractStreamUrl(currentVideoId) }
                 if (streamUrl != null) {
                     val request = DownloadManager.Request(Uri.parse(streamUrl))
                         .setTitle(currentVideoTitle.ifEmpty { "Dopamine Video" })

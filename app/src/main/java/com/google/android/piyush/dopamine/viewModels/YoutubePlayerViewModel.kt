@@ -3,16 +3,19 @@ package com.google.android.piyush.dopamine.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+
 import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.youtube.model.Youtube
 import com.google.android.piyush.youtube.model.channelPlaylists.ChannelPlaylists
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
+import com.google.android.piyush.youtube.repository.YoutubeRepository
 import com.google.android.piyush.youtube.utilities.YoutubeResource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class YoutubePlayerViewModel(
-    private val youtubeRepositoryImpl: YoutubeRepositoryImpl
+@HiltViewModel
+class YoutubePlayerViewModel @Inject constructor(
+    private val youtubeRepository: YoutubeRepository
 ) : ViewModel() {
 
     private val _videoDetails: MutableLiveData<YoutubeResource<Youtube>> = MutableLiveData()
@@ -44,7 +47,7 @@ class YoutubePlayerViewModel(
                     commentNextPageToken = null
                 }
 
-                val response = youtubeRepositoryImpl.getCommentThreads(videoId, pageToken = if (isLoadMore) commentNextPageToken else null)
+                val response = youtubeRepository.getCommentThreads(videoId, pageToken = if (isLoadMore) commentNextPageToken else null)
                 
                 commentNextPageToken = response.nextPageToken
                 response.items?.let { currentCommentsList.addAll(it) }
@@ -64,12 +67,12 @@ class YoutubePlayerViewModel(
         viewModelScope.launch {
             try {
                 _videoDetails.postValue(YoutubeResource.Loading)
-                val response = youtubeRepositoryImpl.getVideoDetails(videoId)
+                val response = youtubeRepository.getVideoDetails(videoId)
                 if (response.items.isNullOrEmpty()) {
                     _videoDetails.postValue(
                         YoutubeResource.Error(
                             Exception(
-                                "The request cannot be completed because you have exceeded your quota."
+                                "No results found."
                             )
                         )
                     )
@@ -88,7 +91,7 @@ class YoutubePlayerViewModel(
                 _channelDetails.postValue(
                     YoutubeResource.Loading
                 )
-                val response = youtubeRepositoryImpl.getChannelDetails(channelId)
+                val response = youtubeRepository.getChannelDetails(channelId)
                 if (response.items.isNullOrEmpty()) {
                     _channelDetails.postValue(
                         YoutubeResource.Error(
@@ -120,12 +123,12 @@ class YoutubePlayerViewModel(
                 _channelsPlaylists.postValue(
                     YoutubeResource.Loading
                 )
-                val response = youtubeRepositoryImpl.getChannelsPlaylists(channelId)
+                val response = youtubeRepository.getChannelsPlaylists(channelId)
                 if (response.items.isNullOrEmpty()) {
                     _channelsPlaylists.postValue(
                         YoutubeResource.Error(
                             Exception(
-                                "The request cannot be completed because you have exceeded your quota."
+                                "No results found."
                             )
                         )
                     )
@@ -143,19 +146,6 @@ class YoutubePlayerViewModel(
                     )
                 )
             }
-        }
-    }
-}
-
-class YoutubePlayerViewModelFactory(
-    private val youtubeRepositoryImpl: YoutubeRepositoryImpl
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(YoutubePlayerViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return YoutubePlayerViewModel(youtubeRepositoryImpl) as T
-        } else {
-            throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }

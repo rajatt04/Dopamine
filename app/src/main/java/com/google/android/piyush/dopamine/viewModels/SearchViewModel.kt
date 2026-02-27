@@ -2,15 +2,17 @@ package com.google.android.piyush.dopamine.viewModels
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.youtube.model.SearchTube
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
+import com.google.android.piyush.youtube.repository.YoutubeRepository
 import com.google.android.piyush.youtube.utilities.YoutubeResource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SearchViewModel(
-    private val youtubeRepositoryImpl: YoutubeRepositoryImpl
+@HiltViewModel
+class SearchViewModel @Inject constructor(
+    private val youtubeRepository: YoutubeRepository
 ) : ViewModel() {
 
     private val _searchVideos : MutableLiveData<YoutubeResource<SearchTube>> = MutableLiveData()
@@ -23,12 +25,12 @@ class SearchViewModel(
         viewModelScope.launch {
             try {
                 _searchVideos.postValue(YoutubeResource.Loading)
-                val videos = youtubeRepositoryImpl.getSearchVideos(query)
+                val videos = youtubeRepository.getSearchVideos(query)
                 if(videos.items.isNullOrEmpty()){
                     _searchVideos.postValue(
                         YoutubeResource.Error(
                             Exception(
-                                "The request cannot be completed because you have exceeded your quota."
+                                "No results found."
                             )
                         )
                     )
@@ -45,12 +47,12 @@ class SearchViewModel(
         viewModelScope.launch {
             try {
                 _reGetSearchVideos.postValue(YoutubeResource.Loading)
-                val videos = youtubeRepositoryImpl.getSearchVideos(query, useExtraKey = true)
+                val videos = youtubeRepository.getSearchVideos(query, useExtraKey = true)
                 if(videos.items.isNullOrEmpty()){
                     _reGetSearchVideos.postValue(
                         YoutubeResource.Error(
                             Exception(
-                                "The request cannot be completed because you have exceeded your quota."
+                                "No results found."
                             )
                         )
                     )
@@ -60,20 +62,6 @@ class SearchViewModel(
             } catch (e : Exception) {
                 _reGetSearchVideos.postValue(YoutubeResource.Error(e))
             }
-        }
-    }
-}
-
-
-@Suppress("UNCHECKED_CAST")
-class SearchViewModelFactory(
-    private val youtubeRepositoryImpl: YoutubeRepositoryImpl
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if(modelClass.isAssignableFrom(SearchViewModel::class.java)) {
-            return SearchViewModel(youtubeRepositoryImpl) as T
-        } else {
-            throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }

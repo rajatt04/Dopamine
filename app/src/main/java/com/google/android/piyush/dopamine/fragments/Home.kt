@@ -14,7 +14,7 @@ import android.widget.SearchView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.piyush.database.entities.EntityVideoSearch
@@ -30,25 +30,25 @@ import com.google.android.piyush.dopamine.utilities.NetworkUtilities
 import com.google.android.piyush.dopamine.utilities.ToastUtilities
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.SearchViewModel
-import com.google.android.piyush.dopamine.viewModels.SearchViewModelFactory
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 import com.google.android.piyush.youtube.viewModels.HomeViewModel
-import com.google.android.piyush.youtube.viewModels.HomeViewModelFactory
 import java.util.Calendar
 import java.util.Locale
 import kotlin.random.Random
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
+
+@AndroidEntryPoint
 class Home : Fragment() {
 
     private var fragmentHomeBinding : FragmentHomeBinding? = null
-    private lateinit var homeViewModel: HomeViewModel
-    private lateinit var searchViewModel: SearchViewModel
-    private lateinit var databaseViewModel: DatabaseViewModel
-    private lateinit var repository: YoutubeRepositoryImpl
-    private lateinit var homeViewModelFactory: HomeViewModelFactory
-    private lateinit var searchViewModelFactory: SearchViewModelFactory
-    private lateinit var homeAdapter: HomeAdapter
+    private val homeViewModel: HomeViewModel by viewModels()
+    private val searchViewModel: SearchViewModel by viewModels()
+    private val databaseViewModel: DatabaseViewModel by activityViewModels()
+    private val sharedViewModel: com.google.android.piyush.dopamine.viewModels.SharedViewModel by activityViewModels()
+    private var homeAdapter: HomeAdapter? = null
 
     private val voiceSearchLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -73,13 +73,6 @@ class Home : Fragment() {
 
         val binding = FragmentHomeBinding.bind(view)
         fragmentHomeBinding = binding
-        repository = YoutubeRepositoryImpl()
-        homeViewModelFactory = HomeViewModelFactory(repository)
-        homeViewModel = ViewModelProvider(this, homeViewModelFactory)[HomeViewModel::class.java]
-        
-        searchViewModelFactory = SearchViewModelFactory(repository)
-        searchViewModel = ViewModelProvider(this, searchViewModelFactory)[SearchViewModel::class.java]
-        databaseViewModel = DatabaseViewModel(requireActivity().application)
 
         setupSearchLogic(binding)
 
@@ -121,7 +114,6 @@ class Home : Fragment() {
                             setHasFixedSize(true)
                             layoutManager = LinearLayoutManager(context)
                             homeAdapter = HomeAdapter(requireContext(), videos.data) { video ->
-                                val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
                                 sharedViewModel.selectVideo(video)
                             }
                             adapter = homeAdapter
@@ -157,7 +149,6 @@ class Home : Fragment() {
                             setHasFixedSize(true)
                             layoutManager = LinearLayoutManager(context)
                             homeAdapter = HomeAdapter(requireContext(), videos.data) { video ->
-                                val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
                                 sharedViewModel.selectVideo(video)
                             }
                             adapter = homeAdapter

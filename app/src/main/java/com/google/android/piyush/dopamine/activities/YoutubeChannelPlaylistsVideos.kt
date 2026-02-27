@@ -8,33 +8,30 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.ViewModelProvider
+
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.YoutubePlaylistsVideosAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityYoutubeChannelPlaylistsVideosBinding
 import com.google.android.piyush.dopamine.player.ExoYouTubePlayer
 import com.google.android.piyush.dopamine.viewModels.YoutubeChannelPlaylistsVideosViewModel
-import com.google.android.piyush.dopamine.viewModels.YoutubeChannelPlaylistsViewModelFactory
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
+
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.activity.viewModels
+
+@AndroidEntryPoint
 class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
 
     private lateinit var binding: ActivityYoutubeChannelPlaylistsVideosBinding
-    private lateinit var youtubeRepositoryImpl: YoutubeRepositoryImpl
-    private lateinit var youtubeChannelPlaylistsVideosViewModel: YoutubeChannelPlaylistsVideosViewModel
-    private lateinit var youtubeChannelPlaylistsViewModelFactory: YoutubeChannelPlaylistsViewModelFactory
+    private val youtubeChannelPlaylistsVideosViewModel: YoutubeChannelPlaylistsVideosViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityYoutubeChannelPlaylistsVideosBinding.inflate(layoutInflater)
-        youtubeRepositoryImpl = YoutubeRepositoryImpl()
-        youtubeChannelPlaylistsViewModelFactory = YoutubeChannelPlaylistsViewModelFactory(youtubeRepositoryImpl)
-        youtubeChannelPlaylistsVideosViewModel = ViewModelProvider(
-            this, youtubeChannelPlaylistsViewModelFactory
-        )[YoutubeChannelPlaylistsVideosViewModel::class.java]
+
         setContentView(binding.root)
 
         enableEdgeToEdge()

@@ -1,6 +1,6 @@
 package com.google.android.piyush.dopamine.utilities
 
-import android.app.Application
+
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
@@ -15,6 +15,9 @@ import com.google.android.piyush.database.model.CustomPlaylistView
 import com.google.android.piyush.database.viewModel.DatabaseViewModel
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.databinding.ItemCustomDialogBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 object NetworkUtilities {
     fun isNetworkAvailable(context: Context): Boolean {
@@ -80,12 +83,10 @@ const val PERMISSION_REQUEST_CODE = 100
     }.create().show()
 }
 
-class CustomDialog(context: Context) : MaterialAlertDialogBuilder(context) {
+class CustomDialog(context: Context, private val databaseViewModel: DatabaseViewModel) : MaterialAlertDialogBuilder(context) {
     private var binding: ItemCustomDialogBinding
-    private var databaseViewModel: DatabaseViewModel
     init {
         setCancelable(true)
-        databaseViewModel = DatabaseViewModel(context.applicationContext as Application)
         binding = ItemCustomDialogBinding.inflate(LayoutInflater.from(context)).also {
             setView(it.root)
         }
@@ -94,22 +95,24 @@ class CustomDialog(context: Context) : MaterialAlertDialogBuilder(context) {
             val playlistName = binding.text1.text.toString().trim()
             val playlistDescription = binding.text2.text.toString().trim()
 
-            if(databaseViewModel.isPlaylistExist(playlistName)){
-                binding.textInputLayout1.isErrorEnabled = true
-                binding.textInputLayout1.error = "Playlist Already Exists"
-            }else{
-                if(playlistName.isEmpty()){
-                    ToastUtilities.showToast(context, "Please Fill All Fields")
-                }else {
-                    databaseViewModel.createCustomPlaylist(
-                        CustomPlaylistView(
-                            playlistName,
-                            playlistDescription.ifEmpty { "Empty Description" },
+            CoroutineScope(Dispatchers.Main).launch {
+                if(databaseViewModel.isPlaylistExist(playlistName)){
+                    binding.textInputLayout1.isErrorEnabled = true
+                    binding.textInputLayout1.error = "Playlist Already Exists"
+                }else{
+                    if(playlistName.isEmpty()){
+                        ToastUtilities.showToast(context, "Please Fill All Fields")
+                    }else {
+                        databaseViewModel.createCustomPlaylist(
+                            CustomPlaylistView(
+                                playlistName,
+                                playlistDescription.ifEmpty { "Empty Description" },
+                            )
                         )
-                    )
-                    binding.text1.text?.clear()
-                    binding.text2.text?.clear()
-                    ToastUtilities.showToast(context, "$playlistName Created ✅")
+                        binding.text1.text?.clear()
+                        binding.text2.text?.clear()
+                        ToastUtilities.showToast(context, "$playlistName Created ✅")
+                    }
                 }
             }
         }

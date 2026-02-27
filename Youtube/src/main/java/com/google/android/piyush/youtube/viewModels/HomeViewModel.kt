@@ -3,15 +3,17 @@ package com.google.android.piyush.youtube.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.youtube.model.Youtube
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
+import com.google.android.piyush.youtube.repository.YoutubeRepository
 import com.google.android.piyush.youtube.utilities.YoutubeResource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel(
-    private val youtubeRepositoryImpl: YoutubeRepositoryImpl
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val youtubeRepository: YoutubeRepository
 ) : ViewModel() {
 
     private val _videos : MutableLiveData<YoutubeResource<Youtube>> = MutableLiveData()
@@ -29,12 +31,12 @@ class HomeViewModel(
             _videos.postValue(
                 YoutubeResource.Loading
             )
-            val response = youtubeRepositoryImpl.getHomeVideos()
+            val response = youtubeRepository.getHomeVideos()
             if(response.items.isNullOrEmpty()){
                 _videos.postValue(
                     YoutubeResource.Error(
                         Exception(
-                            "The request cannot be completed because you have exceeded your quota."
+                            "No results found."
                         )
                     )
                 )
@@ -45,59 +47,38 @@ class HomeViewModel(
                     )
                 )
             }
-        }catch (exception : Exception){
-            _videos.postValue(
-                YoutubeResource.Error(
-                    exception = exception
-                )
-            )
-            exception.printStackTrace()
+
+        } catch (e: Exception) {
+            _videos.postValue(YoutubeResource.Error(e))
         }
+
     }
 
-    fun reGetHomeVideos() {
-        viewModelScope.launch {
-            try {
-                _reGetVideos.postValue(
-                    YoutubeResource.Loading
-                )
-                val response = youtubeRepositoryImpl.getHomeVideos(useExtraKey = true)
-                if(response.items.isNullOrEmpty()) {
-                    _reGetVideos.postValue(
-                        YoutubeResource.Error(
-                            Exception(
-                                "The request cannot be completed because you have exceeded your quota."
-                            )
-                        )
-                    )
-                }else{
-                    _reGetVideos.postValue(
-                        YoutubeResource.Success(
-                            response
-                        )
-                    )
-                }
-            }catch (exception : Exception){
+     fun reGetHomeVideos() = viewModelScope.launch {
+        try {
+            _reGetVideos.postValue(
+                YoutubeResource.Loading
+            )
+            val response = youtubeRepository.getHomeVideos(useExtraKey = true)
+            if(response.items.isNullOrEmpty()){
                 _reGetVideos.postValue(
                     YoutubeResource.Error(
-                        exception = exception
+                        Exception(
+                            "No results found."
+                        )
+                    )
+                )
+            }else{
+                _reGetVideos.postValue(
+                    YoutubeResource.Success(
+                        response
                     )
                 )
             }
-        }
-    }
-}
 
-@Suppress("UNCHECKED_CAST")
-class HomeViewModelFactory(
-    private val repository: YoutubeRepositoryImpl
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if(modelClass.isAssignableFrom(HomeViewModel::class.java)){
-            return HomeViewModel(repository) as T
+        } catch (e: Exception) {
+            _reGetVideos.postValue(YoutubeResource.Error(e))
         }
-        throw IllegalArgumentException(
-            "Unknown class name"
-        )
+
     }
 }

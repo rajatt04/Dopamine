@@ -34,6 +34,11 @@ import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.youtube.model.DopamineVersionViewModel
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 
+import dagger.hilt.android.AndroidEntryPoint
+import com.google.android.piyush.database.viewModel.DatabaseViewModel
+import androidx.fragment.app.activityViewModels
+
+@AndroidEntryPoint
 class DopamineUserProfile : AppCompatActivity() {
 
     private lateinit var binding: ActivityDopamineUserProfileBinding
@@ -262,7 +267,9 @@ class DopamineUserProfile : AppCompatActivity() {
         }
     }
 
+    @AndroidEntryPoint
     class MyBottomSheetFragment : BottomSheetDialogFragment(){
+        private val databaseViewModel: DatabaseViewModel by activityViewModels()
         override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
@@ -273,7 +280,7 @@ class DopamineUserProfile : AppCompatActivity() {
 
             val createPlaylist = view.findViewById<MaterialButton>(R.id.btCreatePlaylist)
             createPlaylist.setOnClickListener {
-                val customDialog = CustomDialog(requireContext())
+                val customDialog = CustomDialog(requireContext(), databaseViewModel)
                 customDialog.show()
             }
             return view

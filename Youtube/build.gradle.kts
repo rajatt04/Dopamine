@@ -1,12 +1,23 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     kotlin("plugin.serialization") version "1.9.23"
+    alias(libs.plugins.hilt.android)
+    id("com.google.devtools.ksp")
 }
 
 android {
     namespace = "com.google.android.piyush.youtube"
     compileSdk = 34
+
+    // Load API keys from local.properties (git-ignored)
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { localProperties.load(it) }
+    }
 
     defaultConfig {
         minSdk = 24
@@ -14,8 +25,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
-        buildConfigField("String", "YOUTUBE_API_KEYS", "\"${project.findProperty("YOUTUBE_API_KEYS") ?: ""}\"")
-        buildConfigField("String", "YOUTUBE_EXTRA_KEYS", "\"${project.findProperty("YOUTUBE_EXTRA_KEYS") ?: ""}\"")
+        buildConfigField("String", "YOUTUBE_API_KEYS", "\"${localProperties.getProperty("YOUTUBE_API_KEYS", "")}\"")
+        buildConfigField("String", "YOUTUBE_EXTRA_KEYS", "\"${localProperties.getProperty("YOUTUBE_EXTRA_KEYS", "")}\"")
     }
 
     buildTypes {
@@ -50,6 +61,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
