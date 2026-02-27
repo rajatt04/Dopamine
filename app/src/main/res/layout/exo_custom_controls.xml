@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/controlsRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Scrim overlay (semi-transparent) -->
+    <View
+        android:id="@+id/controlsScrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#66000000" />
+
+    <!-- Double Tap Seek Left Zone -->
+    <FrameLayout
+        android:id="@+id/doubleTapLeft"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:clipChildren="false">
+
+        <ImageView
+            android:id="@+id/seekLeftIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:alpha="0"
+            android:src="@drawable/ic_replay_10"
+            app:tint="@android:color/white" />
+    </FrameLayout>
+
+    <!-- Double Tap Seek Right Zone -->
+    <FrameLayout
+        android:id="@+id/doubleTapRight"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:clipChildren="false">
+
+        <ImageView
+            android:id="@+id/seekRightIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:alpha="0"
+            android:src="@drawable/ic_forward_10"
+            app:tint="@android:color/white" />
+    </FrameLayout>
+
+    <!-- ====== TOP BAR ====== -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:background="@drawable/bg_player_gradient_top"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="24dp">
+
+        <!-- Back / Collapse -->
+
+        <!-- Video Title -->
+        <TextView
+            android:id="@+id/controlsTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:textColor="@android:color/white"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:text="Video Title Goes Here" />
+
+        <!-- Settings gear -->
+        <ImageButton
+            android:id="@+id/btnSettings"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Settings"
+            android:src="@drawable/ic_settings_player"
+            app:tint="@android:color/white" />
+    </LinearLayout>
+
+    <!-- ====== CENTER CONTROLS ====== -->
+    <LinearLayout
+        android:id="@+id/centerControls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- Skip Previous -->
+        <ImageButton
+            android:id="@+id/btnSkipPrev"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="16dp"
+            android:alpha="0.9"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Previous"
+            android:src="@drawable/ic_skip_previous"
+            app:tint="@android:color/white" />
+
+        <!-- Rewind 10s -->
+        <ImageButton
+            android:id="@+id/btnRewind"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="20dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Rewind 10s"
+            android:src="@drawable/ic_replay_10"
+            app:tint="@android:color/white" />
+
+        <!-- Play / Pause (Large) -->
+        <ImageButton
+            android:id="@+id/btnPlayPause"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Play/Pause"
+            android:scaleType="fitCenter"
+            android:padding="8dp"
+            android:src="@drawable/ic_play_arrow"
+            app:tint="@android:color/white" />
+
+        <!-- Forward 10s -->
+        <ImageButton
+            android:id="@+id/btnForward"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="20dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Forward 10s"
+            android:src="@drawable/ic_forward_10"
+            app:tint="@android:color/white" />
+
+        <!-- Skip Next -->
+        <ImageButton
+            android:id="@+id/btnSkipNext"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="16dp"
+            android:alpha="0.9"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Next"
+            android:src="@drawable/ic_skip_next"
+            app:tint="@android:color/white" />
+    </LinearLayout>
+
+    <!-- ====== BOTTOM BAR ====== -->
+    <LinearLayout
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_player_gradient_bottom"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="8dp">
+
+        <!-- SeekBar -->
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxHeight="3dp"
+            android:minHeight="3dp"
+            android:progressTint="@android:color/holo_red_dark"
+            android:progressBackgroundTint="#80FFFFFF"
+            android:thumbTint="@android:color/holo_red_dark"
+            android:secondaryProgressTint="#B3FFFFFF"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp" />
+
+        <!-- Time Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Current Time -->
+            <TextView
+                android:id="@+id/textCurrentTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                tools:text="0:00" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" / "
+                android:textColor="#B3FFFFFF"
+                android:textSize="12sp" />
+
+            <!-- Duration -->
+            <TextView
+                android:id="@+id/textDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#B3FFFFFF"
+                android:textSize="12sp"
+                tools:text="10:30" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Subtitles -->
+            <ImageButton
+                android:id="@+id/btnSubtitles"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Subtitles"
+                android:src="@drawable/ic_subtitles"
+                android:visibility="gone"
+                app:tint="@android:color/white" />
+
+            <!-- Fullscreen -->
+            <ImageButton
+                android:id="@+id/btnFullscreen"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Fullscreen"
+                android:src="@drawable/ic_fullscreen"
+                app:tint="@android:color/white" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Buffering Indicator (center) -->
+    <ProgressBar
+        android:id="@+id/bufferingIndicator"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:indeterminateTint="@android:color/white"
+        android:visibility="gone" />
+
+</FrameLayout>

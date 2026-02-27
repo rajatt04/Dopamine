@@ -2,15 +2,17 @@ package com.google.android.piyush.dopamine.viewModels
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.youtube.model.Youtube
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
+import com.google.android.piyush.youtube.repository.YoutubeRepository
 import com.google.android.piyush.youtube.utilities.YoutubeResource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class YoutubeChannelPlaylistsVideosViewModel(
-    private val youtubeRepositoryImpl: YoutubeRepositoryImpl
+@HiltViewModel
+class YoutubeChannelPlaylistsVideosViewModel @Inject constructor(
+    private val youtubeRepository: YoutubeRepository
 ) : ViewModel() {
 
     private val _playlistsVideos  : MutableLiveData<YoutubeResource<Youtube>> = MutableLiveData()
@@ -20,12 +22,12 @@ class YoutubeChannelPlaylistsVideosViewModel(
         viewModelScope.launch {
             try {
                 _playlistsVideos.postValue(YoutubeResource.Loading)
-                val response = youtubeRepositoryImpl.getPlaylistVideos(channelId)
+                val response = youtubeRepository.getPlaylistVideos(channelId)
                 if(response.items.isNullOrEmpty()) {
                     _playlistsVideos.postValue(
                         YoutubeResource.Error(
                             Exception(
-                                "The request cannot be completed because you have exceeded your quota."
+                                "No results found."
                             )
                         )
                     )
@@ -40,17 +42,5 @@ class YoutubeChannelPlaylistsVideosViewModel(
                 )
             }
         }
-    }
-}
-
-@Suppress("UNCHECKED_CAST")
-class YoutubeChannelPlaylistsViewModelFactory(
-    private val youtubeRepositoryImpl: YoutubeRepositoryImpl
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if(modelClass.isAssignableFrom(YoutubeChannelPlaylistsVideosViewModel::class.java)) {
-            return YoutubeChannelPlaylistsVideosViewModel(youtubeRepositoryImpl) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

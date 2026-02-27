@@ -1,18 +1,19 @@
 package com.google.android.piyush.dopamine.adapters
 
 import android.content.Context
-import android.content.Intent
 import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import com.bumptech.glide.Glide
 import com.google.android.piyush.dopamine.R
-import com.google.android.piyush.dopamine.activities.YoutubePlayer
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
 import com.google.android.piyush.dopamine.viewHolders.HomeViewHolder
+import com.google.android.piyush.youtube.model.Item
 import com.google.android.piyush.youtube.model.Youtube
 import java.time.Duration
 import java.time.LocalDateTime
@@ -21,11 +22,13 @@ import java.time.temporal.ChronoUnit
 
 class HomeAdapter(
     private val context: Context,
-    private var youtube : Youtube?,
+    youtube: Youtube?,
     private val onVideoClick: (com.google.android.piyush.dopamine.viewModels.SelectedVideo) -> Unit
-) : RecyclerView.Adapter<HomeViewHolder>() {
+) : ListAdapter<Item, HomeViewHolder>(HomeDiffCallback()) {
 
-    // ... (onCreateViewHolder and getItemCount unchanged)
+    init {
+        submitList(youtube?.items ?: emptyList())
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HomeViewHolder {
         return HomeViewHolder(
@@ -35,15 +38,11 @@ class HomeAdapter(
         )
     }
 
-    override fun getItemCount(): Int {
-       return youtube?.items?.size!!
-    }
-
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: HomeViewHolder, position: Int) {
-        val item = youtube!!.items?.get(position)!!
-        val snippet = item.snippet!!
-        
+        val item = getItem(position)
+        val snippet = item.snippet ?: return
+
         val publishedTime = formatDuration(
             ChronoUnit.SECONDS.between(
                 LocalDateTime.parse(
@@ -52,7 +51,7 @@ class HomeAdapter(
             )
         )
         val publishedViews = viewsCount(
-            item.statistics!!.viewCount!!.toInt()
+            item.statistics?.viewCount?.toIntOrNull() ?: 0
         )
 
         val channelTitleStr = "${snippet.channelTitle} • $publishedViews • $publishedTime"
@@ -61,23 +60,34 @@ class HomeAdapter(
         holder.channelTitle.text = channelTitleStr
 
         Glide.with(context)
-            .load(snippet.thumbnails!!.default!!.url)
+            .load(snippet.thumbnails?.default?.url)
             .into(holder.imageView)
 
         Glide.with(context)
-            .load(snippet.thumbnails!!.high!!.url)
+            .load(snippet.thumbnails?.high?.url)
             .into(holder.youTubePlayerView)
 
         holder.videoDuration.text = formatDuration(
-            Duration.parse(item.contentDetails!!.duration!!)
+            Duration.parse(item.contentDetails?.duration ?: "PT0S")
         )
 
-        holder.youTubePlayer.setOnClickListener {
+        item.contentDetails?.definition?.let { definition ->
+            if (definition.equals("hd", ignoreCase = true)) {
+                holder.qualityCard.visibility = View.VISIBLE
+                holder.videoQuality.text = "HD"
+            } else {
+                holder.qualityCard.visibility = View.GONE
+            }
+        } ?: run {
+            holder.qualityCard.visibility = View.GONE
+        }
+
+        holder.itemView.setOnClickListener {
             if(NetworkUtilities.isNetworkAvailable(context)) {
                 onVideoClick(
                     com.google.android.piyush.dopamine.viewModels.SelectedVideo(
-                        videoId = item.id!!,
-                        channelId = snippet.channelId!!,
+                        videoId = item.id ?: "",
+                        channelId = snippet.channelId ?: "",
                         title = snippet.title,
                         description = snippet.description,
                         thumbnailUrl = snippet.thumbnails?.high?.url,
@@ -137,5 +147,15 @@ class HomeAdapter(
             minutes > 0 -> "$minutes minutes ago"
             else -> "$secondsRemaining seconds"
         }
+    }
+}
+
+private class HomeDiffCallback : DiffUtil.ItemCallback<Item>() {
+    override fun areItemsTheSame(oldItem: Item, newItem: Item): Boolean {
+        return oldItem.id == newItem.id
+    }
+
+    override fun areContentsTheSame(oldItem: Item, newItem: Item): Boolean {
+        return oldItem == newItem
     }
 }

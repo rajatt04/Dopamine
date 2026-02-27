@@ -3,42 +3,35 @@ package com.google.android.piyush.dopamine.activities
 import android.content.ContentValues.TAG
 import android.os.Bundle
 import android.util.Log
-import android.view.SoundEffectConstants
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.ViewModelProvider
+
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.YoutubePlaylistsVideosAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityYoutubeChannelPlaylistsVideosBinding
+import com.google.android.piyush.dopamine.player.ExoYouTubePlayer
 import com.google.android.piyush.dopamine.viewModels.YoutubeChannelPlaylistsVideosViewModel
-import com.google.android.piyush.dopamine.viewModels.YoutubeChannelPlaylistsViewModelFactory
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
-import com.google.android.piyush.youtube.utilities.YoutubeResource
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions
 
+import com.google.android.piyush.youtube.utilities.YoutubeResource
+
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.activity.viewModels
+
+@AndroidEntryPoint
 class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
 
     private lateinit var binding: ActivityYoutubeChannelPlaylistsVideosBinding
-    private lateinit var youtubeRepositoryImpl: YoutubeRepositoryImpl
-    private lateinit var youtubeChannelPlaylistsVideosViewModel: YoutubeChannelPlaylistsVideosViewModel
-    private lateinit var youtubeChannelPlaylistsViewModelFactory: YoutubeChannelPlaylistsViewModelFactory
-    private var youTubePlayer : YouTubePlayer? = null
+    private val youtubeChannelPlaylistsVideosViewModel: YoutubeChannelPlaylistsVideosViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityYoutubeChannelPlaylistsVideosBinding.inflate(layoutInflater)
-        youtubeRepositoryImpl = YoutubeRepositoryImpl()
-        youtubeChannelPlaylistsViewModelFactory = YoutubeChannelPlaylistsViewModelFactory(youtubeRepositoryImpl)
-        youtubeChannelPlaylistsVideosViewModel = ViewModelProvider(
-            this, youtubeChannelPlaylistsViewModelFactory
-        )[YoutubeChannelPlaylistsVideosViewModel::class.java]
+
         setContentView(binding.root)
 
         enableEdgeToEdge()
@@ -50,6 +43,12 @@ class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
 
         val playlistId = intent.getStringExtra("playlistId").toString()
 
+        binding.playlistsPlayer.setCallback(object : ExoYouTubePlayer.PlayerCallback {
+            override fun onReady() {
+                Log.d(TAG, "Playlist player ready")
+            }
+        })
+
         youtubeChannelPlaylistsVideosViewModel.getPlaylistsVideos(playlistId)
 
         youtubeChannelPlaylistsVideosViewModel.playlistsVideos.observe(this) { playlistsVideos ->
@@ -59,41 +58,37 @@ class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
                     binding.recyclerView.apply {
                         setHasFixedSize(true)
                         layoutManager = LinearLayoutManager(this@YoutubeChannelPlaylistsVideos)
-                        adapter = YoutubePlaylistsVideosAdapter(context,playlistsVideos.data)
+                        adapter = YoutubePlaylistsVideosAdapter(context, playlistsVideos.data)
+                    }
+
+                    val firstVideoId = playlistsVideos.data.items?.firstOrNull()?.contentDetails?.videoId
+                    if (firstVideoId != null) {
+                        binding.playlistsPlayer.loadVideo(firstVideoId)
                     }
                 }
                 is YoutubeResource.Error -> {
                     Log.d(TAG, "Error: ${playlistsVideos.exception.message.toString()}")
                     binding.channelPlaylistVideosLoader.apply {
                         visibility = View.VISIBLE
-                        setAnimation(R.raw.auth)
-                        playAnimation()
-                        playSoundEffect(SoundEffectConstants.CLICK)  //sound effect
-                        speed = 1.5f        //speed of animation
-                        @Suppress("DEPRECATION")
-                        loop(true)
+                        show()
                     }
                 }
             }
         }
+    }
 
-        binding.playlistsPlayer.apply {
-            enableAutomaticInitialization = false
-            lifecycle.addObserver(this)
-            initialize(
-                youTubePlayerListener = object : AbstractYouTubePlayerListener() {
-                    override fun onReady(youTubePlayer: YouTubePlayer) {
-                        super.onReady(youTubePlayer)
-                        this@YoutubeChannelPlaylistsVideos.youTubePlayer = youTubePlayer
-                    }
-                },
-                handleNetworkEvents = true,
-                IFramePlayerOptions.Builder(context)
-                    .controls(1)
-                    .listType("playlist")
-                    .list(playlistId)
-                    .build()
-            )
-        }
+    override fun onResume() {
+        super.onResume()
+        binding.playlistsPlayer.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.playlistsPlayer.onPause()
+    }
+
+    override fun onDestroy() {
+        binding.playlistsPlayer.release()
+        super.onDestroy()
     }
 }

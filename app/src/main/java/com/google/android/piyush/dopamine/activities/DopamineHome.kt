@@ -1,5 +1,6 @@
 package com.google.android.piyush.dopamine.activities
 
+import com.google.android.piyush.dopamine.fragments.Home
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -11,22 +12,25 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.databinding.ActivityDopamineHomeBinding
-import com.google.android.piyush.dopamine.fragments.Home
 import com.google.android.piyush.dopamine.fragments.Library
-import com.google.android.piyush.dopamine.fragments.Search
-import com.google.android.piyush.dopamine.fragments.Shorts
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.DopamineHomeViewModel
 import com.google.android.piyush.dopamine.viewModels.SharedViewModel
-import kotlin.system.exitProcess
 
-@Suppress("DEPRECATION")
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
 class DopamineHome : AppCompatActivity() {
 
     private val viewModel : DopamineHomeViewModel by viewModels<DopamineHomeViewModel>()
     private val sharedViewModel: SharedViewModel by viewModels() 
     private lateinit var binding: ActivityDopamineHomeBinding
+
+    // Fragment caching
+    private val homeFragment = Home()
+    private val libraryFragment = Library()
+    private var activeFragment: Fragment = homeFragment
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,12 +60,7 @@ class DopamineHome : AppCompatActivity() {
             if (binding.mainMotionLayout.currentState == R.id.end) {
                 binding.mainMotionLayout.transitionToState(R.id.start)
             } else {
-                 overridePendingTransition(
-                    android.R.anim.fade_in, android.R.anim.fade_out
-                )
                 finishAffinity()
-                finish()
-                exitProcess(0)
             }
         }
 
@@ -81,7 +80,11 @@ class DopamineHome : AppCompatActivity() {
         }
 
         if (savedInstanceState == null) {
-            defaultScreen(Home())
+            // Add all fragments but only show home
+            supportFragmentManager.beginTransaction().apply {
+                add(R.id.frameLayout, libraryFragment, "library").hide(libraryFragment)
+                add(R.id.frameLayout, homeFragment, "home")
+            }.commit()
         }
 
         setupBottomNavigation()
@@ -129,21 +132,11 @@ class DopamineHome : AppCompatActivity() {
         binding.bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.home -> {
-                    defaultScreen(Home())
-                    true
-                }
-                R.id.search -> {
-                    defaultScreen(Search())
+                    switchFragment(homeFragment)
                     true
                 }
                 R.id.library -> {
-                    defaultScreen(Library())
-                    true
-                }
-                R.id.shorts -> {
-                    // Hide the mini player when switching to Shorts
-                    sharedViewModel.closePlayer()
-                    defaultScreen(Shorts())
+                    switchFragment(libraryFragment)
                     true
                 }
                 else -> false
@@ -151,11 +144,12 @@ class DopamineHome : AppCompatActivity() {
         }
     }
 
-    private fun defaultScreen(fragment: Fragment){
-        val fragmentManager = supportFragmentManager
-        val fragmentTransaction = fragmentManager.beginTransaction()
-        fragmentTransaction.replace(R.id.frameLayout,fragment)
-        fragmentTransaction.commit()
+    private fun switchFragment(target: Fragment) {
+        supportFragmentManager.beginTransaction().apply {
+            hide(activeFragment)
+            show(target)
+        }.commit()
+        activeFragment = target
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

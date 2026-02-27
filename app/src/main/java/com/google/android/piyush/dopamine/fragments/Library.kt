@@ -1,317 +1,61 @@
 package com.google.android.piyush.dopamine.fragments
 
-import android.content.ContentValues.TAG
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.piyush.database.viewModel.DatabaseViewModel
-import com.google.android.piyush.dopamine.R
-import com.google.android.piyush.dopamine.activities.DopamineUserProfile
-import com.google.android.piyush.dopamine.adapters.CustomPlayListVAdapter
-import com.google.android.piyush.dopamine.adapters.LibraryAdapter
-import com.google.android.piyush.dopamine.adapters.YourFavouriteVideosAdapter
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import com.google.android.material.tabs.TabLayoutMediator
 import com.google.android.piyush.dopamine.databinding.FragmentLibraryBinding
-import com.google.android.piyush.dopamine.utilities.NetworkUtilities
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
-import com.google.android.piyush.youtube.utilities.YoutubeResource
-import com.google.android.piyush.youtube.viewModels.LibraryViewModel
-import com.google.android.piyush.youtube.viewModels.LibraryViewModelFactory
-import com.google.firebase.auth.FirebaseAuth
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
-import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions
 
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
 class Library : Fragment() {
 
-    private var fragmentLibraryBinding: FragmentLibraryBinding? = null
-    private lateinit var repository: YoutubeRepositoryImpl
-    private lateinit var viewModel : LibraryViewModel
-    private lateinit var viewModelProviderFactory: LibraryViewModelFactory
-    private lateinit var databaseViewModel: DatabaseViewModel
-    private lateinit var firebaseAuth: FirebaseAuth
-    private lateinit var libraryAdapter: LibraryAdapter
+    private var _binding: FragmentLibraryBinding? = null
+    private val binding get() = _binding!!
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.fragment_library, container, false)
+        _binding = FragmentLibraryBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val binding = FragmentLibraryBinding.bind(view)
-        fragmentLibraryBinding = binding
-        repository = YoutubeRepositoryImpl()
-        viewModelProviderFactory = LibraryViewModelFactory(repository)
-        databaseViewModel = DatabaseViewModel(requireActivity().application)
-        viewModel = ViewModelProvider(
-            this,
-            viewModelProviderFactory
-        )[LibraryViewModel::class.java]
+        val adapter = LibraryPagerAdapter(this)
+        binding.viewPager.adapter = adapter
 
-        firebaseAuth = FirebaseAuth.getInstance()
-
-        if(NetworkUtilities.isNetworkAvailable(requireContext())) {
-            viewModel.codingVideos.observe(viewLifecycleOwner) { playListVideos ->
-                when (playListVideos) {
-                    is YoutubeResource.Success -> {
-                        libraryAdapter = LibraryAdapter(requireContext(), playListVideos.data) { video ->
-                            val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
-                            sharedViewModel.selectVideo(video)
-                        }
-                        fragmentLibraryBinding?.apply {
-                            codingVideosList.layoutManager =
-                                LinearLayoutManager(
-                                    context,
-                                    codingVideosList.horizontalFadingEdgeLength,
-                                    false
-                                )
-                            codingVideosList.adapter = libraryAdapter
-                            binding.codingVideosEffect.stopShimmer()
-                            binding.codingVideosEffect.visibility = View.INVISIBLE
-                        }
-                    }
-
-                    is YoutubeResource.Error -> {
-                        MaterialAlertDialogBuilder(requireContext()).apply {
-                            this.setTitle("Oops!")
-                            this.setMessage("Oh no! Something went wrong. Please try again.")
-                            this.setIcon(R.drawable.get_data_problem)
-                            this.setCancelable(true)
-                            this.setNegativeButton("Cancel") { dialog, _ ->
-                                dialog?.dismiss()
-                            }
-                            this.setPositiveButton("Retry") { _, _ ->
-                                viewModel.reGetCodingVideos.observe(viewLifecycleOwner) {
-                                    if (it is YoutubeResource.Success) {
-                                        binding.codingVideosEffect.visibility = View.INVISIBLE
-                                        binding.codingVideosEffect.stopShimmer()
-                                        binding.codingVideosList.apply {
-                                            setHasFixedSize(true)
-                                            layoutManager = LinearLayoutManager(
-                                                context,
-                                                binding.codingVideosList.horizontalFadingEdgeLength,
-                                                false
-                                            )
-                                            libraryAdapter =
-                                                LibraryAdapter(requireContext(), it.data) { video ->
-                                                    val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
-                                                    sharedViewModel.selectVideo(video)
-                                                }
-                                            adapter = libraryAdapter
-                                        }
-                                    }
-                                }
-
-                                viewModel.reGetSportsVideos.observe(viewLifecycleOwner) {
-                                    if (it is YoutubeResource.Success) {
-                                        binding.sportsVideosEffect.visibility = View.INVISIBLE
-                                        binding.sportsVideosEffect.stopShimmer()
-                                        binding.sportsVideosList.apply {
-                                            setHasFixedSize(true)
-                                            layoutManager = LinearLayoutManager(
-                                                context,
-                                                binding.sportsVideosList.horizontalFadingEdgeLength,
-                                                false
-                                            )
-                                            libraryAdapter =
-                                                LibraryAdapter(requireContext(), it.data) { video ->
-                                                    val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
-                                                    sharedViewModel.selectVideo(video)
-                                                }
-                                            adapter = libraryAdapter
-                                        }
-                                    }
-                                }
-
-                                viewModel.reGetTechnologyVideos.observe(viewLifecycleOwner) {
-                                    Log.d(TAG, it.toString())
-                                    if (it is YoutubeResource.Success) {
-                                        binding.techVideosEffect.visibility = View.INVISIBLE
-                                        binding.techVideosEffect.stopShimmer()
-                                        binding.techVideosList.apply {
-                                            setHasFixedSize(true)
-                                            layoutManager = LinearLayoutManager(
-                                                context,
-                                                binding.techVideosList.horizontalFadingEdgeLength,
-                                                false
-                                            )
-                                            libraryAdapter =
-                                                LibraryAdapter(requireContext(), it.data) { video ->
-                                                    val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
-                                                    sharedViewModel.selectVideo(video)
-                                                }
-                                            adapter = libraryAdapter
-                                        }
-                                    }
-                                }
-
-                            }
-
-                        }.create().show()
-                    }
-
-                    is YoutubeResource.Loading -> {
-                        binding.codingVideosEffect.startShimmer()
-                        binding.codingVideosEffect.visibility = View.VISIBLE
-                    }
-                }
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+            tab.text = when (position) {
+                0 -> "Liked Videos"
+                1 -> "Playlists"
+                2 -> "Subscriptions"
+                else -> null
             }
-
-            viewModel.sportsVideos.observe(viewLifecycleOwner) { playListVideos ->
-                when (playListVideos) {
-                    is YoutubeResource.Success -> {
-                        libraryAdapter = LibraryAdapter(requireContext(), playListVideos.data) { video ->
-                            val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
-                            sharedViewModel.selectVideo(video)
-                        }
-                        fragmentLibraryBinding?.apply {
-                            sportsVideosList.layoutManager =
-                                LinearLayoutManager(
-                                    context,
-                                    sportsVideosList.horizontalFadingEdgeLength,
-                                    false
-                                )
-                            sportsVideosList.adapter = libraryAdapter
-                            binding.sportsVideosEffect.stopShimmer()
-                            binding.sportsVideosEffect.visibility = View.INVISIBLE
-                        }
-                    }
-
-                    is YoutubeResource.Error -> {
-                        binding.sportsVideosEffect.startShimmer()
-                        binding.sportsVideosEffect.visibility = View.VISIBLE
-                    }
-
-                    is YoutubeResource.Loading -> {
-                        binding.sportsVideosEffect.startShimmer()
-                        binding.sportsVideosEffect.visibility = View.VISIBLE
-                    }
-                }
-            }
-
-            viewModel.technologyVideos.observe(viewLifecycleOwner) { playListVideos ->
-                when (playListVideos) {
-                    is YoutubeResource.Success -> {
-                        libraryAdapter = LibraryAdapter(requireContext(), playListVideos.data) { video ->
-                            val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
-                            sharedViewModel.selectVideo(video)
-                        }
-                        fragmentLibraryBinding?.apply {
-                            techVideosList.layoutManager =
-                                LinearLayoutManager(
-                                    context,
-                                    techVideosList.horizontalFadingEdgeLength,
-                                    false
-                                )
-                            techVideosList.adapter = libraryAdapter
-                            binding.techVideosEffect.stopShimmer()
-                            binding.techVideosEffect.visibility = View.INVISIBLE
-                        }
-                    }
-
-                    is YoutubeResource.Error -> {
-                        binding.techVideosEffect.startShimmer()
-                        binding.techVideosEffect.visibility = View.VISIBLE
-                    }
-
-                    is YoutubeResource.Loading -> {
-                        binding.techVideosEffect.startShimmer()
-                        binding.techVideosEffect.visibility = View.VISIBLE
-                    }
-                }
-            }
-        }
-
-
-        databaseViewModel.getFavouritePlayList()
-
-        databaseViewModel.favouritePlayList.observe(viewLifecycleOwner){ yourFavouriteList ->
-            if(yourFavouriteList.isEmpty()){
-                fragmentLibraryBinding!!.yourFavouriteList.visibility = View.GONE
-                fragmentLibraryBinding!!.yourFavouriteEffect.visibility = View.VISIBLE
-                fragmentLibraryBinding!!.yourFavouriteEffect.startShimmer()
-            }else{
-                fragmentLibraryBinding!!.yourFavouriteList.visibility = View.VISIBLE
-                fragmentLibraryBinding!!.yourFavouriteEffect.stopShimmer()
-                fragmentLibraryBinding!!.yourFavouriteEffect.visibility = View.INVISIBLE
-                fragmentLibraryBinding!!.yourFavouriteList.apply {
-                    setHasFixedSize(true)
-                    layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-                    adapter = YourFavouriteVideosAdapter(requireContext(), yourFavouriteList) { video ->
-                        val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
-                        sharedViewModel.selectVideo(video)
-                    }
-                }
-            }
-        }
-        
-        // Subscriptions Logic
-        databaseViewModel.getAllSubscriptions()
-        databaseViewModel.subscriptions.observe(viewLifecycleOwner) { subscriptions ->
-            if (subscriptions.isNullOrEmpty()) {
-                fragmentLibraryBinding!!.subscriptionsLayout.visibility = View.GONE
-            } else {
-                fragmentLibraryBinding!!.subscriptionsLayout.visibility = View.VISIBLE
-                fragmentLibraryBinding!!.subscriptionsList.apply {
-                    setHasFixedSize(true)
-                    layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-                    adapter = com.google.android.piyush.dopamine.adapters.SubscriptionsAdapter(requireContext(), subscriptions) { subscription ->
-                        // Handle channel click - for now just a toast or log
-                        Toast.makeText(context, "Clicked ${subscription.title}", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        }
-
-        val iFramePlayerOptions = IFramePlayerOptions.Builder(requireContext())
-            .controls(0)
-            .build()
-
-        fragmentLibraryBinding!!.youtubePlayerView.enableAutomaticInitialization = false
-        if(NetworkUtilities.isNetworkAvailable(requireContext())) {
-            fragmentLibraryBinding!!.youtubePlayerView.initialize(
-                object :
-                    AbstractYouTubePlayerListener() {
-                    override fun onReady(youTubePlayer: YouTubePlayer) {
-                        super.onReady(youTubePlayer)
-                        youTubePlayer.loadVideo(
-                            "l2UDgpLz20M", 0.0F
-                        )
-                        youTubePlayer.mute()
-                    }
-                },
-                true,
-                iFramePlayerOptions
-            )
-        }
-
-        if(databaseViewModel.countTheNumberOfCustomPlaylist() < 1){
-            fragmentLibraryBinding!!.customPlaylistsList.visibility = View.GONE
-        }else{
-            fragmentLibraryBinding!!.customPlaylistsList.apply {
-                setHasFixedSize(true)
-                layoutManager = LinearLayoutManager(context)
-                adapter = CustomPlayListVAdapter(requireContext(),databaseViewModel.getPlaylist())
-            }
-        }
+        }.attach()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        fragmentLibraryBinding = null
-        viewModel.codingVideos.removeObservers(viewLifecycleOwner)
-        viewModel.sportsVideos.removeObservers(viewLifecycleOwner)
-        viewModel.technologyVideos.removeObservers(viewLifecycleOwner)
+        _binding = null
+    }
+
+    private inner class LibraryPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
+        override fun getItemCount(): Int = 3
+
+        override fun createFragment(position: Int): Fragment {
+            return when (position) {
+                0 -> LikedVideosFragment()
+                1 -> PlaylistsFragment()
+                2 -> SubscriptionsFragment()
+                else -> throw IllegalStateException("Invalid position")
+            }
+        }
     }
 }

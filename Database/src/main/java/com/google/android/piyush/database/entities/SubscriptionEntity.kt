@@ -1,9 +1,11 @@
 package com.google.android.piyush.database.entities
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.io.Serializable
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 @Entity(tableName = "subscription_table")
 data class SubscriptionEntity(
     @PrimaryKey
@@ -12,5 +14,4 @@ data class SubscriptionEntity(
     val description: String?,
     val thumbnail: String?,
     val channelTitle: String?,
-    // Add other relevant fields if needed
-) : Serializable
+) : Parcelable

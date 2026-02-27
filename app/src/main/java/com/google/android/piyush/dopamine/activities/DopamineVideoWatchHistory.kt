@@ -1,9 +1,10 @@
 package com.google.android.piyush.dopamine.activities
 
-import android.app.Application
+
 import android.content.ContentValues
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -14,20 +15,24 @@ import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.RecentVideosAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityDopamineVideoWatchHistoryBinding
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.activity.viewModels
+
+@AndroidEntryPoint
 class DopamineVideoWatchHistory : AppCompatActivity() {
 
     private lateinit var binding: ActivityDopamineVideoWatchHistoryBinding
-    private lateinit var databaseViewModel: DatabaseViewModel
+    private val databaseViewModel: DatabaseViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityDopamineVideoWatchHistoryBinding.inflate(layoutInflater)
-        databaseViewModel = DatabaseViewModel(applicationContext as Application)
+
         setContentView(binding.root)
 
         enableEdgeToEdge()
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
@@ -42,13 +47,9 @@ class DopamineVideoWatchHistory : AppCompatActivity() {
                 adapter = RecentVideosAdapter(context,recentVideos)
             }
             if(recentVideos.isNullOrEmpty()){
-                binding.recyclerView.visibility = android.view.View.GONE
-                binding.clearWatchHistory.visibility = android.view.View.GONE
-                binding.lottieAnimationView.apply {
-                    visibility = android.view.View.VISIBLE
-                    setAnimation(R.raw.auth)
-                    loop(true)
-                }
+                binding.recyclerView.visibility = View.GONE
+                binding.clearWatchHistory.visibility = View.GONE
+                binding.emptyStateContainer.visibility = View.VISIBLE
             }
             Log.d(ContentValues.TAG, " -> Activity : DopamineVideoWatchHistory || recentVideos : $recentVideos")
         }
@@ -60,15 +61,9 @@ class DopamineVideoWatchHistory : AppCompatActivity() {
         binding.clearWatchHistory.setOnClickListener {
             databaseViewModel.deleteRecentVideo()
             Snackbar.make(binding.root, "Watch History Cleared", Snackbar.LENGTH_SHORT).show()
-            binding.recyclerView.visibility = android.view.View.GONE
-            binding.clearWatchHistory.visibility = android.view.View.GONE
-            binding.lottieAnimationView.apply {
-                visibility = android.view.View.VISIBLE
-                setAnimation(R.raw.auth)
-                @Suppress("DEPRECATION")
-                loop(true)
-                playAnimation()
-            }
+            binding.recyclerView.visibility = View.GONE
+            binding.clearWatchHistory.visibility = View.GONE
+            binding.emptyStateContainer.visibility = View.VISIBLE
         }
     }
 }

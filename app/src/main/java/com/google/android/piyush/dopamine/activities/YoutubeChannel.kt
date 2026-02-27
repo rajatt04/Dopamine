@@ -2,42 +2,39 @@ package com.google.android.piyush.dopamine.activities
 
 import android.os.Bundle
 import android.util.Log
-import android.view.SoundEffectConstants
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.ViewModelProvider
+
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.google.android.piyush.database.viewModel.DatabaseViewModel
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.YoutubeChannelPlaylistsAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityYoutubeChannelBinding
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.YoutubeChannelViewModel
-import com.google.android.piyush.dopamine.viewModels.YoutubeChannelViewModelFactory
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
+
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.activity.viewModels
+
+@AndroidEntryPoint
 class YoutubeChannel : AppCompatActivity() {
 
     private val TAG = "YoutubeChannel"
     private lateinit var binding: ActivityYoutubeChannelBinding
-    private lateinit var youtubeRepositoryImpl: YoutubeRepositoryImpl
-    private lateinit var youtubeChannelViewModel: YoutubeChannelViewModel
-    private lateinit var youtubeChannelViewModelFactory: YoutubeChannelViewModelFactory
+    private val youtubeChannelViewModel: YoutubeChannelViewModel by viewModels()
+    private val databaseViewModel: DatabaseViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityYoutubeChannelBinding.inflate(layoutInflater)
-        youtubeRepositoryImpl = YoutubeRepositoryImpl()
-        youtubeChannelViewModelFactory = YoutubeChannelViewModelFactory(youtubeRepositoryImpl)
-        youtubeChannelViewModel = ViewModelProvider(
-            this,
-            youtubeChannelViewModelFactory
-        )[YoutubeChannelViewModel::class.java]
+
         setContentView(binding.root)
 
         enableEdgeToEdge()
@@ -81,6 +78,24 @@ class YoutubeChannel : AppCompatActivity() {
                         this.channelSubscribers.text = channelSubscribers
                         this.channelDescription.text = channelDescription
                     }
+
+                    databaseViewModel.checkIsSubscribed(channelId)
+                    binding.btnSubscribe.setOnClickListener {
+                        val isSubscribed = databaseViewModel.isSubscribed.value ?: false
+                        if (isSubscribed) {
+                            databaseViewModel.deleteSubscription(channelId)
+                        } else {
+                            databaseViewModel.insertSubscription(
+                                com.google.android.piyush.database.entities.SubscriptionEntity(
+                                    channelId = channelId,
+                                    title = channelTitle ?: "",
+                                    description = channelDescription,
+                                    thumbnail = channelLogo,
+                                    channelTitle = channelTitle
+                                )
+                            )
+                        }
+                    }
                 }
                 is YoutubeResource.Error -> {
                     Log.d(TAG, "Error: ${channelDetails.exception.message.toString()}")
@@ -106,17 +121,26 @@ class YoutubeChannel : AppCompatActivity() {
                     Log.d(TAG, "Error: ${channelsPlaylists.exception.message.toString()}")
                     binding.channelPlaylistLoader.apply {
                         visibility = View.VISIBLE
-                        setAnimation(R.raw.auth)
-                        playAnimation()
-                        playSoundEffect(SoundEffectConstants.CLICK)  //sound effect
-                        speed = 1.5f        //speed of animation
-                        @Suppress("DEPRECATION")
-                        loop(true)
+                        show()
                     }
                 }
             }
         }
+        setupObservers()
     }
+
+    private fun setupObservers() {
+        databaseViewModel.isSubscribed.observe(this) { isSubscribed ->
+            if (isSubscribed) {
+                binding.btnSubscribe.text = "Subscribed"
+                binding.btnSubscribe.setIconResource(R.drawable.rounded_done_24)
+            } else {
+                binding.btnSubscribe.text = "Subscribe"
+                binding.btnSubscribe.setIconResource(0)
+            }
+        }
+    }
+
     private fun counter(count : Int) : String {
         var num: Double = count.toDouble()
         val data: String

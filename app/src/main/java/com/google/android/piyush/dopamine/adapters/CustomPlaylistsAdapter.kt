@@ -1,6 +1,6 @@
 package com.google.android.piyush.dopamine.adapters
 
-import android.app.Application
+
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.util.Log
@@ -13,10 +13,15 @@ import com.google.android.piyush.database.viewModel.DatabaseViewModel
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.utilities.ToastUtilities
 import com.google.android.piyush.dopamine.viewHolders.CustomPlaylistsViewHolder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class CustomPlaylistsAdapter(
     private val context: Context,
     private var playlists: List<CustomPlaylistView>?,
+    private val databaseViewModel: DatabaseViewModel
 ) : RecyclerView.Adapter<CustomPlaylistsViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CustomPlaylistsViewHolder {
         return CustomPlaylistsViewHolder(
@@ -34,9 +39,8 @@ class CustomPlaylistsAdapter(
     }
 
     override fun onBindViewHolder(holder: CustomPlaylistsViewHolder, position: Int) {
-        val databaseViewModel = DatabaseViewModel(application = context.applicationContext as Application)
         val pref = context.getSharedPreferences("customPlaylist", Context.MODE_PRIVATE)
-        val playlistName = databaseViewModel.getPlaylistsFromDatabase()[position]
+        val playlistName = playlists?.get(position)?.playListName ?: return
         val videoId = pref.getString("videoId", "")!!
         val title = pref.getString("title", "")!!
         val thumbnail = pref.getString("thumbnail", "")!!
@@ -46,44 +50,41 @@ class CustomPlaylistsAdapter(
         val publishedAt = pref.getString("publishedAt", "")!!
         val duration = pref.getString("duration", "")!!
 
-        val isVideoAlreadyAdded = databaseViewModel.isExistsDataInPlaylist(playlistName,videoId)
-        Log.d(TAG, "videoId : $isVideoAlreadyAdded || playlistName : $playlistName")
-        Log.d(TAG, "currentPlaylists : ${databaseViewModel.getPlaylistsFromDatabase()}")
-
-        if(playlistName.isEmpty()) {
-            Log.d(TAG, "playlistName : $playlistName")
-        }else{
-            holder.selectedPlaylistItem.isChecked = isVideoAlreadyAdded == true
-        }
-
         holder.title.text = playlists?.get(position)?.playListName
         holder.description.text = playlists?.get(position)?.playListDescription
-        holder.selectedPlaylistItem.addOnCheckedStateChangedListener { _, isChecked ->
-            if(isChecked == 1){
-                if(!isVideoAlreadyAdded){
-                    databaseViewModel.addItemsInCustomPlaylist(
-                        playlistName,
-                        playlistsData = CustomPlaylists(
-                            videoId = videoId,
-                            title = title,
-                            thumbnail = thumbnail,
-                            channelId = channelId,
-                            viewCount = viewCount,
-                            channelTitle = channelTitle ,
-                            publishedAt = publishedAt,
-                            duration = duration
-                        )
-                    )
-                    Log.d(TAG, "videoId : $videoId || playlistName : $playlistName")
-                }
-                ToastUtilities.showToast(context, "Successfully added to playlist :)")
-            }else{
-                if(isVideoAlreadyAdded){
-                    Log.d(TAG, "videoId : $videoId || playlistName : $playlistName")
-                    databaseViewModel.deleteVideoFromPlaylist(
-                        playlistName,
-                        videoId
-                    )
+
+        CoroutineScope(Dispatchers.Main + SupervisorJob()).launch {
+            val isVideoAlreadyAdded = databaseViewModel.isExistsDataInPlaylist(playlistName,videoId)
+            
+            holder.selectedPlaylistItem.isChecked = isVideoAlreadyAdded
+
+            holder.selectedPlaylistItem.addOnCheckedStateChangedListener { _, isChecked ->
+        CoroutineScope(Dispatchers.Main + SupervisorJob()).launch {
+                    if(isChecked == 1){
+                        if(!isVideoAlreadyAdded){
+                            databaseViewModel.addItemsInCustomPlaylist(
+                                playlistName,
+                                playlistsData = CustomPlaylists(
+                                    videoId = videoId,
+                                    title = title,
+                                    thumbnail = thumbnail,
+                                    channelId = channelId,
+                                    viewCount = viewCount,
+                                    channelTitle = channelTitle ,
+                                    publishedAt = publishedAt,
+                                    duration = duration
+                                )
+                            )
+                        }
+                        ToastUtilities.showToast(context, "Successfully added to playlist :)")
+                    }else{
+                        if(isVideoAlreadyAdded){
+                            databaseViewModel.deleteVideoFromPlaylist(
+                                playlistName,
+                                videoId
+                            )
+                        }
+                    }
                 }
             }
         }

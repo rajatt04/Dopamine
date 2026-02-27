@@ -6,15 +6,30 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.google.android.piyush.database.dao.DopamineDao
 import com.google.android.piyush.database.dao.SubscriptionDao
+import com.google.android.piyush.database.dao.CustomPlaylistDao
+import com.google.android.piyush.database.entities.CustomPlaylistEntity
+import com.google.android.piyush.database.entities.CustomPlaylistVideoEntity
 import com.google.android.piyush.database.entities.EntityFavouritePlaylist
 import com.google.android.piyush.database.entities.EntityRecentVideos
 import com.google.android.piyush.database.entities.EntityVideoSearch
 import com.google.android.piyush.database.entities.SubscriptionEntity
 
-@Database(entities = [EntityVideoSearch::class, EntityRecentVideos::class, EntityFavouritePlaylist::class, SubscriptionEntity::class], version = 2, exportSchema = false)
+@Database(
+    entities = [
+        EntityVideoSearch::class,
+        EntityRecentVideos::class,
+        EntityFavouritePlaylist::class,
+        SubscriptionEntity::class,
+        CustomPlaylistEntity::class,
+        CustomPlaylistVideoEntity::class
+    ],
+    version = 3,
+    exportSchema = false
+)
 abstract class DopamineDatabase : RoomDatabase() {
     abstract fun dopamineDao(): DopamineDao
     abstract fun subscriptionDao(): SubscriptionDao
+    abstract fun customPlaylistDao(): CustomPlaylistDao
 
     companion object {
         @Volatile

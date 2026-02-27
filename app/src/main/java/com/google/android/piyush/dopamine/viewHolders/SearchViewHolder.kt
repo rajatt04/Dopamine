@@ -15,5 +15,8 @@ class SearchViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     var text2 : MaterialTextView = itemView.findViewById(R.id.text2)
     var video : MaterialCardView = itemView.findViewById(R.id.video)
     var channelview : MaterialButton = itemView.findViewById(R.id.ChannelView)
-
+    var videoDuration : MaterialTextView = itemView.findViewById(R.id.video_duration)
+    var videoQuality : MaterialTextView = itemView.findViewById(R.id.video_quality)
+    var qualityCard : View = itemView.findViewById(R.id.quality_card)
+    var durationCard : View = itemView.findViewById(R.id.duration_card)
 }

@@ -1,20 +1,18 @@
 package com.google.android.piyush.dopamine
 
 import android.app.Application
-import android.os.StrictMode
+
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.color.DynamicColorsOptions
+import dagger.hilt.android.HiltAndroidApp
 import com.google.android.piyush.dopamine.utilities.Utilities
 
-
+@HiltAndroidApp
 class DopamineApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-
-        StrictMode.setThreadPolicy(policy)
 
             DynamicColors.applyToActivitiesIfAvailable(
                 this, DynamicColorsOptions.Builder().build()

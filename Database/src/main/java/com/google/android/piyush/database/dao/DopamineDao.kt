@@ -2,6 +2,7 @@ package com.google.android.piyush.database.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.google.android.piyush.database.entities.EntityFavouritePlaylist
 import com.google.android.piyush.database.entities.EntityRecentVideos
@@ -24,7 +25,7 @@ interface DopamineDao {
     suspend fun deleteFavouriteVideo(videoId : String)
     @Query("Select * FROM favorite_playlist")
     suspend fun getFavouritePlayList(): List<EntityFavouritePlaylist>
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRecentVideos(vararg fav: EntityRecentVideos)
     @Query("Select * FROM recent_videos")
     suspend fun getRecentVideos(): List<EntityRecentVideos>

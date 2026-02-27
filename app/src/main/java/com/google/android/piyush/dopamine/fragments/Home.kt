@@ -1,39 +1,65 @@
 package com.google.android.piyush.dopamine.fragments
 
-import android.content.ContentValues.TAG
+import android.Manifest
+import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.speech.RecognizerIntent
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SearchView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.piyush.database.entities.EntityVideoSearch
+import com.google.android.piyush.database.viewModel.DatabaseViewModel
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.activities.DopamineUserProfile
 import com.google.android.piyush.dopamine.activities.DopamineVideoWatchHistory
 import com.google.android.piyush.dopamine.adapters.HomeAdapter
+import com.google.android.piyush.dopamine.adapters.SearchAdapter
+import com.google.android.piyush.dopamine.adapters.SearchHistoryAdapter
 import com.google.android.piyush.dopamine.databinding.FragmentHomeBinding
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
+import com.google.android.piyush.dopamine.utilities.ToastUtilities
+import com.google.android.piyush.dopamine.utilities.Utilities
+import com.google.android.piyush.dopamine.viewModels.SearchViewModel
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 import com.google.android.piyush.youtube.viewModels.HomeViewModel
-import com.google.android.piyush.youtube.viewModels.HomeViewModelFactory
-import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
-import kotlin.system.exitProcess
+import java.util.Locale
+import kotlin.random.Random
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
+
+@AndroidEntryPoint
 class Home : Fragment() {
 
     private var fragmentHomeBinding : FragmentHomeBinding? = null
-    private lateinit var homeViewModel: HomeViewModel
-    private lateinit var repository: YoutubeRepositoryImpl
-    private lateinit var homeViewModelFactory: HomeViewModelFactory
-    private lateinit var firebaseAuth: FirebaseAuth
-    private lateinit var homeAdapter: HomeAdapter
+    private val homeViewModel: HomeViewModel by viewModels()
+    private val searchViewModel: SearchViewModel by viewModels()
+    private val databaseViewModel: DatabaseViewModel by activityViewModels()
+    private val sharedViewModel: com.google.android.piyush.dopamine.viewModels.SharedViewModel by activityViewModels()
+    private var homeAdapter: HomeAdapter? = null
+
+    private val voiceSearchLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            data?.firstOrNull()?.let { voiceResult ->
+                fragmentHomeBinding?.searchVideo?.setQuery(voiceResult, true)
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,31 +73,13 @@ class Home : Fragment() {
 
         val binding = FragmentHomeBinding.bind(view)
         fragmentHomeBinding = binding
-        repository = YoutubeRepositoryImpl()
-        homeViewModelFactory = HomeViewModelFactory(repository)
-        homeViewModel = ViewModelProvider(this, homeViewModelFactory)[HomeViewModel::class.java]
-        firebaseAuth = FirebaseAuth.getInstance()
 
-        fragmentHomeBinding!!.greeting.text = getGreeting()
-        Log.d(TAG, " -> Fragment : Home || Greeting : ${getGreeting()}")
+        setupSearchLogic(binding)
 
-        //User details
-        Log.d(TAG, "User Name  : " +firebaseAuth.currentUser?.displayName.toString())
-        Log.d(TAG, "User Email : " +firebaseAuth.currentUser?.email.toString())
-        Log.d(TAG, "User Photo : " +firebaseAuth.currentUser?.photoUrl.toString())
-        Log.d(TAG, "User Uid   : " +firebaseAuth.currentUser?.uid.toString())
-        Log.d(TAG, "User PhoneNumber : "  +firebaseAuth.currentUser?.phoneNumber.toString())
-        Log.d(TAG, "User ProviderId : "+firebaseAuth.currentUser?.providerId.toString())
-        Log.d(TAG, "IsUserAnonymous : "+firebaseAuth.currentUser?.isAnonymous.toString())
-        Log.d(TAG, "IsUserEmailVerified : "+firebaseAuth.currentUser?.isEmailVerified.toString())
-        Log.d(TAG, "User ProviderData : "+firebaseAuth.currentUser?.providerData.toString())
-        Log.d(TAG, "User Metadata : "+firebaseAuth.currentUser?.metadata.toString())
+        // Removed greeting text, using Dopamine logo text instead
 
-        if(firebaseAuth.currentUser?.email.isNullOrEmpty()){
-            Glide.with(this).load(R.drawable.default_user).into(fragmentHomeBinding!!.userImage)
-        }else{
-            Glide.with(this).load(firebaseAuth.currentUser?.photoUrl).into(fragmentHomeBinding!!.userImage)
-        }
+        // Default user avatar (no auth)
+        fragmentHomeBinding!!.userImage.setImageResource(R.drawable.default_user)
 
         fragmentHomeBinding!!.watchHistory.setOnClickListener {
             startActivity(
@@ -92,12 +100,12 @@ class Home : Fragment() {
         }
 
         if(NetworkUtilities.isNetworkAvailable(requireContext())) {
-            homeViewModel.videos.observe(viewLifecycleOwner) {videos ->
+            // Register reGetVideos observer ONCE (for retry scenario)
+            homeViewModel.reGetVideos.observe(viewLifecycleOwner) { videos ->
                 when (videos) {
                     is YoutubeResource.Loading -> {
                         binding.shimmerRecyclerView.visibility = View.VISIBLE
                         binding.shimmerRecyclerView.startShimmer()
-                        //Log.d(TAG, "Loading: True")
                     }
                     is YoutubeResource.Success -> {
                         binding.shimmerRecyclerView.visibility = View.INVISIBLE
@@ -106,14 +114,47 @@ class Home : Fragment() {
                             setHasFixedSize(true)
                             layoutManager = LinearLayoutManager(context)
                             homeAdapter = HomeAdapter(requireContext(), videos.data) { video ->
-                                val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
                                 sharedViewModel.selectVideo(video)
                             }
                             adapter = homeAdapter
                         }
                     }
                     is YoutubeResource.Error -> {
-                        Log.d(TAG, "Error: ${videos.exception.message.toString()}")
+                        binding.shimmerRecyclerView.visibility = View.INVISIBLE
+                        binding.shimmerRecyclerView.stopShimmer()
+                        MaterialAlertDialogBuilder(requireContext())
+                            .apply {
+                                this.setTitle("Something went wrong")
+                                this.setMessage(videos.exception.message.toString())
+                                this.setIcon(R.drawable.ic_dialog_error)
+                                this.setCancelable(false)
+                                this.setPositiveButton("Try again later") { dialog, _ ->
+                                    dialog?.dismiss()
+                                }.create().show()
+                            }
+                    }
+                }
+            }
+
+            homeViewModel.videos.observe(viewLifecycleOwner) {videos ->
+                when (videos) {
+                    is YoutubeResource.Loading -> {
+                        binding.shimmerRecyclerView.visibility = View.VISIBLE
+                        binding.shimmerRecyclerView.startShimmer()
+                    }
+                    is YoutubeResource.Success -> {
+                        binding.shimmerRecyclerView.visibility = View.INVISIBLE
+                        binding.shimmerRecyclerView.stopShimmer()
+                        binding.recyclerView.apply {
+                            setHasFixedSize(true)
+                            layoutManager = LinearLayoutManager(context)
+                            homeAdapter = HomeAdapter(requireContext(), videos.data) { video ->
+                                sharedViewModel.selectVideo(video)
+                            }
+                            adapter = homeAdapter
+                        }
+                    }
+                    is YoutubeResource.Error -> {
                         MaterialAlertDialogBuilder(requireContext())
                             .apply {
                                 this.setTitle("Something went wrong")
@@ -125,44 +166,6 @@ class Home : Fragment() {
                                 }
                                 this.setPositiveButton("Retry") { _, _ ->
                                     homeViewModel.reGetHomeVideos()
-                                    homeViewModel.reGetVideos.observe(viewLifecycleOwner){ videos ->
-                                        when (videos) {
-                                            is YoutubeResource.Loading -> {
-                                                binding.shimmerRecyclerView.visibility = View.VISIBLE
-                                                binding.shimmerRecyclerView.startShimmer()
-                                                Log.d(TAG, "Loading: True")
-                                            }
-                                            is YoutubeResource.Success -> {
-                                                binding.shimmerRecyclerView.visibility = View.INVISIBLE
-                                                binding.shimmerRecyclerView.stopShimmer()
-                                            binding.recyclerView.apply {
-                                                    setHasFixedSize(true)
-                                                    layoutManager = LinearLayoutManager(context)
-                                                    homeAdapter = HomeAdapter(requireContext(), videos.data) { video ->
-                                                        // Use SharedViewModel to select video
-                                                        val sharedViewModel = androidx.lifecycle.ViewModelProvider(requireActivity())[com.google.android.piyush.dopamine.viewModels.SharedViewModel::class.java]
-                                                        sharedViewModel.selectVideo(video)
-                                                    }
-                                                    adapter = homeAdapter
-                                                }
-                                                //Log.d(TAG, "Success: ${videos.data}")
-                                            }
-                                            is YoutubeResource.Error -> {
-                                                Log.d(TAG, "Error: ${videos.exception.message.toString()}")
-                                                MaterialAlertDialogBuilder(requireContext())
-                                                    .apply {
-                                                        this.setTitle("Something went wrong")
-                                                        this.setMessage(videos.exception.message.toString())
-                                                        this.setIcon(R.drawable.ic_dialog_error)
-                                                        this.setCancelable(false)
-                                                        this.setPositiveButton("Try again later") { dialog, _ ->
-                                                            dialog?.dismiss()
-                                                            exitProcess(0)
-                                                        }.create().show()
-                                                    }
-                                            }
-                                        }
-                                    }
                                 }.create().show()
                             }
                     }
@@ -177,15 +180,67 @@ class Home : Fragment() {
         homeViewModel.videos.removeObservers(viewLifecycleOwner)
     }
 
-    private fun getGreeting(): String {
-        val calendar = Calendar.getInstance()
-        val hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
-
-        return when (hourOfDay) {
-            in 6..11 -> "Good Morning"
-            in 12..17 -> "Good Afternoon"
-            in 18..23 -> "Good Evening"
-            else -> "Good Night"
+    private fun setupSearchLogic(binding: FragmentHomeBinding) {
+        binding.searchIcon.setOnClickListener {
+            binding.searchOverlay.visibility = View.VISIBLE
+            databaseViewModel.getSearchVideoList()
         }
+
+        binding.backFromSearch.setOnClickListener {
+            binding.searchOverlay.visibility = View.GONE
+        }
+
+        // Search History Observer
+        databaseViewModel.searchVideoHistory.observe(viewLifecycleOwner) { history ->
+            if (binding.searchVideo.query.isEmpty()) {
+                binding.searchList.apply {
+                    layoutManager = LinearLayoutManager(context)
+                    adapter = SearchHistoryAdapter(history)
+                }
+            }
+        }
+
+        binding.searchVideo.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (!query.isNullOrBlank()) {
+                    databaseViewModel.insertSearchVideos(
+                        EntityVideoSearch(0, query)
+                    )
+                    performSearch(query, binding)
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText.isNullOrBlank()) {
+                    databaseViewModel.getSearchVideoList()
+                }
+                return false
+            }
+        })
+
+        binding.voiceSearch.setOnClickListener {
+            if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.RECORD_AUDIO), Utilities.PERMISSION_REQUEST_CODE)
+            } else {
+                startVoiceSearch()
+            }
+        }
+    }
+
+    private fun performSearch(query: String, binding: FragmentHomeBinding) {
+        if (NetworkUtilities.isNetworkAvailable(requireContext())) {
+            searchViewModel.searchVideos(query)
+        } else {
+            NetworkUtilities.showNetworkError(requireContext())
+        }
+    }
+
+    private fun startVoiceSearch() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something...")
+        voiceSearchLauncher.launch(intent)
     }
 }

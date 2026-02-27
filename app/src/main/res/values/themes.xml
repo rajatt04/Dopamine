@@ -1,22 +1,27 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Base.Theme.Dopamine" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary -->
         <item name="colorPrimary">@color/md_theme_light_primary</item>
         <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_light_primaryContainer</item>
         <item name="colorOnPrimaryContainer">@color/md_theme_light_onPrimaryContainer</item>
+        <!-- Secondary -->
         <item name="colorSecondary">@color/md_theme_light_secondary</item>
         <item name="colorOnSecondary">@color/md_theme_light_onSecondary</item>
         <item name="colorSecondaryContainer">@color/md_theme_light_secondaryContainer</item>
         <item name="colorOnSecondaryContainer">@color/md_theme_light_onSecondaryContainer</item>
+        <!-- Tertiary  -->
         <item name="colorTertiary">@color/md_theme_light_tertiary</item>
         <item name="colorOnTertiary">@color/md_theme_light_onTertiary</item>
         <item name="colorTertiaryContainer">@color/md_theme_light_tertiaryContainer</item>
         <item name="colorOnTertiaryContainer">@color/md_theme_light_onTertiaryContainer</item>
+        <!-- Error -->
         <item name="colorError">@color/md_theme_light_error</item>
         <item name="colorErrorContainer">@color/md_theme_light_errorContainer</item>
         <item name="colorOnError">@color/md_theme_light_onError</item>
         <item name="colorOnErrorContainer">@color/md_theme_light_onErrorContainer</item>
+        <!-- Background & Surface -->
         <item name="android:colorBackground">@color/md_theme_light_background</item>
         <item name="colorOnBackground">@color/md_theme_light_onBackground</item>
         <item name="colorSurface">@color/md_theme_light_surface</item>
@@ -27,21 +32,74 @@
         <item name="colorOnSurfaceInverse">@color/md_theme_light_inverseOnSurface</item>
         <item name="colorSurfaceInverse">@color/md_theme_light_inverseSurface</item>
         <item name="colorPrimaryInverse">@color/md_theme_light_inversePrimary</item>
+        <!-- Edge to edge & transitions -->
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:windowActivityTransitions">true</item>
-    </style>
-
-    <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.Light">
-        <item name="android:fontFamily">@font/circular_spotify</item>
-        <item name="android:textSize">18sp</item>
+        <!-- M3 Expressive shapes -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Dopamine.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Dopamine.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Dopamine.LargeComponent</item>
     </style>
 
     <style name="Theme.Dopamine" parent="Base.Theme.Dopamine" />
 
-    <style name="Widget.BottomNavigationView"
-        parent="Widget.Design.BottomNavigationView">
+    <!-- Splash Theme -->
+    <style name="Theme.Dopamine.Splash" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/md_theme_light_surface</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- M3 Shape Appearances -->
+    <style name="ShapeAppearance.Dopamine.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="ShapeAppearance.Dopamine.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="ShapeAppearance.Dopamine.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerSize">24dp</item>
+    </style>
+
+    <!-- Toolbar Theme -->
+    <style name="ToolbarTheme" parent="ThemeOverlay.Material3.Light">
+        <item name="android:fontFamily">@font/circular_spotify</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <!-- Bottom Nav -->
+    <style name="Widget.Dopamine.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
         <item name="fontFamily">@font/circular_spotify</item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.Dopamine.BottomNavigationView.ActiveIndicator</item>
+    </style>
+
+    <style name="Widget.Dopamine.BottomNavigationView.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="shapeAppearance">@style/ShapeAppearance.Dopamine.MediumComponent</item>
+        <item name="android:color">?attr/colorSecondaryContainer</item>
+    </style>
+
+    <!-- M3 Expressive Button Styles -->
+    <style name="Widget.Dopamine.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
+        <item name="cornerRadius">20dp</item>
+        <item name="fontFamily">@font/circular_spotify</item>
+    </style>
+
+    <style name="Widget.Dopamine.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="cornerRadius">20dp</item>
+        <item name="fontFamily">@font/circular_spotify</item>
+    </style>
+
+    <!-- M3 Card Styles -->
+    <style name="Widget.Dopamine.CardView" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">1dp</item>
+    </style>
+
+    <style name="Widget.Dopamine.CardView.Filled" parent="Widget.Material3.CardView.Filled">
+        <item name="cardCornerRadius">16dp</item>
     </style>
 
 </resources>

@@ -2,7 +2,6 @@ package com.google.android.piyush.dopamine.viewHolders
 
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.card.MaterialCardView
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.textview.MaterialTextView
 import com.google.android.piyush.dopamine.R
@@ -13,5 +12,6 @@ class HomeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     val videoTitle : MaterialTextView = itemView.findViewById(R.id.video_title)
     val channelTitle : MaterialTextView = itemView.findViewById(R.id.channel_title)
     val videoDuration : MaterialTextView = itemView.findViewById(R.id.video_duration)
-    val youTubePlayer : MaterialCardView = itemView.findViewById(R.id.video_card)
+    val videoQuality : MaterialTextView = itemView.findViewById(R.id.video_quality)
+    val qualityCard : View = itemView.findViewById(R.id.quality_card)
 }

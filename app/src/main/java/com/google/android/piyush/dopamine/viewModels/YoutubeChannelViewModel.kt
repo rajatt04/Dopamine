@@ -2,16 +2,18 @@ package com.google.android.piyush.dopamine.viewModels
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.youtube.model.channelDetails.YoutubeChannel
 import com.google.android.piyush.youtube.model.channelPlaylists.ChannelPlaylists
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
+import com.google.android.piyush.youtube.repository.YoutubeRepository
 import com.google.android.piyush.youtube.utilities.YoutubeResource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class YoutubeChannelViewModel(
-    private val youtubeRepositoryImpl: YoutubeRepositoryImpl
+@HiltViewModel
+class YoutubeChannelViewModel @Inject constructor(
+    private val youtubeRepository: YoutubeRepository
 ) : ViewModel() {
 
     private val _channelDetails : MutableLiveData<YoutubeResource<YoutubeChannel>> = MutableLiveData()
@@ -26,7 +28,7 @@ class YoutubeChannelViewModel(
                _channelDetails.postValue(
                    YoutubeResource.Loading
                )
-               val response = youtubeRepositoryImpl.getChannelDetails(channelId)
+               val response = youtubeRepository.getChannelDetails(channelId)
                if(response.items.isNullOrEmpty()) {
                    _channelDetails.postValue(
                        YoutubeResource.Error(
@@ -58,12 +60,12 @@ class YoutubeChannelViewModel(
                 _channelsPlaylists.postValue(
                     YoutubeResource.Loading
                 )
-                val response = youtubeRepositoryImpl.getChannelsPlaylists(channelId)
+                val response = youtubeRepository.getChannelsPlaylists(channelId)
                 if(response.items.isNullOrEmpty()) {
                     _channelsPlaylists.postValue(
                         YoutubeResource.Error(
                             Exception(
-                                "The request cannot be completed because you have exceeded your quota."
+                                "No results found."
                             )
                         )
                     )
@@ -82,19 +84,5 @@ class YoutubeChannelViewModel(
                 )
             }
         }
-    }
-}
-
-
-@Suppress("UNCHECKED_CAST")
-class YoutubeChannelViewModelFactory(
-    private val youtubeRepositoryImpl: YoutubeRepositoryImpl
-) : ViewModelProvider.Factory{
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-       if(modelClass.isAssignableFrom(YoutubeChannelViewModel::class.java)) {
-           return YoutubeChannelViewModel(youtubeRepositoryImpl) as T
-       } else {
-           throw IllegalArgumentException("Unknown ViewModel Class")
-       }
     }
 }

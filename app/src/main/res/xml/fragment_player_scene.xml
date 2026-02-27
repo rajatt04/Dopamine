@@ -25,7 +25,7 @@
             android:layout_marginBottom="0dp"
             android:layout_marginTop="0dp">
             <CustomAttribute
-                motion:attributeName="cardCornerRadius"
+                motion:attributeName="radius"
                 motion:customDimension="12dp" />
         </Constraint>
 
@@ -91,7 +91,7 @@
             motion:layout_constraintStart_toStartOf="parent"
             motion:layout_constraintEnd_toEndOf="parent">
             <CustomAttribute
-                motion:attributeName="cardCornerRadius"
+                motion:attributeName="radius"
                 motion:customDimension="0dp" />
         </Constraint>
 

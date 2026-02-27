@@ -10,14 +10,16 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingBottom="24dp">
 
+        <!-- Toolbar -->
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
+            android:background="@android:color/transparent"
+            app:elevation="0dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -30,100 +32,129 @@
                 app:navigationIcon="@drawable/ic_back"
                 app:title="Profile"
                 app:titleCentered="true"
-                app:titleTextAppearance="@style/ToolbarTheme">
-
-            </com.google.android.material.appbar.MaterialToolbar>
+                app:titleTextAppearance="@style/ToolbarTheme" />
 
         </com.google.android.material.appbar.AppBarLayout>
 
-        <LinearLayout
-            android:id="@+id/userInfo"
+        <!-- Profile Header Card (M3 Expressive) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/profileHeaderCard"
+            style="@style/Widget.Dopamine.CardView.Filled"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal"
-            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:cardBackgroundColor="?attr/colorPrimaryContainer"
             app:layout_constraintTop_toBottomOf="@id/appBarLayout">
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/userImage"
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:layout_marginStart="32dp"
-                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium" />
-
             <LinearLayout
+                android:id="@+id/userInfo"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginStart="12dp"
-                android:orientation="vertical">
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="20dp">
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/userName"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start|center"
-                    android:layout_margin="4dp"
-                    android:ellipsize="end"
-                    android:fontFamily="@font/circular_spotify"
-                    android:hint="Your Name"
-                    android:maxLines="2"
-                    android:textSize="24sp" />
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/userImage"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:scaleType="centerCrop"
+                    android:padding="4dp"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+                    app:strokeColor="?attr/colorOnPrimaryContainer"
+                    app:strokeWidth="4dp" />
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/userEmail"
-                    android:layout_width="match_parent"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="start|center"
-                    android:layout_margin="4dp"
-                    android:fontFamily="@font/proxima_nova"
-                    android:hint="Your Email"
-                    android:textSize="16sp" />
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/userName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="@font/circular_spotify"
+                        android:hint="Your Name"
+                        android:maxLines="2"
+                        android:textColor="?attr/colorOnPrimaryContainer"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/userEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="@font/proxima_nova"
+                        android:hint="Your Email"
+                        android:textColor="?attr/colorOnPrimaryContainer"
+                        android:alpha="0.8"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/customPlayList"
-            style="@style/Widget.Material3.CardView.Filled"
+        <!-- Section Header: Quick Actions -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/sectionQuickActions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/userInfo">
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/circular_spotify"
+            android:text="Quick Actions"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            app:layout_constraintTop_toBottomOf="@id/profileHeaderCard" />
+
+        <!-- New Playlist Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/customPlayList"
+            style="@style/Widget.Dopamine.CardView.Filled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintTop_toBottomOf="@id/sectionQuickActions">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:padding="16dp">
 
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/userPlayList"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:padding="12dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="10dp"
                     android:src="@drawable/ic_add"
+                    app:tint="?attr/colorPrimary"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
                     android:layout_marginStart="16dp"
                     android:fontFamily="@font/circular_spotify"
-                    android:text="New PlayList"
-                    android:textColor="?attr/colorControlActivated"
+                    android:text="New Playlist"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/userPlayList"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -131,47 +162,60 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/device_storage"
-            style="@style/Widget.Material3.CardView.Filled"
+        <!-- Section Header: Device Info -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/sectionDeviceInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/customPlayList">
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/circular_spotify"
+            android:text="Device Info"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            app:layout_constraintTop_toBottomOf="@id/customPlayList" />
+
+        <!-- Storage Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/device_storage"
+            style="@style/Widget.Dopamine.CardView.Filled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintTop_toBottomOf="@id/sectionDeviceInfo">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:padding="16dp">
 
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/device_storage_spec"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:padding="12dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="10dp"
                     android:src="@drawable/round_sd_storage_24"
+                    app:tint="?attr/colorTertiary"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/device_storage_info_txt"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
                     android:layout_marginStart="16dp"
                     android:fontFamily="@font/circular_spotify"
                     android:text="Storage Info Will Appear Here"
-                    android:textColor="?attr/colorControlActivated"
-                    android:textSize="16sp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/device_storage_spec"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -179,47 +223,45 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- RAM Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/device_ram"
-            style="@style/Widget.Material3.CardView.Filled"
+            style="@style/Widget.Dopamine.CardView.Filled"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/device_storage">
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintTop_toBottomOf="@id/device_storage">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:padding="16dp">
 
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/device_ram_spec"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:padding="12dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="10dp"
                     android:src="@drawable/memory"
+                    app:tint="?attr/colorTertiary"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/device_ram_info_txt"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
                     android:layout_marginStart="16dp"
                     android:fontFamily="@font/circular_spotify"
                     android:text="Memory Info Will Appear Here"
-                    android:textColor="?attr/colorControlActivated"
-                    android:textSize="16sp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/device_ram_spec"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -227,43 +269,60 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardView1"
+        <!-- Section Header: Settings -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/sectionSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="@style/Widget.Material3.CardView.Filled"
-            android:layout_margin="12dp"
-            app:layout_constraintTop_toBottomOf="@id/device_ram"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/circular_spotify"
+            android:text="Settings"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            app:layout_constraintTop_toBottomOf="@id/device_ram" />
+
+        <!-- Dynamic Colors Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardView1"
+            style="@style/Widget.Dopamine.CardView.Filled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintTop_toBottomOf="@id/sectionSettings">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:padding="16dp">
 
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/expDynThemeIcon"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:padding="12dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="10dp"
                     android:src="@drawable/ic_dopamine"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
+                    app:layout_constraintBottom_toBottomOf="parent" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/expDynamicUser"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
+                    android:layout_marginEnd="8dp"
                     android:fontFamily="@font/circular_spotify"
                     android:text="@string/dynamic_colors_android_12"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-                    android:textColor="?attr/colorControlActivated"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/useExpDynamicUser"
                     app:layout_constraintStart_toEndOf="@+id/expDynThemeIcon"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -271,7 +330,6 @@
                     android:id="@+id/useExpDynamicUser"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="24dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -280,94 +338,110 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-
+        <!-- Theme Choice Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardView3"
+            style="@style/Widget.Dopamine.CardView.Filled"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="@style/Widget.Material3.CardView.Filled"
-            android:layout_margin="12dp"
-            app:layout_constraintTop_toBottomOf="@id/cardView1"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintTop_toBottomOf="@id/cardView1">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:padding="16dp">
 
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/expUserThemeIcon"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:padding="12dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="10dp"
                     android:src="@drawable/ic_theme"
+                    app:tint="?attr/colorSecondary"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
+                    app:layout_constraintBottom_toBottomOf="parent" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/expUserTheme"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="@string/choose_dopamine_theme"
                     android:fontFamily="@font/circular_spotify"
-                    android:textColor="?attr/colorControlActivated"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-                    android:layout_marginStart="12dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="15sp"
+                    android:layout_marginStart="16dp"
                     app:layout_constraintStart_toEndOf="@+id/expUserThemeIcon"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
+                    app:layout_constraintBottom_toBottomOf="parent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- About Us Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardView4"
+            style="@style/Widget.Dopamine.CardView.Filled"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="@style/Widget.Material3.CardView.Filled"
-            android:layout_margin="12dp"
-            app:layout_constraintTop_toBottomOf="@id/cardView3"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintTop_toBottomOf="@id/cardView3">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:padding="16dp">
 
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/expAboutUs"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
-                    android:padding="12dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="10dp"
                     android:src="@drawable/ic_alert"
+                    app:tint="?attr/colorError"
+                    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
+                    app:layout_constraintBottom_toBottomOf="parent" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/expAboutUsDopamine"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="@string/about_us"
                     android:fontFamily="@font/circular_spotify"
-                    android:textColor="?attr/colorControlActivated"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-                    android:layout_marginStart="12dp"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="15sp"
+                    android:layout_marginStart="16dp"
                     app:layout_constraintStart_toEndOf="@+id/expAboutUs"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
+                    app:layout_constraintBottom_toBottomOf="parent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </com.google.android.material.card.MaterialCardView>
+
+        <!-- Version Info -->
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/proxima_nova"
+            android:gravity="center"
+            android:text="Dopamine v1.0"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="12sp"
+            android:alpha="0.7"
+            app:layout_constraintTop_toBottomOf="@id/cardView4" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

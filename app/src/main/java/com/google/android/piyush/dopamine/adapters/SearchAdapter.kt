@@ -4,23 +4,27 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import com.bumptech.glide.Glide
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.activities.YoutubeChannel
-import com.google.android.piyush.dopamine.activities.YoutubePlayer
 import com.google.android.piyush.dopamine.viewHolders.SearchViewHolder
 import com.google.android.piyush.youtube.model.SearchTube
+import com.google.android.piyush.youtube.model.SearchTubeItems
 
 class SearchAdapter(
     private val context: Context,
-    private val youtube: SearchTube?,
+    youtube: SearchTube?,
     private val onVideoClick: (com.google.android.piyush.dopamine.viewModels.SelectedVideo) -> Unit
-)  : RecyclerView.Adapter<SearchViewHolder>() {
-    
-    // ... (onCreateViewHolder and getItemCount unchanged)
+) : ListAdapter<SearchTubeItems, SearchViewHolder>(SearchDiffCallback()) {
+
+    init {
+        submitList(youtube?.items ?: emptyList())
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchViewHolder {
         return SearchViewHolder(
@@ -30,19 +34,20 @@ class SearchAdapter(
         )
     }
 
-    override fun getItemCount(): Int {
-        return youtube?.items?.size!!
-    }
-
     override fun onBindViewHolder(holder: SearchViewHolder, position: Int) {
-        val video = youtube?.items?.get(position)
+        val video = getItem(position)
         Glide.with(context)
-            .load(video?.snippet?.thumbnails?.high?.url)
+            .load(video.snippet?.thumbnails?.high?.url)
             .into(holder.image)
-        holder.text1.text = video?.snippet?.title
-        holder.text2.text = video?.snippet?.channelTitle
+        holder.text1.text = video.snippet?.title
+        holder.text2.text = video.snippet?.channelTitle
+
+        // Search API doesn't return duration/quality by default.
+        holder.durationCard.visibility = View.GONE
+        holder.qualityCard.visibility = View.GONE
+
         holder.channelview.setOnClickListener {
-            if(video?.snippet?.channelId.isNullOrEmpty()){
+            if(video.snippet?.channelId.isNullOrEmpty()){
                 MaterialAlertDialogBuilder(context).apply {
                     this.setTitle("Error")
                     this.setMessage("Channel Id is null or channel not found")
@@ -59,17 +64,17 @@ class SearchAdapter(
                         YoutubeChannel::class.java
                     )
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        .putExtra("channelId", video?.snippet?.channelId)
+                        .putExtra("channelId", video.snippet?.channelId)
                 )
-                Log.d("checkId", video?.snippet?.channelId!!)
+                Log.d("checkId", video.snippet?.channelId!!)
             }
         }
 
         holder.video.setOnClickListener {
-            if (video?.id?.videoId.isNullOrEmpty() || video?.snippet?.channelId.isNullOrEmpty()) {
+            if (video.id?.videoId.isNullOrEmpty() || video.snippet?.channelId.isNullOrEmpty()) {
                 MaterialAlertDialogBuilder(context).apply {
                     this.setTitle("Error")
-                    this.setMessage("Either video id or channel id is null")
+                    this.setMessage("Click Eye 👁 Button To View Channel")
                     this.setIcon(R.drawable.ic_dialog_error)
                     this.setCancelable(true)
                     this.setNegativeButton("Okay") { dialog, _ ->
@@ -79,7 +84,7 @@ class SearchAdapter(
             } else {
                 onVideoClick(
                     com.google.android.piyush.dopamine.viewModels.SelectedVideo(
-                        videoId = video!!.id!!.videoId!!,
+                        videoId = video.id!!.videoId!!,
                         channelId = video.snippet!!.channelId!!,
                         title = video.snippet!!.title,
                         description = video.snippet!!.description,
@@ -89,5 +94,15 @@ class SearchAdapter(
                 )
             }
         }
+    }
+}
+
+private class SearchDiffCallback : DiffUtil.ItemCallback<SearchTubeItems>() {
+    override fun areItemsTheSame(oldItem: SearchTubeItems, newItem: SearchTubeItems): Boolean {
+        return oldItem.id?.videoId == newItem.id?.videoId
+    }
+
+    override fun areContentsTheSame(oldItem: SearchTubeItems, newItem: SearchTubeItems): Boolean {
+        return oldItem == newItem
     }
 }
