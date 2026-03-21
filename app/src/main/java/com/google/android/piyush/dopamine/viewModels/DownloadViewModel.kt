@@ -30,19 +30,31 @@ class DownloadViewModel(application: Application) : AndroidViewModel(application
         channelId: String?,
         channelTitle: String?,
         videoUrl: String
-    ) {
+    ): Result<Unit> {
+        if (DownloadHelper.isYouTubeVideo(videoUrl)) {
+            return Result.failure(
+                UnsupportedOperationException(
+                    "YouTube videos cannot be downloaded directly. " +
+                    "Use YouTube Premium for offline viewing."
+                )
+            )
+        }
+
         viewModelScope.launch {
             val existingDownload = dao.getDownload(videoId)
             if (existingDownload != null && existingDownload.status == EntityDownload.STATUS_COMPLETED) {
                 return@launch
             }
 
-            val downloadId = DownloadHelper.startDownload(
+            val result = DownloadHelper.startDownload(
                 context = getApplication(),
                 videoId = videoId,
                 title = title,
                 videoUrl = videoUrl
             )
+
+            val downloadId = result.getOrElse { -1L }
+            val isSuccess = result.isSuccess
 
             val download = EntityDownload(
                 videoId = videoId,
@@ -52,28 +64,31 @@ class DownloadViewModel(application: Application) : AndroidViewModel(application
                 channelTitle = channelTitle,
                 filePath = null,
                 downloadId = downloadId,
-                status = EntityDownload.STATUS_DOWNLOADING,
+                status = if (isSuccess) EntityDownload.STATUS_DOWNLOADING else EntityDownload.STATUS_FAILED,
                 createdAt = System.currentTimeMillis()
             )
 
             dao.insertDownload(download)
 
-            val workRequest = OneTimeWorkRequestBuilder<DownloadProgressWorker>()
-                .setInputData(
-                    workDataOf(
-                        DownloadProgressWorker.KEY_VIDEO_ID to videoId,
-                        DownloadProgressWorker.KEY_DOWNLOAD_ID to downloadId
+            if (isSuccess) {
+                val workRequest = OneTimeWorkRequestBuilder<DownloadProgressWorker>()
+                    .setInputData(
+                        workDataOf(
+                            DownloadProgressWorker.KEY_VIDEO_ID to videoId,
+                            DownloadProgressWorker.KEY_DOWNLOAD_ID to downloadId
+                        )
                     )
-                )
-                .addTag(DownloadProgressWorker.TAG)
-                .build()
+                    .addTag(DownloadProgressWorker.TAG)
+                    .build()
 
-            workManager.enqueueUniqueWork(
-                "download_$videoId",
-                ExistingWorkPolicy.REPLACE,
-                workRequest
-            )
+                workManager.enqueueUniqueWork(
+                    "download_$videoId",
+                    ExistingWorkPolicy.REPLACE,
+                    workRequest
+                )
+            }
         }
+        return Result.success(Unit)
     }
 
     fun cancelDownload(videoId: String) {

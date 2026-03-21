@@ -78,18 +78,40 @@ class Home : Fragment() {
     private fun setupUserImage() {
         val sharedPrefs = requireContext().getSharedPreferences("currentUser", android.content.Context.MODE_PRIVATE)
         val loginType = sharedPrefs.getString("loginType", "")
+        val targetImageView = fragmentHomeBinding?.userImage ?: return
 
         if (loginType == "mobile") {
             val photoUrl = sharedPrefs.getString("photoUrl", "")
-            if (!photoUrl.isNullOrEmpty()) {
-                Glide.with(this).load(photoUrl).circleCrop().into(fragmentHomeBinding!!.userImage)
+            if (!photoUrl.isNullOrEmpty() && photoUrl != "null") {
+                Glide.with(this)
+                    .load(photoUrl)
+                    .placeholder(R.drawable.default_user)
+                    .error(R.drawable.default_user)
+                    .circleCrop()
+                    .into(targetImageView)
             } else {
-                Glide.with(this).load(R.drawable.default_user).into(fragmentHomeBinding!!.userImage)
+                targetImageView.setImageResource(R.drawable.default_user)
             }
-        } else if (firebaseAuth.currentUser?.email.isNullOrEmpty()) {
-            Glide.with(this).load(R.drawable.default_user).into(fragmentHomeBinding!!.userImage)
         } else {
-            Glide.with(this).load(firebaseAuth.currentUser?.photoUrl).circleCrop().into(fragmentHomeBinding!!.userImage)
+            // Google login — prefer the cached SharedPrefs URL (set by MainActivity),
+            // fall back to live FirebaseAuth Uri, fall back to default image.
+            val cachedUrl = sharedPrefs.getString("photoUrl", "")
+            val firebasePhotoUrl = firebaseAuth.currentUser?.photoUrl?.toString()
+            val bestUrl = when {
+                !cachedUrl.isNullOrEmpty() && cachedUrl != "null" -> cachedUrl
+                !firebasePhotoUrl.isNullOrEmpty() && firebasePhotoUrl != "null" -> firebasePhotoUrl
+                else -> null
+            }
+            if (bestUrl != null) {
+                Glide.with(this)
+                    .load(bestUrl)
+                    .placeholder(R.drawable.default_user)
+                    .error(R.drawable.default_user)
+                    .circleCrop()
+                    .into(targetImageView)
+            } else {
+                targetImageView.setImageResource(R.drawable.default_user)
+            }
         }
     }
 

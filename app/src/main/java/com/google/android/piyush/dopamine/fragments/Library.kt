@@ -61,18 +61,48 @@ class Library : Fragment() {
 
         firebaseAuth = FirebaseAuth.getInstance()
 
-        if(firebaseAuth.currentUser?.email.toString().isEmpty()){
-            Glide.with(this).load(R.drawable.default_user).into(fragmentLibraryBinding!!.userImage)
-        }else{
-            Glide.with(this).load(firebaseAuth.currentUser?.photoUrl).into(fragmentLibraryBinding!!.userImage)
-        }
+        val sharedPrefs = context?.getSharedPreferences("currentUser", android.content.Context.MODE_PRIVATE)
+        val loginType = sharedPrefs?.getString("loginType", "")
+        val targetImageView = fragmentLibraryBinding?.userImage
 
-        fragmentLibraryBinding!!.userImage.setOnClickListener {
-            Toast.makeText(context,firebaseAuth.currentUser!!.displayName,
-                Toast.LENGTH_SHORT).show()
-            startActivity(
-                Intent(context, DopamineUserProfile::class.java)
-            )
+        if (targetImageView != null) {
+            if (loginType == "mobile") {
+                val photoUrl = sharedPrefs.getString("photoUrl", "")
+                if (!photoUrl.isNullOrEmpty() && photoUrl != "null") {
+                    Glide.with(this)
+                        .load(photoUrl)
+                        .placeholder(R.drawable.default_user)
+                        .error(R.drawable.default_user)
+                        .circleCrop()
+                        .into(targetImageView)
+                } else {
+                    targetImageView.setImageResource(R.drawable.default_user)
+                }
+            } else {
+                val cachedUrl = sharedPrefs?.getString("photoUrl", "")
+                val firebasePhotoUrl = firebaseAuth.currentUser?.photoUrl?.toString()
+                val bestUrl = when {
+                    !cachedUrl.isNullOrEmpty() && cachedUrl != "null" -> cachedUrl
+                    !firebasePhotoUrl.isNullOrEmpty() && firebasePhotoUrl != "null" -> firebasePhotoUrl
+                    else -> null
+                }
+                if (bestUrl != null) {
+                    Glide.with(this)
+                        .load(bestUrl)
+                        .placeholder(R.drawable.default_user)
+                        .error(R.drawable.default_user)
+                        .circleCrop()
+                        .into(targetImageView)
+                } else {
+                    targetImageView.setImageResource(R.drawable.default_user)
+                }
+            }
+
+            targetImageView.setOnClickListener {
+                val userName = firebaseAuth.currentUser?.displayName ?: "Mobile User"
+                Toast.makeText(context, userName, Toast.LENGTH_SHORT).show()
+                startActivity(Intent(context, DopamineUserProfile::class.java))
+            }
         }
 
         if(NetworkUtilities.isNetworkAvailable(requireContext())) {

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -16,8 +17,9 @@ import com.google.android.piyush.youtube.model.SearchTube
 
 class SearchAdapter(
     private val context: Context,
-    private val youtube: SearchTube?
+    private var youtube: SearchTube?
 )  : RecyclerView.Adapter<SearchViewHolder>() {
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchViewHolder {
         return SearchViewHolder(
             LayoutInflater
@@ -27,62 +29,64 @@ class SearchAdapter(
     }
 
     override fun getItemCount(): Int {
-        return youtube?.items?.size!!
+        return youtube?.items?.size ?: 0
     }
 
     override fun onBindViewHolder(holder: SearchViewHolder, position: Int) {
-        val video = youtube?.items?.get(position)
-        Glide.with(context)
-            .load(video?.snippet?.thumbnails?.high?.url)
-            .into(holder.image)
-        holder.text1.text = video?.snippet?.title
-        holder.text2.text = video?.snippet?.channelTitle
-        holder.channelview.setOnClickListener {
-            if(video?.snippet?.channelId.isNullOrEmpty()){
-                MaterialAlertDialogBuilder(context).apply {
-                    this.setTitle("Error")
-                    this.setMessage("Channel Id is null or channel not found")
-                    this.setIcon(R.drawable.ic_dialog_error)
-                    this.setCancelable(true)
-                    this.setNegativeButton("Okay") { dialog, _ ->
-                        dialog?.dismiss()
-                    }
-                }.create().show()
-            }else {
-                context.startActivity(
-                    Intent(
-                        context,
-                        YoutubeChannel::class.java
-                    )
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        .putExtra("channelId", video?.snippet?.channelId)
-                )
-                Log.d("checkId", video?.snippet?.channelId!!)
-            }
-        }
+        val video = youtube?.items?.get(position) ?: return
 
-        holder.video.setOnClickListener {
-            if (video?.id?.videoId.isNullOrEmpty() || video?.snippet?.channelId.isNullOrEmpty()) {
+        Glide.with(holder.itemView.context)
+            .load(video.snippet?.thumbnails?.high?.url)
+            .into(holder.image)
+
+        holder.text1.text = video.snippet?.title
+        holder.text2.text = video.snippet?.channelTitle
+
+        holder.channelview.setOnClickListener {
+            if (video.snippet?.channelId.isNullOrEmpty()) {
                 MaterialAlertDialogBuilder(context).apply {
-                    this.setTitle("Error")
-                    this.setMessage("Either video id or channel id is null")
-                    this.setIcon(R.drawable.ic_dialog_error)
-                    this.setCancelable(true)
-                    this.setNegativeButton("Okay") { dialog, _ ->
+                    setTitle("Error")
+                    setMessage("Channel Id is null or channel not found")
+                    setIcon(R.drawable.ic_dialog_error)
+                    setCancelable(true)
+                    setNegativeButton("Okay") { dialog, _ ->
                         dialog?.dismiss()
                     }
                 }.create().show()
             } else {
                 context.startActivity(
-                    Intent(
-                        context,
-                        YoutubePlayer::class.java
-                    )
+                    Intent(context, YoutubeChannel::class.java)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        .putExtra("videoId", video?.id?.videoId)
-                        .putExtra("channelId", video?.snippet?.channelId)
+                        .putExtra("channelId", video.snippet?.channelId)
+                )
+                Log.d("checkId", video.snippet?.channelId!!)
+            }
+        }
+
+        holder.video.setOnClickListener {
+            if (video.id?.videoId.isNullOrEmpty() || video.snippet?.channelId.isNullOrEmpty()) {
+                MaterialAlertDialogBuilder(context).apply {
+                    setTitle("Error")
+                    setMessage("Either video id or channel id is null")
+                    setIcon(R.drawable.ic_dialog_error)
+                    setCancelable(true)
+                    setNegativeButton("Okay") { dialog, _ ->
+                        dialog?.dismiss()
+                    }
+                }.create().show()
+            } else {
+                context.startActivity(
+                    Intent(context, YoutubePlayer::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        .putExtra("videoId", video.id?.videoId)
+                        .putExtra("channelId", video.snippet?.channelId)
                 )
             }
         }
+    }
+
+    fun clearData() {
+        youtube = null
+        notifyDataSetChanged()
     }
 }

@@ -1,10 +1,16 @@
 package com.google.android.piyush.dopamine.activities
 
+import android.app.ActivityManager
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.ContentValues.TAG
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +22,7 @@ import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -28,8 +35,10 @@ import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.ChaptersAdapter
 import com.google.android.piyush.dopamine.adapters.CommentsAdapter
 import com.google.android.piyush.dopamine.adapters.CustomPlaylistsAdapter
+import com.google.android.piyush.dopamine.adapters.VideoData
 import com.google.android.piyush.dopamine.adapters.YoutubeChannelPlaylistsAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityYoutubePlayerBinding
+import com.google.android.piyush.dopamine.services.YouTubePlaybackService
 import com.google.android.piyush.dopamine.utilities.AnalyticsHelper
 import com.google.android.piyush.dopamine.utilities.ChapterParser
 import com.google.android.piyush.dopamine.utilities.CustomDialog
@@ -43,6 +52,8 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.FullscreenListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -58,6 +69,30 @@ class YoutubePlayer : AppCompatActivity() {
     private lateinit var databaseViewModel: DatabaseViewModel
     private var youTubePlayer: YouTubePlayer? = null
     private var commentsAdapter: CommentsAdapter? = null
+
+    private var playbackService: YouTubePlaybackService? = null
+    private var serviceBound = false
+
+    private var currentVideoId: String = ""
+    private var currentVideoTitle: String = ""
+    private var currentChannelTitle: String = ""
+    private var currentThumbnail: String = ""
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val binder = service as YouTubePlaybackService.LocalBinder
+            playbackService = binder.getService()
+            serviceBound = true
+            playbackService?.youTubePlayer?.let { player ->
+                this@YoutubePlayer.youTubePlayer = player
+            }
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            playbackService = null
+            serviceBound = false
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,12 +115,13 @@ class YoutubePlayer : AppCompatActivity() {
             insets
         }
 
+        currentVideoId = intent?.getStringExtra("videoId").toString()
 
-        databaseViewModel.isFavouriteVideo(
-            intent?.getStringExtra("videoId").toString()
-        )
+        startAndBindService()
+
+        databaseViewModel.isFavouriteVideo(currentVideoId)
         databaseViewModel.isFavourite.observe(this) {
-            binding.addToPlayList.isChecked = it == intent.getStringExtra("videoId").toString()
+            binding.addToPlayList.isChecked = it == currentVideoId
         }
 
         binding.YtPlayer.enableBackgroundPlayback(true)
@@ -101,15 +137,10 @@ class YoutubePlayer : AppCompatActivity() {
             override fun onReady(youTubePlayer: YouTubePlayer) {
                 super.onReady(youTubePlayer)
                 this@YoutubePlayer.youTubePlayer = youTubePlayer
+                playbackService?.youTubePlayer = youTubePlayer
                 youTubePlayer.apply {
-                    loadVideo(
-                        intent?.getStringExtra("videoId")!!,
-                        0F
-                    )
-                    Log.d(
-                        TAG,
-                        " -> Activity : YoutubePlayer || videoId : $intent.getStringExtra(\"videoId\") "
-                    )
+                    loadVideo(currentVideoId, 0F)
+                    Log.d(TAG, " -> Activity : YoutubePlayer || videoId : $currentVideoId")
                 }
             }
         }, true, iFramePlayerOptions)
@@ -149,15 +180,11 @@ class YoutubePlayer : AppCompatActivity() {
             if (supportsPIP) enterPictureInPictureMode()
         }
 
-        binding.addToCustomPlayList.setOnClickListener {
-            val bottomSheetFragment = MyBottomSheetFragment()
-            bottomSheetFragment.show(supportFragmentManager, bottomSheetFragment.tag)
-        }
+        setupServiceObserver()
 
-        val videoId = intent?.getStringExtra("videoId").toString()
         val channelId = intent?.getStringExtra("channelId").toString()
 
-        youtubePlayerViewModel.loadVideoData(videoId, channelId)
+        youtubePlayerViewModel.loadVideoData(currentVideoId, channelId)
 
         youtubePlayerViewModel.videoDetails.observe(this) { videoDetails ->
             when (videoDetails) {
@@ -173,20 +200,26 @@ class YoutubePlayer : AppCompatActivity() {
                     val videoLikes = counter(videoDetails.data.items?.get(0)?.statistics?.likeCount!!.toInt())
                     val videoViews = counter(videoDetails.data.items?.get(0)?.statistics?.viewCount!!.toInt())
 
+                    currentVideoTitle = videoTitle ?: ""
+                    currentChannelTitle = channelTitle ?: ""
+                    currentThumbnail = videoThumbnail ?: ""
+
+                    updateServiceWithVideoInfo()
+
                     binding.apply {
                         textTitle.text  = videoTitle
                         textLiked.text  = videoLikes
                         textView.text   = videoViews
                         textDescription.text = videoDescription
 
-                        AnalyticsHelper.logVideoPlay(videoId, videoTitle, channelTitle)
-                        AnalyticsHelper.setCustomKey("current_video_id", videoId)
+                        AnalyticsHelper.logVideoPlay(currentVideoId, videoTitle, channelTitle)
+                        AnalyticsHelper.setCustomKey("current_video_id", currentVideoId)
 
                         addToPlayList.addOnCheckedStateChangedListener { _, isFavourite ->
                             if (isFavourite == 1) {
                                 databaseViewModel.insertFavouriteVideos(
                                     EntityFavouritePlaylist(
-                                        videoId = videoId,
+                                        videoId = currentVideoId,
                                         thumbnail = videoThumbnail,
                                         title = videoTitle,
                                         channelId = channelId,
@@ -195,7 +228,7 @@ class YoutubePlayer : AppCompatActivity() {
                                 )
                             } else {
                                 databaseViewModel.deleteFavouriteVideo(
-                                    videoId = videoId
+                                    videoId = currentVideoId
                                 )
                             }
                         }
@@ -213,19 +246,19 @@ class YoutubePlayer : AppCompatActivity() {
                         }
                     }
 
-                    databaseViewModel.isRecentVideo(videoId = videoId)
+                    databaseViewModel.isRecentVideo(videoId = currentVideoId)
 
                     databaseViewModel.isRecent.observe(this) {
-                        if (it == videoId) {
+                        if (it == currentVideoId) {
                             databaseViewModel.updateRecentVideo(
-                                videoId = videoId,
+                                videoId = currentVideoId,
                                 time = LocalTime.now()
                                     .format(DateTimeFormatter.ofPattern("hh:mm a")).toString())
                         } else {
                             databaseViewModel.insertRecentVideos(
                                 EntityRecentVideos(
                                     id = Random.nextInt(1, 100000),
-                                    videoId = videoId,
+                                    videoId = currentVideoId,
                                     thumbnail = videoThumbnail,
                                     title = videoTitle,
                                     timing = LocalTime.now()
@@ -238,7 +271,7 @@ class YoutubePlayer : AppCompatActivity() {
                     }
 
                     getSharedPreferences("customPlaylist", MODE_PRIVATE).edit {
-                        putString("videoId", videoId)
+                        putString("videoId", currentVideoId)
                         putString("thumbnail", videoThumbnail)
                         putString("title", videoTitle)
                         putString("channelId", channelId)
@@ -344,6 +377,54 @@ class YoutubePlayer : AppCompatActivity() {
         }
     }
 
+    private fun startAndBindService() {
+        val intent = Intent(this, YouTubePlaybackService::class.java).apply {
+            action = YouTubePlaybackService.ACTION_PLAY
+            putExtra(YouTubePlaybackService.EXTRA_VIDEO_ID, currentVideoId)
+            putExtra(YouTubePlaybackService.EXTRA_VIDEO_TITLE, "")
+            putExtra(YouTubePlaybackService.EXTRA_CHANNEL_TITLE, "")
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+        bindService(Intent(this, YouTubePlaybackService::class.java), serviceConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    private fun setupServiceObserver() {
+        lifecycleScope.launch {
+            YouTubePlaybackService.isPlaying.collectLatest { isPlaying ->
+                // Update UI based on playback state if needed
+            }
+        }
+
+        lifecycleScope.launch {
+            YouTubePlaybackService.currentVideoTitle.collectLatest { title ->
+                if (title.isNullOrEmpty() && !currentVideoTitle.isEmpty()) {
+                    updateServiceWithVideoInfo()
+                }
+            }
+        }
+    }
+
+    private fun updateServiceWithVideoInfo() {
+        if (currentVideoId.isNotEmpty()) {
+            val intent = Intent(this, YouTubePlaybackService::class.java).apply {
+                action = YouTubePlaybackService.ACTION_PLAY
+                putExtra(YouTubePlaybackService.EXTRA_VIDEO_ID, currentVideoId)
+                putExtra(YouTubePlaybackService.EXTRA_VIDEO_TITLE, currentVideoTitle)
+                putExtra(YouTubePlaybackService.EXTRA_CHANNEL_TITLE, currentChannelTitle)
+                putExtra(YouTubePlaybackService.EXTRA_THUMBNAIL_URL, currentThumbnail)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+        }
+    }
+
     private fun counter(count : Int) : String{
         var num : Double = count.toDouble()
         val data: String
@@ -358,19 +439,51 @@ class YoutubePlayer : AppCompatActivity() {
         }
         return data
     }
+
+    override fun onStop() {
+        super.onStop()
+        youTubePlayer?.pause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (serviceBound) {
+            unbindService(serviceConnection)
+            serviceBound = false
+        }
+        playbackService?.youTubePlayer = youTubePlayer
+    }
 }
 
-class MyBottomSheetFragment : BottomSheetDialogFragment(){
+class MyBottomSheetFragment : BottomSheetDialogFragment() {
     private lateinit var databaseViewModel: DatabaseViewModel
+
+    private var videoData: VideoData? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let { args ->
+            videoData = VideoData(
+                videoId = args.getString(ARG_VIDEO_ID, ""),
+                title = args.getString(ARG_VIDEO_TITLE, ""),
+                thumbnail = args.getString(ARG_THUMBNAIL, ""),
+                channelId = args.getString(ARG_CHANNEL_ID, ""),
+                viewCount = args.getString(ARG_VIEW_COUNT, ""),
+                channelTitle = args.getString(ARG_CHANNEL_TITLE, ""),
+                publishedAt = args.getString(ARG_PUBLISHED_AT, ""),
+                duration = args.getString(ARG_DURATION, "")
+            )
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.bottom_sheet_add_to_a_playlist,container,false)
+        val view = inflater.inflate(R.layout.bottom_sheet_add_to_a_playlist, container, false)
         val createNewPlaylist: MaterialButton = view.findViewById(R.id.createNewPlayList)
-        val customPlaylists : RecyclerView = view.findViewById(R.id.recyclerViewLocalPlaylist)
+        val customPlaylists: RecyclerView = view.findViewById(R.id.recyclerViewLocalPlaylist)
         databaseViewModel = DatabaseViewModel(requireContext())
         databaseViewModel.defaultMasterDev
 
@@ -379,13 +492,13 @@ class MyBottomSheetFragment : BottomSheetDialogFragment(){
             customDialog.show()
         }
 
-        if(FirebaseAuth.getInstance().currentUser?.email.isNullOrEmpty()){
-            if(!databaseViewModel.isPlaylistExist(databaseViewModel.isUserFromPhoneAuth)){
+        if (FirebaseAuth.getInstance().currentUser?.email.isNullOrEmpty()) {
+            if (!databaseViewModel.isPlaylistExist(databaseViewModel.isUserFromPhoneAuth)) {
                 databaseViewModel.userFromPhoneAuth()
-            }else{
+            } else {
                 Log.d(TAG, "${databaseViewModel.isUserFromPhoneAuth} : Exists")
             }
-        }else {
+        } else {
             if (!databaseViewModel.isPlaylistExist(databaseViewModel.newPlaylistName)) {
                 databaseViewModel.defaultUserPlaylist()
             } else {
@@ -398,9 +511,45 @@ class MyBottomSheetFragment : BottomSheetDialogFragment(){
             adapter = CustomPlaylistsAdapter(
                 requireContext(),
                 databaseViewModel.getPlaylist(),
+                videoData
             )
         }
         return view
+    }
 
+    companion object {
+        private const val TAG = "MyBottomSheetFragment"
+        private const val ARG_VIDEO_ID = "video_id"
+        private const val ARG_VIDEO_TITLE = "video_title"
+        private const val ARG_THUMBNAIL = "thumbnail"
+        private const val ARG_CHANNEL_ID = "channel_id"
+        private const val ARG_VIEW_COUNT = "view_count"
+        private const val ARG_CHANNEL_TITLE = "channel_title"
+        private const val ARG_PUBLISHED_AT = "published_at"
+        private const val ARG_DURATION = "duration"
+
+        fun newInstance(
+            videoId: String,
+            title: String,
+            thumbnail: String,
+            channelId: String,
+            viewCount: String,
+            channelTitle: String,
+            publishedAt: String,
+            duration: String
+        ): MyBottomSheetFragment {
+            return MyBottomSheetFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_VIDEO_ID, videoId)
+                    putString(ARG_VIDEO_TITLE, title)
+                    putString(ARG_THUMBNAIL, thumbnail)
+                    putString(ARG_CHANNEL_ID, channelId)
+                    putString(ARG_VIEW_COUNT, viewCount)
+                    putString(ARG_CHANNEL_TITLE, channelTitle)
+                    putString(ARG_PUBLISHED_AT, publishedAt)
+                    putString(ARG_DURATION, duration)
+                }
+            }
+        }
     }
 }

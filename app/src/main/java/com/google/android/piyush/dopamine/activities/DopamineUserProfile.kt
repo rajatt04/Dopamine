@@ -104,7 +104,17 @@ class DopamineUserProfile : AppCompatActivity() {
                     binding.userImage.setImageResource(R.drawable.default_user)
                 }
             } else if (firebaseUser != null && !firebaseUser.email.isNullOrEmpty()) {
-                Glide.with(this).load(firebaseUser.photoUrl).circleCrop().into(binding.userImage)
+                val photoUrlStr = firebaseUser.photoUrl?.toString()
+                if (!photoUrlStr.isNullOrEmpty() && photoUrlStr != "null") {
+                    Glide.with(this)
+                        .load(photoUrlStr)
+                        .placeholder(R.drawable.default_user)
+                        .error(R.drawable.default_user)
+                        .circleCrop()
+                        .into(binding.userImage)
+                } else {
+                    binding.userImage.setImageResource(R.drawable.default_user)
+                }
                 binding.userName.text = firebaseUser.displayName ?: "Dopamine User"
                 binding.userEmail.text = firebaseUser.email ?: ""
             } else if (firebaseUser != null) {
@@ -200,15 +210,20 @@ class DopamineUserProfile : AppCompatActivity() {
                                 dialog, _ ->
                             if(NetworkUtilities.isNetworkAvailable(context = this)) {
                                 firebaseAuth.signOut()
+                                
+                                val sharedPrefs = getSharedPreferences("currentUser", MODE_PRIVATE)
+                                sharedPrefs.edit().clear().apply()
+                                
                                 Toast.makeText(
                                     applicationContext,
                                     "See you soon 🫡",
                                     Toast.LENGTH_LONG
                                 ).show()
-                                startActivity(
-                                    Intent(this, MainActivity::class.java)
-                                )
+                                val intent = Intent(this, MainActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                startActivity(intent)
                                 dialog.dismiss()
+                                finish()
                             }else{
                                 Snackbar.make(
                                     binding.main,"Please check your internet connection",Snackbar.LENGTH_LONG

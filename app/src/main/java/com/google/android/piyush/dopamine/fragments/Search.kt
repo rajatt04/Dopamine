@@ -1,17 +1,14 @@
 package com.google.android.piyush.dopamine.fragments
 
 import android.Manifest
-import android.app.Activity.RESULT_OK
-import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.speech.RecognizerIntent
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SearchView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -60,6 +57,28 @@ class Search : Fragment() {
         "News Today"
     )
 
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            startVoiceSearch()
+        } else {
+            ToastUtilities.showToast(requireContext(), "Microphone permission required for voice search")
+        }
+    }
+
+    private val voiceSearchLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val data = result.data
+            val results = data?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS)
+            if (!results.isNullOrEmpty()) {
+                fragmentSearchBinding?.searchVideo?.setQuery(results[0], true)
+            }
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -67,7 +86,6 @@ class Search : Fragment() {
         return inflater.inflate(R.layout.fragment_search, container, false)
     }
 
-    @Suppress("DEPRECATION")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -90,21 +108,41 @@ class Search : Fragment() {
     private fun setupUserImage() {
         val sharedPrefs = context?.getSharedPreferences("currentUser", android.content.Context.MODE_PRIVATE)
         val loginType = sharedPrefs?.getString("loginType", "")
+        val targetImageView = fragmentSearchBinding?.userImage ?: return
 
         if (loginType == "mobile") {
-            val photoUrl = sharedPrefs?.getString("photoUrl", "")
-            if (!photoUrl.isNullOrEmpty()) {
-                Glide.with(this).load(photoUrl).circleCrop().into(fragmentSearchBinding!!.userImage)
+            val photoUrl = sharedPrefs.getString("photoUrl", "")
+            if (!photoUrl.isNullOrEmpty() && photoUrl != "null") {
+                Glide.with(this)
+                    .load(photoUrl)
+                    .placeholder(R.drawable.default_user)
+                    .error(R.drawable.default_user)
+                    .circleCrop()
+                    .into(targetImageView)
             } else {
-                Glide.with(this).load(R.drawable.default_user).into(fragmentSearchBinding!!.userImage)
+                targetImageView.setImageResource(R.drawable.default_user)
             }
-        } else if (firebaseAuth.currentUser?.email.toString().isEmpty()) {
-            Glide.with(this).load(R.drawable.default_user).into(fragmentSearchBinding!!.userImage)
         } else {
-            Glide.with(this).load(firebaseAuth.currentUser?.photoUrl).circleCrop().into(fragmentSearchBinding!!.userImage)
+            val cachedUrl = sharedPrefs?.getString("photoUrl", "")
+            val firebasePhotoUrl = firebaseAuth.currentUser?.photoUrl?.toString()
+            val bestUrl = when {
+                !cachedUrl.isNullOrEmpty() && cachedUrl != "null" -> cachedUrl
+                !firebasePhotoUrl.isNullOrEmpty() && firebasePhotoUrl != "null" -> firebasePhotoUrl
+                else -> null
+            }
+            if (bestUrl != null) {
+                Glide.with(this)
+                    .load(bestUrl)
+                    .placeholder(R.drawable.default_user)
+                    .error(R.drawable.default_user)
+                    .circleCrop()
+                    .into(targetImageView)
+            } else {
+                targetImageView.setImageResource(R.drawable.default_user)
+            }
         }
 
-        fragmentSearchBinding!!.userImage.setOnClickListener {
+        targetImageView.setOnClickListener {
             startActivity(Intent(context, DopamineUserProfile::class.java))
         }
     }
@@ -143,7 +181,6 @@ class Search : Fragment() {
                         searchVideo.setQuery(query, true)
                     },
                     onDeleteClick = { item ->
-                        // Delete individual item (would need DAO method)
                         ToastUtilities.showToast(requireContext(), "Deleted: ${item.search}")
                     }
                 )
@@ -183,12 +220,10 @@ class Search : Fragment() {
                 override fun onQueryTextSubmit(query: String?): Boolean {
                     if (query.isNullOrEmpty()) return true
 
-                    // Hide trending and show results
                     fragmentSearchBinding?.trendingHeader?.visibility = View.GONE
                     fragmentSearchBinding?.trendingChips?.visibility = View.GONE
                     fragmentSearchBinding?.filterScrollView?.visibility = View.VISIBLE
 
-                    // Save to history
                     databaseViewModel.insertSearchVideos(
                         EntityVideoSearch(Random.nextInt(1, 100000), query)
                     )
@@ -198,10 +233,8 @@ class Search : Fragment() {
                 }
 
                 override fun onQueryTextChange(newText: String?): Boolean {
-                    // Show search history/suggestions as user types
                     if (newText.isNullOrEmpty()) {
                         fragmentSearchBinding?.filterScrollView?.visibility = View.GONE
-                        // Show history again
                         databaseViewModel.getSearchVideoList()
                         return true
                     }
@@ -210,7 +243,6 @@ class Search : Fragment() {
             }
         )
 
-        // Clear button
         fragmentSearchBinding!!.searchVideo.setOnCloseListener {
             fragmentSearchBinding?.filterScrollView?.visibility = View.GONE
             databaseViewModel.getSearchVideoList()
@@ -291,7 +323,6 @@ class Search : Fragment() {
                         currentSearchType = null
                     }
                 }
-                // Re-search with new filter
                 val currentQuery = fragmentSearchBinding?.searchVideo?.query?.toString()
                 if (!currentQuery.isNullOrEmpty()) {
                     performSearch(currentQuery)
@@ -307,11 +338,7 @@ class Search : Fragment() {
                     Manifest.permission.RECORD_AUDIO
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                ActivityCompat.requestPermissions(
-                    requireActivity(),
-                    arrayOf(Manifest.permission.RECORD_AUDIO),
-                    Utilities.PERMISSION_REQUEST_CODE
-                )
+                requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             } else {
                 startVoiceSearch()
             }
@@ -319,16 +346,15 @@ class Search : Fragment() {
     }
 
     private fun startVoiceSearch() {
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-            putExtra(RecognizerIntent.EXTRA_PROMPT, "Say something to search...")
+        val intent = Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL, android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "Say something to search...")
         }
-        startActivityForResult(intent, Utilities.PERMISSION_REQUEST_CODE)
+        voiceSearchLauncher.launch(intent)
     }
 
     private fun setupTrendingSearches() {
-        // Show trending searches by default when no history
         fragmentSearchBinding?.trendingHeader?.visibility = View.VISIBLE
         fragmentSearchBinding?.trendingChips?.visibility = View.VISIBLE
 
@@ -343,36 +369,6 @@ class Search : Fragment() {
                 }
             }
             fragmentSearchBinding?.trendingChips?.addView(chip)
-        }
-    }
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Deprecated in Java")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == Utilities.PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startVoiceSearch()
-            }
-        }
-    }
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Deprecated in Java", ReplaceWith(
-        "super.onActivityResult(requestCode, resultCode, data)",
-        "androidx.fragment.app.Fragment"
-    ))
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == Utilities.PERMISSION_REQUEST_CODE && resultCode == RESULT_OK) {
-            val result = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-            if (!result.isNullOrEmpty()) {
-                fragmentSearchBinding?.searchVideo?.setQuery(result[0], true)
-            }
         }
     }
 

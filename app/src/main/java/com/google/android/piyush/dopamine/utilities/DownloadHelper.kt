@@ -4,34 +4,68 @@ import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import com.google.android.piyush.database.entities.EntityDownload
 
 object DownloadHelper {
 
     private const val DOWNLOAD_FOLDER = "Dopamine/Downloads"
+    private const val TAG = "DownloadHelper"
 
     fun startDownload(
         context: Context,
         videoId: String,
         title: String?,
         videoUrl: String
-    ): Long {
-        val safeTitle = title?.replace(Regex("[^a-zA-Z0-9._-]"), "_") ?: videoId
-        val fileName = "${safeTitle}_${videoId}.mp4"
-
-        val request = DownloadManager.Request(Uri.parse(videoUrl))
-            .setTitle(title ?: "Downloading video")
-            .setDescription("Downloading ${title ?: videoId}")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationInExternalPublicDir(
-                Environment.DIRECTORY_MOVIES,
-                "$DOWNLOAD_FOLDER/$fileName"
+    ): Result<Long> {
+        if (videoUrl.isEmpty() || videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be")) {
+            Log.w(TAG, "YouTube videos cannot be downloaded directly")
+            return Result.failure(
+                UnsupportedOperationException(
+                    "YouTube videos cannot be downloaded due to streaming restrictions. " +
+                    "YouTube does not provide direct download URLs for videos."
+                )
             )
-            .setAllowedOverMetered(true)
-            .setAllowedOverRoaming(false)
+        }
 
-        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        return downloadManager.enqueue(request)
+        return try {
+            val safeTitle = title?.replace(Regex("[^a-zA-Z0-9._-]"), "_") ?: videoId
+            val fileName = "${safeTitle}_${videoId}.mp4"
+
+            val request = DownloadManager.Request(Uri.parse(videoUrl))
+                .setTitle(title ?: "Downloading video")
+                .setDescription("Downloading ${title ?: videoId}")
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setDestinationInExternalPublicDir(
+                    Environment.DIRECTORY_MOVIES,
+                    "$DOWNLOAD_FOLDER/$fileName"
+                )
+                .setAllowedOverMetered(true)
+                .setAllowedOverRoaming(false)
+
+            val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val downloadId = downloadManager.enqueue(request)
+            Result.success(downloadId)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start download: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    fun startYouTubeDownload(
+        context: Context,
+        videoId: String,
+        title: String?,
+        thumbnailUrl: String?
+    ): Result<Long> {
+        Log.w(TAG, "Attempted YouTube download for video: $videoId")
+        return Result.failure(
+            UnsupportedOperationException(
+                "Direct download of YouTube videos is not supported. " +
+                "YouTube videos are streamed and not available for direct download. " +
+                "Please use YouTube Premium for offline viewing."
+            )
+        )
     }
 
     fun getDownloadStatus(context: Context, downloadId: Long): Int {
@@ -102,5 +136,12 @@ object DownloadHelper {
             DownloadManager.STATUS_FAILED -> EntityDownload.STATUS_FAILED
             else -> EntityDownload.STATUS_FAILED
         }
+    }
+
+    fun isYouTubeVideo(videoUrl: String): Boolean {
+        return videoUrl.isEmpty() ||
+               videoUrl.contains("youtube.com") ||
+               videoUrl.contains("youtu.be") ||
+               videoUrl.contains("googlevideo.com")
     }
 }

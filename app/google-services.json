@@ -14,14 +14,6 @@
       },
       "oauth_client": [
         {
-          "client_id": "963836142894-33376lvvvbh1gdkeourdtin0q451ceht.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.google.android.piyush.dopamine",
-            "certificate_hash": "edba9c9cbbffd660e7798f7808ce2c74ec7fd292"
-          }
-        },
-        {
           "client_id": "963836142894-juo0qkeevp61na3qop84d7lu0j4ej8lf.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

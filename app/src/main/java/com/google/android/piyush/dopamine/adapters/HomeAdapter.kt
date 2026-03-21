@@ -3,7 +3,6 @@ package com.google.android.piyush.dopamine.adapters
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
@@ -33,7 +32,7 @@ class HomeAdapter(
     }
 
     override fun getItemCount(): Int {
-       return youtube?.items?.size!!
+       return youtube?.items?.size ?: 0
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -62,12 +61,12 @@ class HomeAdapter(
         holder.videoViews.text = publishedViews
         holder.videoPublished.text = publishedTime
 
-        Glide.with(context)
+        Glide.with(holder.itemView.context)
             .load(item.snippet?.thumbnails?.default?.url)
             .circleCrop()
             .into(holder.imageView)
 
-        Glide.with(context)
+        Glide.with(holder.itemView.context)
             .load(item.snippet?.thumbnails?.high?.url)
             .into(holder.youTubePlayerView)
 
@@ -91,6 +90,11 @@ class HomeAdapter(
                 NetworkUtilities.showNetworkError(context)
             }
         }
+    }
+
+    fun clearData() {
+        youtube = null
+        notifyDataSetChanged()
     }
 
     private fun viewsCount(views: Int): String {

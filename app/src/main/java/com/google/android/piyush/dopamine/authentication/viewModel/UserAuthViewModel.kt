@@ -27,7 +27,8 @@ class UserAuthViewModel(
         _state.update {
             it.copy(
                 isSignInSuccessful = result.userData != null,
-                signInError = result.errorMessage
+                signInError = result.errorMessage,
+                userData = result.userData
             )
         }
     }

@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        if(userViewModel.currentUser()!=null){
+        if(userViewModel.currentUser()!=null || isMobileUserLoggedIn()){
             startActivity(
                 Intent(
                     this,
@@ -112,10 +112,11 @@ class MainActivity : AppCompatActivity() {
             userViewModel.state.collect { state ->
                 if(state.isSignInSuccessful){
                     applicationContext.getSharedPreferences("currentUser", MODE_PRIVATE).edit()
-                        .putString("uid",Firebase.auth.currentUser?.uid)
-                        .putString("name",Firebase.auth.currentUser?.displayName)
-                        .putString("email",Firebase.auth.currentUser?.email)
-                        .putString("photoUrl",Firebase.auth.currentUser?.photoUrl.toString())
+                        .putString("loginType", "google")
+                        .putString("uid", state.userData?.userId ?: Firebase.auth.currentUser?.uid)
+                        .putString("name", state.userData?.userName ?: Firebase.auth.currentUser?.displayName)
+                        .putString("email", state.userData?.userEmail ?: Firebase.auth.currentUser?.email)
+                        .putString("photoUrl", state.userData?.userImage ?: Firebase.auth.currentUser?.photoUrl?.toString() ?: "")
                         .apply()
                     startActivity(
                         Intent(this@MainActivity, DopamineHome::class.java)
@@ -144,5 +145,10 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun isMobileUserLoggedIn(): Boolean {
+        val sharedPrefs = getSharedPreferences("currentUser", MODE_PRIVATE)
+        return sharedPrefs.getString("loginType", "") == "mobile"
     }
 }
