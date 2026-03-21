@@ -2,7 +2,6 @@ package com.google.android.piyush.dopamine.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.IntentSenderRequest
@@ -39,7 +38,6 @@ class MainActivity : AppCompatActivity() {
         userViewModelFactory = UserAuthViewModelFactory(userRepository)
         userViewModel = ViewModelProvider(this, userViewModelFactory)[UserAuthViewModel::class.java]
         setContentView(binding.root)
-        
 
 
         enableEdgeToEdge()
@@ -50,10 +48,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.phoneSignIn!!.setOnClickListener{
-            Toast.makeText(this,"Under Development",Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, MobileLoginActivity::class.java))
         }
-
-
 
         onBackPressedDispatcher.addCallback {
             if(!backPressed){
@@ -77,8 +73,8 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        val launcher = registerForActivityResult(
-            ActivityResultContracts.StartIntentSenderForResult()
+        val legacyLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
         ){ result ->
             if(result.resultCode == RESULT_OK) {
                 lifecycleScope.launch {
@@ -89,8 +85,26 @@ class MainActivity : AppCompatActivity() {
                 }
             }else{
                 Snackbar.make(
-                    binding.main, "Something Went Wrong", Snackbar.LENGTH_SHORT
+                    binding.main, "Sign-in cancelled", Snackbar.LENGTH_SHORT
                 ).show()
+            }
+        }
+
+        val oneTapLauncher = registerForActivityResult(
+            ActivityResultContracts.StartIntentSenderForResult()
+        ){ result ->
+            if(result.resultCode == RESULT_OK) {
+                lifecycleScope.launch {
+                    val signInResult = userRepository.signInWithIntent(
+                        intent = result.data ?: return@launch
+                    )
+                    userViewModel.onSignInResult(signInResult)
+                }
+            }else{
+                lifecycleScope.launch {
+                    val legacyIntent = userRepository.getLegacySignInIntent()
+                    legacyLauncher.launch(legacyIntent)
+                }
             }
         }
 
@@ -120,11 +134,14 @@ class MainActivity : AppCompatActivity() {
         binding.googleSignIn.setOnClickListener{
             lifecycleScope.launch {
                 val signInIntentSender = userRepository.googleSignIn()
-                launcher.launch(
-                    IntentSenderRequest.Builder(
-                        signInIntentSender ?: return@launch
-                    ).build()
-                )
+                if (signInIntentSender != null) {
+                    oneTapLauncher.launch(
+                        IntentSenderRequest.Builder(signInIntentSender).build()
+                    )
+                } else {
+                    val legacyIntent = userRepository.getLegacySignInIntent()
+                    legacyLauncher.launch(legacyIntent)
+                }
             }
         }
     }

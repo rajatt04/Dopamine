@@ -3,10 +3,12 @@ package com.google.android.piyush.dopamine.authentication.repository
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
-import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.authentication.SignInResult
 import com.google.android.piyush.dopamine.authentication.User
@@ -25,6 +27,14 @@ class UserAuthRepositoryImpl(
     private val oneTapClient: SignInClient = Identity.getSignInClient(context)
     private val firebaseAuth = FirebaseAuth.getInstance()
     private val auth = Firebase.auth
+
+    private val googleSignInClient: GoogleSignInClient by lazy {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(context.getString(R.string.web_client_id))
+            .requestEmail()
+            .build()
+        GoogleSignIn.getClient(context, gso)
+    }
 
     private fun buildSignInRequest(): BeginSignInRequest {
         return BeginSignInRequest.Builder()
@@ -52,23 +62,55 @@ class UserAuthRepositoryImpl(
         return result?.pendingIntent?.intentSender
     }
 
+    fun getLegacySignInIntent(): Intent {
+        return googleSignInClient.signInIntent
+    }
+
     suspend fun signInWithIntent(intent: Intent): SignInResult {
-        val credential = oneTapClient.getSignInCredentialFromIntent(intent)
-        val googleIdToken = credential.googleIdToken
-        val googleCredentials = GoogleAuthProvider.getCredential(googleIdToken, null)
         return try {
-            val user = auth.signInWithCredential(googleCredentials).await().user
-            SignInResult(
-                userData = user?.run {
-                    User(
-                        userId = uid,
-                        userName = displayName!!,
-                        userEmail = email!!,
-                        userImage = photoUrl?.toString()
+            val credential = try {
+                oneTapClient.getSignInCredentialFromIntent(intent)
+            } catch (e: Exception) {
+                null
+            }
+
+            val googleIdToken = credential?.googleIdToken
+            if (googleIdToken != null) {
+                val googleCredentials = GoogleAuthProvider.getCredential(googleIdToken, null)
+                val user = auth.signInWithCredential(googleCredentials).await().user
+                SignInResult(
+                    userData = user?.run {
+                        User(
+                            userId = uid,
+                            userName = displayName ?: "",
+                            userEmail = email ?: "",
+                            userImage = photoUrl?.toString()
+                        )
+                    },
+                    errorMessage = null
+                )
+            } else {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(intent)
+                val account = task.await()
+                val idToken = account.idToken
+                if (idToken != null) {
+                    val googleCredentials = GoogleAuthProvider.getCredential(idToken, null)
+                    val user = auth.signInWithCredential(googleCredentials).await().user
+                    SignInResult(
+                        userData = user?.run {
+                            User(
+                                userId = uid,
+                                userName = displayName ?: "",
+                                userEmail = email ?: "",
+                                userImage = photoUrl?.toString()
+                            )
+                        },
+                        errorMessage = null
                     )
-                },
-                errorMessage = null
-            )
+                } else {
+                    SignInResult(userData = null, errorMessage = "No ID token found")
+                }
+            }
         } catch(e: Exception) {
             e.printStackTrace()
             if(e is CancellationException) throw e

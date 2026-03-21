@@ -1,33 +1,49 @@
 {
   "project_info": {
-    "project_number": "929480757734",
-    "project_id": "kotlinprojects-cr7",
-    "storage_bucket": "kotlinprojects-cr7.firebasestorage.app"
+    "project_number": "963836142894",
+    "project_id": "dopaminex-e8fab",
+    "storage_bucket": "dopaminex-e8fab.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:929480757734:android:09164c78fc362b32388627",
+        "mobilesdk_app_id": "1:963836142894:android:0d63478233245a422b06bf",
         "android_client_info": {
           "package_name": "com.google.android.piyush.dopamine"
         }
       },
       "oauth_client": [
         {
-          "client_id": "929480757734-du8f823uda1upcdpf0ptpsc9terih1bp.apps.googleusercontent.com",
+          "client_id": "963836142894-33376lvvvbh1gdkeourdtin0q451ceht.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.google.android.piyush.dopamine",
+            "certificate_hash": "edba9c9cbbffd660e7798f7808ce2c74ec7fd292"
+          }
+        },
+        {
+          "client_id": "963836142894-juo0qkeevp61na3qop84d7lu0j4ej8lf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.google.android.piyush.dopamine",
+            "certificate_hash": "e5feab1a4becdaed76aff089ec0902fc94e8ac0f"
+          }
+        },
+        {
+          "client_id": "963836142894-dl1bho9tvka14n1ptia8lrodf5du1m8l.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAB8bbHqixtjJtcIosMwaD6D3lcc_67rFM"
+          "current_key": "AIzaSyBLDrG5E8dphmL36w5UucLmiHZrxH8t8Is"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "929480757734-du8f823uda1upcdpf0ptpsc9terih1bp.apps.googleusercontent.com",
+              "client_id": "963836142894-dl1bho9tvka14n1ptia8lrodf5du1m8l.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
