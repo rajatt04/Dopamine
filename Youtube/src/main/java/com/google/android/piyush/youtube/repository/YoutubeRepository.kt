@@ -17,6 +17,7 @@ interface YoutubeRepository {
     // Videos
     suspend fun getHomeVideos(): NetworkResult<Youtube>
     suspend fun getVideoDetails(videoId: String): NetworkResult<Youtube>
+    suspend fun getVideosByIds(videoIds: String): NetworkResult<Youtube>
 
     // Search
     suspend fun getSearchVideos(

@@ -14,17 +14,32 @@ import com.google.android.piyush.youtube.model.comments.CommentThreadItem
 
 class CommentsAdapter(
     private val context: Context,
-    private val comments: MutableList<CommentThreadItem>,
+    private val allComments: MutableList<CommentThreadItem>,
     private val onReplyClick: (CommentThreadItem) -> Unit
 ) : RecyclerView.Adapter<CommentsAdapter.CommentViewHolder>() {
 
+    companion object {
+        private const val COLLAPSED_COUNT = 3
+    }
+
+    private var showAll = false
+
+    /** Sorted by likes so top-liked comments appear first */
+    private val sortedComments: List<CommentThreadItem>
+        get() = allComments.sortedByDescending {
+            it.snippet?.topLevelComment?.snippet?.likeCount ?: 0
+        }
+
+    private val visibleComments: List<CommentThreadItem>
+        get() = if (showAll) sortedComments else sortedComments.take(COLLAPSED_COUNT)
+
     inner class CommentViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val authorImage: ImageView = view.findViewById(R.id.commentAuthorImage)
-        val authorName: TextView = view.findViewById(R.id.commentAuthorName)
-        val commentTime: TextView = view.findViewById(R.id.commentTime)
-        val commentText: TextView = view.findViewById(R.id.commentText)
-        val likeCount: TextView = view.findViewById(R.id.commentLikeCount)
-        val replyCount: TextView = view.findViewById(R.id.commentReplyCount)
+        val authorName: TextView   = view.findViewById(R.id.commentAuthorName)
+        val commentTime: TextView  = view.findViewById(R.id.commentTime)
+        val commentText: TextView  = view.findViewById(R.id.commentText)
+        val likeCount: TextView    = view.findViewById(R.id.commentLikeCount)
+        val replyCount: TextView   = view.findViewById(R.id.commentReplyCount)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CommentViewHolder {
@@ -33,11 +48,10 @@ class CommentsAdapter(
     }
 
     override fun onBindViewHolder(holder: CommentViewHolder, position: Int) {
-        val comment = comments[position]
-        val topLevelComment = comment.snippet?.topLevelComment
-        val snippet = topLevelComment?.snippet
+        val comment = visibleComments[position]
+        val snippet = comment.snippet?.topLevelComment?.snippet
 
-        holder.authorName.text = snippet?.authorDisplayName ?: "Anonymous"
+        holder.authorName.text  = snippet?.authorDisplayName ?: "Anonymous"
         holder.commentText.text = snippet?.textDisplay ?: ""
         holder.commentTime.text = ChapterParser.getRelativeTime(snippet?.publishedAt)
 
@@ -61,16 +75,25 @@ class CommentsAdapter(
         }
     }
 
-    override fun getItemCount(): Int = comments.size
+    override fun getItemCount(): Int = visibleComments.size
+
+    /** Toggle expanded/collapsed. Returns true if now expanded. */
+    fun toggleShowAll(): Boolean {
+        showAll = !showAll
+        notifyDataSetChanged()
+        return showAll
+    }
+
+    /** Whether there are more comments than the collapsed threshold */
+    fun hasMore(): Boolean = allComments.size > COLLAPSED_COUNT
 
     fun addComments(newComments: List<CommentThreadItem>) {
-        val startPos = comments.size
-        comments.addAll(newComments)
-        notifyItemRangeInserted(startPos, newComments.size)
+        allComments.addAll(newComments)
+        notifyDataSetChanged()
     }
 
     fun clearComments() {
-        comments.clear()
+        allComments.clear()
         notifyDataSetChanged()
     }
 }

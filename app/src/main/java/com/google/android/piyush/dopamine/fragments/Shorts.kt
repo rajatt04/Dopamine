@@ -55,6 +55,7 @@ class Shorts : Fragment() {
                             }
                             binding.playWithShorts.apply {
                                 adapter = ShortsAdapter(
+                                    requireContext(),
                                     shorts.data
                                 )
                             }

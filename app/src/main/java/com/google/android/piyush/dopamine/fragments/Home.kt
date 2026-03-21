@@ -170,65 +170,103 @@ class Home : Fragment() {
         }
 
         showLoading()
+        Log.d(TAG, "Loading category: $category")
 
         lifecycleScope.launch {
-            val response = repository.getSearchVideos(
+            // First get search results to get video IDs
+            val searchResponse = repository.getSearchVideos(
                 query = category,
                 order = "viewCount",
                 type = "video"
             )
 
-            when (response) {
+            Log.d(TAG, "Category search response: $searchResponse")
+
+            when (searchResponse) {
                 is NetworkResult.Success -> {
-                    val items = response.data.items
-                    if (!items.isNullOrEmpty()) {
-                        // Convert SearchTube to Youtube format for the adapter
-                        val youtubeResponse = Youtube(
-                            items = items.map { searchItem ->
-                                com.google.android.piyush.youtube.model.Item(
-                                    id = searchItem.id?.videoId,
-                                    snippet = searchItem.snippet?.let { snippet ->
-                                        com.google.android.piyush.youtube.model.Snippet(
-                                            publishedAt = snippet.publishedAt,
-                                            channelId = snippet.channelId,
-                                            title = snippet.title,
-                                            description = snippet.description,
-                                            thumbnails = snippet.thumbnails?.let { thumbs ->
-                                                com.google.android.piyush.youtube.model.Thumbnails(
-                                                    default = thumbs.default?.let { t ->
-                                                        com.google.android.piyush.youtube.model.Default(
-                                                            url = t.url
-                                                        )
-                                                    },
-                                                    medium = thumbs.medium?.let { t ->
-                                                        com.google.android.piyush.youtube.model.Medium(
-                                                            url = t.url
-                                                        )
-                                                    },
-                                                    high = thumbs.high?.let { t ->
-                                                        com.google.android.piyush.youtube.model.High(
-                                                            url = t.url
-                                                        )
-                                                    }
-                                                )
-                                            },
-                                            channelTitle = snippet.channelTitle
-                                        )
+                    val searchItems = searchResponse.data.items
+                    Log.d(TAG, "Category search items count: ${searchItems?.size ?: 0}")
+                    
+                    if (!searchItems.isNullOrEmpty()) {
+                        // Get video IDs
+                        val videoIds = searchItems.mapNotNull { it.id?.videoId }.take(20)
+                        
+                        if (videoIds.isNotEmpty()) {
+                            // Now fetch full video details with statistics and duration
+                            val videoIdsString = videoIds.joinToString(",")
+                            val videosResponse = repository.getVideosByIds(videoIdsString)
+                            
+                            when (videosResponse) {
+                                is NetworkResult.Success -> {
+                                    if (!videosResponse.data.items.isNullOrEmpty()) {
+                                        showVideos(videosResponse.data)
+                                    } else {
+                                        // Fallback: create items from search with minimal data
+                                        val fallbackResponse = createFallbackYoutubeResponse(searchItems)
+                                        showVideos(fallbackResponse)
                                     }
-                                )
+                                }
+                                is NetworkResult.Error -> {
+                                    Log.e(TAG, "Videos fetch error: ${videosResponse.message}")
+                                    // Fallback to search data without stats
+                                    val fallbackResponse = createFallbackYoutubeResponse(searchItems)
+                                    showVideos(fallbackResponse)
+                                }
+                                is NetworkResult.Loading -> {}
                             }
-                        )
-                        showVideos(youtubeResponse)
+                        } else {
+                            showError("No videos found for \"$category\"")
+                        }
                     } else {
-                        showError("No videos found for $category")
+                        showError("No videos found for \"$category\"")
                     }
                 }
                 is NetworkResult.Error -> {
-                    showError(response.message)
+                    Log.e(TAG, "Category error: ${searchResponse.message}", searchResponse.exception)
+                    showError("Failed to load $category: ${searchResponse.message}")
                 }
                 is NetworkResult.Loading -> {}
             }
         }
+    }
+
+    private suspend fun createFallbackYoutubeResponse(
+        searchItems: List<com.google.android.piyush.youtube.model.SearchTubeItems>
+    ): Youtube {
+        return Youtube(
+            items = searchItems.mapNotNull { searchItem ->
+                searchItem.id?.videoId?.let { videoId ->
+                    com.google.android.piyush.youtube.model.Item(
+                        id = videoId,
+                        snippet = searchItem.snippet?.let { snippet ->
+                            com.google.android.piyush.youtube.model.Snippet(
+                                publishedAt = snippet.publishedAt,
+                                channelId = snippet.channelId,
+                                title = snippet.title,
+                                description = snippet.description,
+                                thumbnails = snippet.thumbnails?.let { thumbs ->
+                                    com.google.android.piyush.youtube.model.Thumbnails(
+                                        default = thumbs.default?.let { t ->
+                                            com.google.android.piyush.youtube.model.Default(url = t.url)
+                                        },
+                                        medium = thumbs.medium?.let { t ->
+                                            com.google.android.piyush.youtube.model.Medium(url = t.url)
+                                        },
+                                        high = thumbs.high?.let { t ->
+                                            com.google.android.piyush.youtube.model.High(url = t.url)
+                                        }
+                                    )
+                                },
+                                channelTitle = snippet.channelTitle
+                            )
+                        },
+                        // Add default statistics so it doesn't crash
+                        statistics = com.google.android.piyush.youtube.model.Statistics(viewCount = 0),
+                        contentDetails = com.google.android.piyush.youtube.model.ContentDetails(duration = "PT0S")
+                    )
+                }
+            }
+        )
     }
 
     private fun showLoading() {

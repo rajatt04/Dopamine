@@ -356,6 +356,23 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/imageView" />
 
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/moreFromChannelHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="12dp"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/circular_spotify"
+                android:text="More from this channel"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/text4" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/channelsPlaylist"
                 android:layout_width="match_parent"
@@ -364,9 +381,12 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp"
                 android:scrollbars="none"
+                android:visibility="gone"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/text4" />
+                app:layout_constraintTop_toBottomOf="@id/moreFromChannelHeader" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/chaptersHeader"
@@ -420,6 +440,23 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/commentsHeader" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/btnShowMoreComments"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="@font/circular_spotify"
+                android:text="Show more comments"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/commentsRecyclerView" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

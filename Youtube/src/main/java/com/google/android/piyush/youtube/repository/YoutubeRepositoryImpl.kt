@@ -67,6 +67,17 @@ class YoutubeRepositoryImpl : YoutubeRepository {
         response.body<Youtube>()
     }
 
+    override suspend fun getVideosByIds(videoIds: String): NetworkResult<Youtube> = safeApiCall("videos.list") {
+        val response = YoutubeClient.CLIENT.get(YoutubeClient.YOUTUBE + YoutubeClient.VIDEO) {
+            url {
+                parameters.append("part", "${YoutubeClient.PART},contentDetails")
+                parameters.append("id", videoIds)
+                parameters.append("key", YoutubeClient.API_KEY)
+            }
+        }
+        response.body<Youtube>()
+    }
+
     // ==================== SEARCH ====================
 
     override suspend fun getSearchVideos(

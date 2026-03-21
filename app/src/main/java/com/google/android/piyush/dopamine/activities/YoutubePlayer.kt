@@ -329,8 +329,10 @@ class YoutubePlayer : AppCompatActivity() {
                     binding.apply {
                         this.text1.text = channelTitle
                         this.text2.text = customUrl
-                        this.text3.text = channelSubscribers
-                        this.text4.text = channelDescription
+                        if (channelSubscribers.isNotEmpty()) {
+                            this.text3.text = channelSubscribers
+                            this.text3.visibility = View.VISIBLE
+                        }
                     }
                 }
 
@@ -357,6 +359,35 @@ class YoutubePlayer : AppCompatActivity() {
             }
         }
 
+        youtubePlayerViewModel.channelsPlaylists.observe(this) { channelsPlaylist ->
+            when (channelsPlaylist) {
+                is NetworkResult.Loading -> {
+                    binding.moreFromChannelHeader.visibility = View.GONE
+                    binding.channelsPlaylist.visibility = View.GONE
+                }
+
+                is NetworkResult.Success -> {
+                    if (!channelsPlaylist.data.items.isNullOrEmpty()) {
+                        binding.moreFromChannelHeader.visibility = View.VISIBLE
+                        binding.channelsPlaylist.visibility = View.VISIBLE
+                        binding.channelsPlaylist.apply {
+                            layoutManager = LinearLayoutManager(this@YoutubePlayer, LinearLayoutManager.HORIZONTAL, false)
+                            adapter = YoutubeChannelPlaylistsAdapter(this@YoutubePlayer, channelsPlaylist.data)
+                        }
+                    } else {
+                        binding.moreFromChannelHeader.visibility = View.GONE
+                        binding.channelsPlaylist.visibility = View.GONE
+                    }
+                }
+
+                is NetworkResult.Error -> {
+                    Log.d(TAG, "YoutubePlayer Playlists Error: ${channelsPlaylist.message}")
+                    binding.moreFromChannelHeader.visibility = View.GONE
+                    binding.channelsPlaylist.visibility = View.GONE
+                }
+            }
+        }
+
         youtubePlayerViewModel.comments.observe(this) { comments ->
             when (comments) {
                 is NetworkResult.Loading -> {}
@@ -376,6 +407,18 @@ class YoutubePlayer : AppCompatActivity() {
                             }
                         } else {
                             commentsAdapter?.addComments(items)
+                        }
+
+                        // Show the toggle button only when there are more than 3 comments
+                        if (commentsAdapter?.hasMore() == true) {
+                            binding.btnShowMoreComments.visibility = View.VISIBLE
+                            binding.btnShowMoreComments.setOnClickListener {
+                                val expanded = commentsAdapter?.toggleShowAll() ?: false
+                                binding.btnShowMoreComments.text =
+                                    if (expanded) "Show less comments" else "Show more comments"
+                            }
+                        } else {
+                            binding.btnShowMoreComments.visibility = View.GONE
                         }
                     }
                 }

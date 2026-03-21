@@ -116,6 +116,7 @@ class YoutubePlayerViewModel(
     fun loadVideoData(videoId: String, channelId: String) {
         getVideoDetails(videoId)
         getChannelDetails(channelId)
+        getChannelsPlaylist(channelId)
         getComments(videoId, reset = true)
     }
 }
