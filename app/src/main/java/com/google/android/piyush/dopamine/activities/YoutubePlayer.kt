@@ -212,6 +212,28 @@ class YoutubePlayer : AppCompatActivity() {
                         textView.text   = videoViews
                         textDescription.text = videoDescription
 
+                        // Show more / Show less toggle
+                        textDescription.post {
+                            val lineCount = textDescription.lineCount
+                            if (lineCount > 4) {
+                                btnShowMore.visibility = View.VISIBLE
+                            }
+                        }
+
+                        var isExpanded = false
+                        btnShowMore.setOnClickListener {
+                            isExpanded = !isExpanded
+                            if (isExpanded) {
+                                textDescription.maxLines = Int.MAX_VALUE
+                                textDescription.ellipsize = null
+                                btnShowMore.text = "Show less"
+                            } else {
+                                textDescription.maxLines = 4
+                                textDescription.ellipsize = android.text.TextUtils.TruncateAt.END
+                                btnShowMore.text = "Show more"
+                            }
+                        }
+
                         AnalyticsHelper.logVideoPlay(currentVideoId, videoTitle, channelTitle)
                         AnalyticsHelper.setCustomKey("current_video_id", currentVideoId)
 
