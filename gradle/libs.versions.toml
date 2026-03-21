@@ -1,10 +1,11 @@
 [versions]
-agp = "8.10.1"
+agp = "8.13.2"
 exomedia = "5.1.0"
 kotlin = "1.9.23"
 googleGmsGoogleServices = "4.4.1"
 firebaseAuthKtx = "22.3.1"
 preference = "1.2.1"
+viewpager2 = "1.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.13.0-beta01" }
@@ -36,6 +37,7 @@ shimmer = { module = "com.facebook.shimmer:shimmer", version = "0.5.0" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version = "2.6.1" }
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 androidx-preference = { group = "androidx.preference", name = "preference", version.ref = "preference" }
+androidx-viewpager2 = { group = "androidx.viewpager2", name = "viewpager2", version.ref = "viewpager2" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

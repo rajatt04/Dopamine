@@ -19,6 +19,7 @@ import com.google.android.piyush.dopamine.utilities.NetworkUtilities
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.DopamineHomeViewModel
 import com.google.android.piyush.dopamine.viewModels.SharedViewModel
+import kotlin.getValue
 import kotlin.system.exitProcess
 
 @Suppress("DEPRECATION")
