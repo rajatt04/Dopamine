@@ -66,6 +66,29 @@ object YoutubeClient {
 
     const val EXPERIMENTAL_API = "https://yt.lemnoslife.com/noKey/"
 
+    // Comments endpoints
+    const val COMMENT_THREADS = "commentThreads"
+    const val COMMENTS = "comments"
+    const val COMMENT_THREADS_PART = "snippet,replies"
+
+    // Ratings endpoints
+    const val VIDEO_RATINGS = "videos"
+    const val RATING_PART = "rating"
+
+    // Subscriptions endpoints
+    const val SUBSCRIPTIONS = "subscriptions"
+    const val SUBSCRIPTION_PART = "snippet,contentDetails"
+
+    // Captions endpoints
+    const val CAPTIONS = "captions"
+
+    // Activities endpoints
+    const val ACTIVITIES = "activities"
+    const val ACTIVITIES_PART = "snippet,contentDetails"
+
+    // Playlists CRUD endpoints
+    const val PLAYLISTS_ENDPOINT = "playlists"
+
     val CODING_VIDEOS = arrayListOf(
         "PLfqMhTWNBTe0PY9xunOzsP5kmYIz2Hu7i","PLfqMhTWNBTe0gqgFk-CUE-ktO5Cek1GdP",
         "PLfqMhTWNBTe0sPLFF91REaJQEteFZtLzA","PLfqMhTWNBTe25HU2y-3Kx6MBsasawd61U",
@@ -120,26 +143,26 @@ data class DopamineVersion(
 )
 
 class DopamineVersionViewModel : ViewModel() {
-    private val _update : MutableLiveData<YoutubeResource<DopamineVersion>> = MutableLiveData()
-    val update : MutableLiveData<YoutubeResource<DopamineVersion>> = _update
+    private val _update = MutableLiveData<NetworkResult<DopamineVersion>>()
+    val update: MutableLiveData<NetworkResult<DopamineVersion>> = _update
 
-    private val _preRelease : MutableLiveData<YoutubeResource<DopamineVersion>> = MutableLiveData()
-    val preRelease : MutableLiveData<YoutubeResource<DopamineVersion>> = _preRelease
+    private val _preRelease = MutableLiveData<NetworkResult<DopamineVersion>>()
+    val preRelease: MutableLiveData<NetworkResult<DopamineVersion>> = _preRelease
 
-    init{
+    init {
         try {
             viewModelScope.launch {
-                _update.postValue(YoutubeResource.Loading)
+                _update.postValue(NetworkResult.Loading)
                 _update.postValue(
-                    YoutubeResource.Success(
+                    NetworkResult.Success(
                         YoutubeClient.CLIENT.get(
                             YoutubeClient.DOPAMINE_UPDATE
                         ).body()
                     )
                 )
             }
-        }catch (e : Exception){
-            _update.postValue(YoutubeResource.Error(e))
+        } catch (e: Exception) {
+            _update.postValue(NetworkResult.Error(message = e.message ?: "Update check failed", exception = e))
         }
     }
 
@@ -147,17 +170,17 @@ class DopamineVersionViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 viewModelScope.launch {
-                    _preRelease.postValue(YoutubeResource.Loading)
+                    _preRelease.postValue(NetworkResult.Loading)
                     _preRelease.postValue(
-                        YoutubeResource.Success(
+                        NetworkResult.Success(
                             YoutubeClient.CLIENT.get(
                                 YoutubeClient.PRE_RELEASE
                             ).body()
                         )
                     )
                 }
-            }catch (e : Exception){
-                _preRelease.postValue(YoutubeResource.Error(e))
+            } catch (e: Exception) {
+                _preRelease.postValue(NetworkResult.Error(message = e.message ?: "Pre-release check failed", exception = e))
             }
         }
     }
@@ -183,23 +206,28 @@ data class Photos(
 
 class DevelopersViewModel : ViewModel() {
 
-    private val _devModel : MutableLiveData<YoutubeResource<List<Developer>>> = MutableLiveData()
-    val devModel : MutableLiveData<YoutubeResource<List<Developer>>> = _devModel
+    private val _devModel = MutableLiveData<NetworkResult<List<Developer>>>()
+    val devModel: MutableLiveData<NetworkResult<List<Developer>>> = _devModel
 
     init {
         viewModelScope.launch {
             try {
-                _devModel.postValue(YoutubeResource.Loading)
+                _devModel.postValue(NetworkResult.Loading)
                 val response = YoutubeClient.CLIENT.get(
                     YoutubeClient.DEVELOPER
                 ).body<List<Developer>>()
-                if(response.isNotEmpty()){
-                    _devModel.postValue(YoutubeResource.Success(response))
-                }else{
-                    _devModel.postValue(YoutubeResource.Error(Exception("Code 521 : Web server is down")))
+                if (response.isNotEmpty()) {
+                    _devModel.postValue(NetworkResult.Success(response))
+                } else {
+                    _devModel.postValue(NetworkResult.Error(message = "Server is currently unavailable"))
                 }
-            }catch (exception : Exception){
-                _devModel.postValue(YoutubeResource.Error(exception))
+            } catch (exception: Exception) {
+                _devModel.postValue(
+                    NetworkResult.Error(
+                        message = exception.message ?: "Failed to load developer info",
+                        exception = exception
+                    )
+                )
             }
         }
     }

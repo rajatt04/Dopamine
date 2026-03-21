@@ -6,111 +6,117 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.youtube.model.Youtube
+import com.google.android.piyush.youtube.model.channelDetails.YoutubeChannel
 import com.google.android.piyush.youtube.model.channelPlaylists.ChannelPlaylists
+import com.google.android.piyush.youtube.model.comments.CommentThreadsResponse
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
-import com.google.android.piyush.youtube.utilities.YoutubeResource
+import com.google.android.piyush.youtube.utilities.NetworkResult
 import kotlinx.coroutines.launch
 
 class YoutubePlayerViewModel(
     private val youtubeRepositoryImpl: YoutubeRepositoryImpl
 ) : ViewModel() {
 
-    private val _videoDetails: MutableLiveData<YoutubeResource<Youtube>> = MutableLiveData()
-    val videoDetails: LiveData<YoutubeResource<Youtube>> = _videoDetails
+    private val _videoDetails = MutableLiveData<NetworkResult<Youtube>>()
+    val videoDetails: LiveData<NetworkResult<Youtube>> = _videoDetails
 
-    private val _channelDetails: MutableLiveData<YoutubeResource<com.google.android.piyush.youtube.model.channelDetails.YoutubeChannel>> =
-        MutableLiveData()
-    val channelDetails: MutableLiveData<YoutubeResource<com.google.android.piyush.youtube.model.channelDetails.YoutubeChannel>> =
-        _channelDetails
+    private val _channelDetails = MutableLiveData<NetworkResult<YoutubeChannel>>()
+    val channelDetails: LiveData<NetworkResult<YoutubeChannel>> = _channelDetails
 
-    private val _channelsPlaylists: MutableLiveData<YoutubeResource<ChannelPlaylists>> =
-        MutableLiveData()
-    val channelsPlaylists: MutableLiveData<YoutubeResource<ChannelPlaylists>> = _channelsPlaylists
+    private val _channelsPlaylists = MutableLiveData<NetworkResult<ChannelPlaylists>>()
+    val channelsPlaylists: LiveData<NetworkResult<ChannelPlaylists>> = _channelsPlaylists
+
+    private val _comments = MutableLiveData<NetworkResult<CommentThreadsResponse>>()
+    val comments: LiveData<NetworkResult<CommentThreadsResponse>> = _comments
+
+    private var commentsNextPageToken: String? = null
+    private var isLoadingComments = false
 
     fun getVideoDetails(videoId: String) {
         viewModelScope.launch {
-            try {
-                _videoDetails.postValue(YoutubeResource.Loading)
-                val response = youtubeRepositoryImpl.getVideoDetails(videoId)
-                if (response.items.isNullOrEmpty()) {
-                    _videoDetails.postValue(
-                        YoutubeResource.Error(
-                            Exception(
-                                "The request cannot be completed because you have exceeded your quota."
-                            )
-                        )
-                    )
-                } else {
-                    _videoDetails.postValue(YoutubeResource.Success(response))
+            _videoDetails.postValue(NetworkResult.Loading)
+            val response = youtubeRepositoryImpl.getVideoDetails(videoId)
+            when (response) {
+                is NetworkResult.Success -> {
+                    if (response.data.items.isNullOrEmpty()) {
+                        _videoDetails.postValue(NetworkResult.Error(message = "Video not found."))
+                    } else {
+                        _videoDetails.postValue(response)
+                    }
                 }
-            } catch (exception: Exception) {
-                _videoDetails.postValue(YoutubeResource.Error(exception))
+                is NetworkResult.Error -> _videoDetails.postValue(response)
+                is NetworkResult.Loading -> Unit
             }
         }
     }
 
     fun getChannelDetails(channelId: String) {
         viewModelScope.launch {
-            try {
-                _channelDetails.postValue(
-                    YoutubeResource.Loading
-                )
-                val response = youtubeRepositoryImpl.getChannelDetails(channelId)
-                if (response.items.isNullOrEmpty()) {
-                    _channelDetails.postValue(
-                        YoutubeResource.Error(
-                            Exception(
-                                "The request cannot be completed because server unreachable !"
-                            )
-                        )
-                    )
-                } else {
-                    _channelDetails.postValue(
-                        YoutubeResource.Success(
-                            response
-                        )
-                    )
+            _channelDetails.postValue(NetworkResult.Loading)
+            val response = youtubeRepositoryImpl.getChannelDetails(channelId)
+            when (response) {
+                is NetworkResult.Success -> {
+                    if (response.data.items.isNullOrEmpty()) {
+                        _channelDetails.postValue(NetworkResult.Error(message = "Channel not found."))
+                    } else {
+                        _channelDetails.postValue(response)
+                    }
                 }
-            } catch (exception: Exception) {
-                _channelDetails.postValue(
-                    YoutubeResource.Error(
-                        exception
-                    )
-                )
+                is NetworkResult.Error -> _channelDetails.postValue(response)
+                is NetworkResult.Loading -> Unit
             }
         }
     }
 
     fun getChannelsPlaylist(channelId: String) {
         viewModelScope.launch {
-            try {
-                _channelsPlaylists.postValue(
-                    YoutubeResource.Loading
-                )
-                val response = youtubeRepositoryImpl.getChannelsPlaylists(channelId)
-                if (response.items.isNullOrEmpty()) {
-                    _channelsPlaylists.postValue(
-                        YoutubeResource.Error(
-                            Exception(
-                                "The request cannot be completed because you have exceeded your quota."
-                            )
-                        )
-                    )
-                } else {
-                    _channelsPlaylists.postValue(
-                        YoutubeResource.Success(
-                            response
-                        )
-                    )
+            _channelsPlaylists.postValue(NetworkResult.Loading)
+            val response = youtubeRepositoryImpl.getChannelsPlaylists(channelId)
+            when (response) {
+                is NetworkResult.Success -> {
+                    if (response.data.items.isNullOrEmpty()) {
+                        _channelsPlaylists.postValue(NetworkResult.Error(message = "No playlists found."))
+                    } else {
+                        _channelsPlaylists.postValue(response)
+                    }
                 }
-            } catch (exception: Exception) {
-                _channelsPlaylists.postValue(
-                    YoutubeResource.Error(
-                        exception
-                    )
-                )
+                is NetworkResult.Error -> _channelsPlaylists.postValue(response)
+                is NetworkResult.Loading -> Unit
             }
         }
+    }
+
+    fun getComments(videoId: String, reset: Boolean = false) {
+        if (isLoadingComments) return
+        if (reset) commentsNextPageToken = null
+
+        viewModelScope.launch {
+            isLoadingComments = true
+            if (reset) _comments.postValue(NetworkResult.Loading)
+
+            val response = youtubeRepositoryImpl.getCommentThreads(
+                videoId = videoId,
+                pageToken = commentsNextPageToken
+            )
+
+            when (response) {
+                is NetworkResult.Success -> {
+                    commentsNextPageToken = response.data.nextPageToken
+                    _comments.postValue(response)
+                }
+                is NetworkResult.Error -> _comments.postValue(response)
+                is NetworkResult.Loading -> Unit
+            }
+            isLoadingComments = false
+        }
+    }
+
+    fun hasMoreComments(): Boolean = commentsNextPageToken != null
+
+    fun loadVideoData(videoId: String, channelId: String) {
+        getVideoDetails(videoId)
+        getChannelDetails(channelId)
+        getComments(videoId, reset = true)
     }
 }
 

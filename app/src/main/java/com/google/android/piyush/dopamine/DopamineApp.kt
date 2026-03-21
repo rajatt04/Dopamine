@@ -5,6 +5,7 @@ import android.os.StrictMode
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.color.DynamicColorsOptions
+import com.google.android.piyush.dopamine.utilities.AnalyticsHelper
 import com.google.android.piyush.dopamine.utilities.Utilities
 
 
@@ -19,6 +20,8 @@ class DopamineApp : Application() {
             DynamicColors.applyToActivitiesIfAvailable(
                 this, DynamicColorsOptions.Builder().build()
             )
+
+        AnalyticsHelper.init(this)
 
         val dopamineApp = applicationContext.getSharedPreferences("DopamineApp", MODE_PRIVATE)
 

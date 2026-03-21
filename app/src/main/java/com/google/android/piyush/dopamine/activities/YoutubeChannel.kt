@@ -2,7 +2,6 @@ package com.google.android.piyush.dopamine.activities
 
 import android.os.Bundle
 import android.util.Log
-import android.view.SoundEffectConstants
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -18,7 +17,7 @@ import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.YoutubeChannelViewModel
 import com.google.android.piyush.dopamine.viewModels.YoutubeChannelViewModelFactory
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
-import com.google.android.piyush.youtube.utilities.YoutubeResource
+import com.google.android.piyush.youtube.utilities.NetworkResult
 
 class YoutubeChannel : AppCompatActivity() {
 
@@ -54,8 +53,8 @@ class YoutubeChannel : AppCompatActivity() {
 
         youtubeChannelViewModel.channelDetails.observe(this) { channelDetails ->
             when(channelDetails){
-                is YoutubeResource.Loading -> {}
-                is YoutubeResource.Success -> {
+                is NetworkResult.Loading -> {}
+                is NetworkResult.Success -> {
                     val channelTitle = channelDetails.data.items?.get(0)?.snippet?.title
                     val channelCustomUrl = channelDetails.data.items?.get(0)?.snippet?.customUrl
                     val channelSubscribers = " ${counter(channelDetails.data.items?.get(0)?.statistics?.subscriberCount!!.toInt()) } Subscribers"
@@ -82,8 +81,8 @@ class YoutubeChannel : AppCompatActivity() {
                         this.channelDescription.text = channelDescription
                     }
                 }
-                is YoutubeResource.Error -> {
-                    Log.d(TAG, "Error: ${channelDetails.exception.message.toString()}")
+                is NetworkResult.Error -> {
+                    Log.d(TAG, "Error: ${channelDetails.message}")
                 }
             }
         }
@@ -92,8 +91,8 @@ class YoutubeChannel : AppCompatActivity() {
 
         youtubeChannelViewModel.channelsPlaylists.observe(this) { channelsPlaylists ->
             when(channelsPlaylists){
-                is YoutubeResource.Loading -> {}
-                is YoutubeResource.Success -> {
+                is NetworkResult.Loading -> {}
+                is NetworkResult.Success -> {
                     binding.channelsPlaylist.apply {
                         layoutManager = LinearLayoutManager(this@YoutubeChannel)
                         adapter = YoutubeChannelPlaylistsAdapter(
@@ -102,17 +101,9 @@ class YoutubeChannel : AppCompatActivity() {
                     }
                     Log.d(TAG, "channelsPlaylists: ${channelsPlaylists.data}")
                 }
-                is YoutubeResource.Error -> {
-                    Log.d(TAG, "Error: ${channelsPlaylists.exception.message.toString()}")
-                    binding.channelPlaylistLoader.apply {
-                        visibility = View.VISIBLE
-                        setAnimation(R.raw.auth)
-                        playAnimation()
-                        playSoundEffect(SoundEffectConstants.CLICK)  //sound effect
-                        speed = 1.5f        //speed of animation
-                        @Suppress("DEPRECATION")
-                        loop(true)
-                    }
+                is NetworkResult.Error -> {
+                    Log.d(TAG, "Error: ${channelsPlaylists.message}")
+                    binding.channelPlaylistLoader.visibility = View.GONE
                 }
             }
         }

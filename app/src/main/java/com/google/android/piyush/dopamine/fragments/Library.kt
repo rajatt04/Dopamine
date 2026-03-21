@@ -22,7 +22,7 @@ import com.google.android.piyush.dopamine.adapters.YourFavouriteVideosAdapter
 import com.google.android.piyush.dopamine.databinding.FragmentLibraryBinding
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
-import com.google.android.piyush.youtube.utilities.YoutubeResource
+import com.google.android.piyush.youtube.utilities.NetworkResult
 import com.google.android.piyush.youtube.viewModels.LibraryViewModel
 import com.google.android.piyush.youtube.viewModels.LibraryViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
@@ -78,7 +78,7 @@ class Library : Fragment() {
         if(NetworkUtilities.isNetworkAvailable(requireContext())) {
             viewModel.codingVideos.observe(viewLifecycleOwner) { playListVideos ->
                 when (playListVideos) {
-                    is YoutubeResource.Success -> {
+                    is NetworkResult.Success -> {
                         libraryAdapter = LibraryAdapter(requireContext(), playListVideos.data)
                         fragmentLibraryBinding?.apply {
                             codingVideosList.layoutManager =
@@ -93,7 +93,7 @@ class Library : Fragment() {
                         }
                     }
 
-                    is YoutubeResource.Error -> {
+                    is NetworkResult.Error -> {
                         MaterialAlertDialogBuilder(requireContext()).apply {
                             this.setTitle("Oops!")
                             this.setMessage("Oh no! Something went wrong. Please try again.")
@@ -104,7 +104,7 @@ class Library : Fragment() {
                             }
                             this.setPositiveButton("Retry") { _, _ ->
                                 viewModel.reGetCodingVideos.observe(viewLifecycleOwner) {
-                                    if (it is YoutubeResource.Success) {
+                                    if (it is NetworkResult.Success) {
                                         binding.codingVideosEffect.visibility = View.INVISIBLE
                                         binding.codingVideosEffect.stopShimmer()
                                         binding.codingVideosList.apply {
@@ -122,7 +122,7 @@ class Library : Fragment() {
                                 }
 
                                 viewModel.reGetSportsVideos.observe(viewLifecycleOwner) {
-                                    if (it is YoutubeResource.Success) {
+                                    if (it is NetworkResult.Success) {
                                         binding.sportsVideosEffect.visibility = View.INVISIBLE
                                         binding.sportsVideosEffect.stopShimmer()
                                         binding.sportsVideosList.apply {
@@ -141,7 +141,7 @@ class Library : Fragment() {
 
                                 viewModel.reGetTechnologyVideos.observe(viewLifecycleOwner) {
                                     Log.d(TAG, it.toString())
-                                    if (it is YoutubeResource.Success) {
+                                    if (it is NetworkResult.Success) {
                                         binding.techVideosEffect.visibility = View.INVISIBLE
                                         binding.techVideosEffect.stopShimmer()
                                         binding.techVideosList.apply {
@@ -163,7 +163,7 @@ class Library : Fragment() {
                         }.create().show()
                     }
 
-                    is YoutubeResource.Loading -> {
+                    is NetworkResult.Loading -> {
                         binding.codingVideosEffect.startShimmer()
                         binding.codingVideosEffect.visibility = View.VISIBLE
                     }
@@ -172,7 +172,7 @@ class Library : Fragment() {
 
             viewModel.sportsVideos.observe(viewLifecycleOwner) { playListVideos ->
                 when (playListVideos) {
-                    is YoutubeResource.Success -> {
+                    is NetworkResult.Success -> {
                         libraryAdapter = LibraryAdapter(requireContext(), playListVideos.data)
                         fragmentLibraryBinding?.apply {
                             sportsVideosList.layoutManager =
@@ -187,12 +187,12 @@ class Library : Fragment() {
                         }
                     }
 
-                    is YoutubeResource.Error -> {
+                    is NetworkResult.Error -> {
                         binding.sportsVideosEffect.startShimmer()
                         binding.sportsVideosEffect.visibility = View.VISIBLE
                     }
 
-                    is YoutubeResource.Loading -> {
+                    is NetworkResult.Loading -> {
                         binding.sportsVideosEffect.startShimmer()
                         binding.sportsVideosEffect.visibility = View.VISIBLE
                     }
@@ -201,7 +201,7 @@ class Library : Fragment() {
 
             viewModel.technologyVideos.observe(viewLifecycleOwner) { playListVideos ->
                 when (playListVideos) {
-                    is YoutubeResource.Success -> {
+                    is NetworkResult.Success -> {
                         libraryAdapter = LibraryAdapter(requireContext(), playListVideos.data)
                         fragmentLibraryBinding?.apply {
                             techVideosList.layoutManager =
@@ -216,12 +216,12 @@ class Library : Fragment() {
                         }
                     }
 
-                    is YoutubeResource.Error -> {
+                    is NetworkResult.Error -> {
                         binding.techVideosEffect.startShimmer()
                         binding.techVideosEffect.visibility = View.VISIBLE
                     }
 
-                    is YoutubeResource.Loading -> {
+                    is NetworkResult.Loading -> {
                         binding.techVideosEffect.startShimmer()
                         binding.techVideosEffect.visibility = View.VISIBLE
                     }
@@ -248,7 +248,7 @@ class Library : Fragment() {
             }
         }
 
-        val iFramePlayerOptions = IFramePlayerOptions.Builder()
+        val iFramePlayerOptions = IFramePlayerOptions.Builder(requireContext())
             .controls(0)
             .build()
 

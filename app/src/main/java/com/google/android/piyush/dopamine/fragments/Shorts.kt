@@ -11,7 +11,7 @@ import com.google.android.piyush.dopamine.adapters.ShortsAdapter
 import com.google.android.piyush.dopamine.databinding.FragmentShortsBinding
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
-import com.google.android.piyush.youtube.utilities.YoutubeResource
+import com.google.android.piyush.youtube.utilities.NetworkResult
 import com.google.android.piyush.youtube.viewModels.ShortsViewModel
 import com.google.android.piyush.youtube.viewModels.ShortsViewModelFactory
 
@@ -41,8 +41,8 @@ class Shorts : Fragment() {
         if(NetworkUtilities.isNetworkAvailable(requireContext())){
             shortsViewModel.shorts.observe(viewLifecycleOwner){ shorts ->
                 when(shorts){
-                    is YoutubeResource.Loading -> {}
-                    is YoutubeResource.Success -> {
+                    is NetworkResult.Loading -> {}
+                    is NetworkResult.Success -> {
                         if(shorts.data.isEmpty()){
                             binding.playWithShortsEffect.apply {
                                 startShimmer()
@@ -60,7 +60,7 @@ class Shorts : Fragment() {
                             }
                         }
                     }
-                    is YoutubeResource.Error -> {
+                    is NetworkResult.Error -> {
                         binding.playWithShortsEffect.apply {
                             startShimmer()
                             visibility = View.VISIBLE

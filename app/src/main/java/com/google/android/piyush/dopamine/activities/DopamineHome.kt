@@ -15,6 +15,7 @@ import com.google.android.piyush.dopamine.fragments.Home
 import com.google.android.piyush.dopamine.fragments.Library
 import com.google.android.piyush.dopamine.fragments.Search
 import com.google.android.piyush.dopamine.fragments.Shorts
+import com.google.android.piyush.dopamine.utilities.AnalyticsHelper
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.DopamineHomeViewModel
@@ -67,18 +68,22 @@ class DopamineHome : AppCompatActivity() {
         binding.bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.home -> {
+                    AnalyticsHelper.logScreenView("Home", "Home")
                     defaultScreen(Home())
                     true
                 }
                 R.id.search -> {
+                    AnalyticsHelper.logScreenView("Search", "Search")
                     defaultScreen(Search())
                     true
                 }
                 R.id.library -> {
+                    AnalyticsHelper.logScreenView("Library", "Library")
                     defaultScreen(Library())
                     true
                 }
                 R.id.shorts -> {
+                    AnalyticsHelper.logScreenView("Shorts", "Shorts")
                     defaultScreen(Shorts())
                     true
                 }

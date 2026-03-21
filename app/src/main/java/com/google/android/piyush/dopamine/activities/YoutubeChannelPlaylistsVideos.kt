@@ -17,7 +17,7 @@ import com.google.android.piyush.dopamine.databinding.ActivityYoutubeChannelPlay
 import com.google.android.piyush.dopamine.viewModels.YoutubeChannelPlaylistsVideosViewModel
 import com.google.android.piyush.dopamine.viewModels.YoutubeChannelPlaylistsViewModelFactory
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
-import com.google.android.piyush.youtube.utilities.YoutubeResource
+import com.google.android.piyush.youtube.utilities.NetworkResult
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions
@@ -54,16 +54,16 @@ class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
 
         youtubeChannelPlaylistsVideosViewModel.playlistsVideos.observe(this) { playlistsVideos ->
             when (playlistsVideos) {
-                is YoutubeResource.Loading -> {}
-                is YoutubeResource.Success -> {
+                is NetworkResult.Loading -> {}
+                is NetworkResult.Success -> {
                     binding.recyclerView.apply {
                         setHasFixedSize(true)
                         layoutManager = LinearLayoutManager(this@YoutubeChannelPlaylistsVideos)
                         adapter = YoutubePlaylistsVideosAdapter(context,playlistsVideos.data)
                     }
                 }
-                is YoutubeResource.Error -> {
-                    Log.d(TAG, "Error: ${playlistsVideos.exception.message.toString()}")
+                is NetworkResult.Error -> {
+                    Log.d(TAG, "Error: ${playlistsVideos.message}")
                     binding.channelPlaylistVideosLoader.apply {
                         visibility = View.VISIBLE
                         setAnimation(R.raw.auth)
@@ -88,7 +88,7 @@ class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
                     }
                 },
                 handleNetworkEvents = true,
-                IFramePlayerOptions.Builder()
+                playerOptions = IFramePlayerOptions.Builder(this@YoutubeChannelPlaylistsVideos)
                     .controls(1)
                     .listType("playlist")
                     .list(playlistId)

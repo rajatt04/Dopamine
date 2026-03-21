@@ -7,165 +7,125 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.youtube.model.Youtube
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
+import com.google.android.piyush.youtube.utilities.NetworkResult
 import com.google.android.piyush.youtube.utilities.YoutubeClient
-import com.google.android.piyush.youtube.utilities.YoutubeResource
 import kotlinx.coroutines.launch
 
 class LibraryViewModel(
     private val youtubeRepositoryImpl: YoutubeRepositoryImpl
 ) : ViewModel() {
-    private val _codingVideos : MutableLiveData<YoutubeResource<Youtube>> = MutableLiveData()
-    val codingVideos : LiveData<YoutubeResource<Youtube>> = _codingVideos
 
-    private val _sportsVideos : MutableLiveData<YoutubeResource<Youtube>> = MutableLiveData()
-    val sportsVideos : LiveData<YoutubeResource<Youtube>> = _sportsVideos
+    private val _codingVideos = MutableLiveData<NetworkResult<Youtube>>()
+    val codingVideos: LiveData<NetworkResult<Youtube>> = _codingVideos
 
-    private val _technologyVideos : MutableLiveData<YoutubeResource<Youtube>> = MutableLiveData()
-    val technologyVideos : LiveData<YoutubeResource<Youtube>> = _technologyVideos
+    private val _sportsVideos = MutableLiveData<NetworkResult<Youtube>>()
+    val sportsVideos: LiveData<NetworkResult<Youtube>> = _sportsVideos
 
-    private val _reGetCodingVideos : MutableLiveData<YoutubeResource<Youtube>> = MutableLiveData()
-    val reGetCodingVideos : LiveData<YoutubeResource<Youtube>> = _reGetCodingVideos
+    private val _technologyVideos = MutableLiveData<NetworkResult<Youtube>>()
+    val technologyVideos: LiveData<NetworkResult<Youtube>> = _technologyVideos
 
-    private val _reGetSportsVideos : MutableLiveData<YoutubeResource<Youtube>> = MutableLiveData()
-    val reGetSportsVideos : LiveData<YoutubeResource<Youtube>> = _reGetSportsVideos
+    private val _reGetCodingVideos = MutableLiveData<NetworkResult<Youtube>>()
+    val reGetCodingVideos: LiveData<NetworkResult<Youtube>> = _reGetCodingVideos
 
-    private val _reGetTechnologyVideos : MutableLiveData<YoutubeResource<Youtube>> = MutableLiveData()
-    val reGetTechnologyVideos : LiveData<YoutubeResource<Youtube>> = _reGetTechnologyVideos
+    private val _reGetSportsVideos = MutableLiveData<NetworkResult<Youtube>>()
+    val reGetSportsVideos: LiveData<NetworkResult<Youtube>> = _reGetSportsVideos
+
+    private val _reGetTechnologyVideos = MutableLiveData<NetworkResult<Youtube>>()
+    val reGetTechnologyVideos: LiveData<NetworkResult<Youtube>> = _reGetTechnologyVideos
+
     init {
         getCodingVideos()
         getSportsVideos()
         getTechnologyVideos()
-        reGetCodingVideos()
-        reGetSportsVideos()
-        reGetTechnologyVideos()
     }
 
     private fun getCodingVideos() = viewModelScope.launch {
-        try {
-            _codingVideos.postValue(YoutubeResource.Loading)
-            val response = youtubeRepositoryImpl.getLibraryVideos(
-                YoutubeClient.CODING_VIDEOS
-            )
-            if(response.items.isNullOrEmpty()){
-                _codingVideos.postValue(
-                    YoutubeResource.Error(
-                        Exception(
-                            "The request cannot be completed because you have exceeded your quota."
-                        )
-                    )
-                )
-            }else{
-                _codingVideos.postValue(
-                    YoutubeResource.Success(response)
-                )
+        _codingVideos.postValue(NetworkResult.Loading)
+        val response = youtubeRepositoryImpl.getLibraryVideos(YoutubeClient.CODING_VIDEOS)
+        when (response) {
+            is NetworkResult.Success -> {
+                if (response.data.items.isNullOrEmpty()) {
+                    _codingVideos.postValue(NetworkResult.Error(message = "No coding videos found."))
+                } else {
+                    _codingVideos.postValue(response)
+                }
             }
-        }catch (exception : Exception){
-            _codingVideos.postValue(
-                YoutubeResource.Error(exception)
-            )
+            is NetworkResult.Error -> _codingVideos.postValue(response)
+            is NetworkResult.Loading -> Unit
         }
     }
+
     private fun getSportsVideos() = viewModelScope.launch {
-        try {
-            _sportsVideos.postValue(YoutubeResource.Loading)
-            val response = youtubeRepositoryImpl.getLibraryVideos(
-                YoutubeClient.SPORTS_VIDEOS
-            )
-            if(response.items.isNullOrEmpty()){
-                _sportsVideos.postValue(
-                    YoutubeResource.Error(
-                        Exception(
-                            "The request cannot be completed because you have exceeded your quota."
-                        )
-                    )
-                )
-            }else{
-                _sportsVideos.postValue(
-                    YoutubeResource.Success(response)
-                )
+        _sportsVideos.postValue(NetworkResult.Loading)
+        val response = youtubeRepositoryImpl.getLibraryVideos(YoutubeClient.SPORTS_VIDEOS)
+        when (response) {
+            is NetworkResult.Success -> {
+                if (response.data.items.isNullOrEmpty()) {
+                    _sportsVideos.postValue(NetworkResult.Error(message = "No sports videos found."))
+                } else {
+                    _sportsVideos.postValue(response)
+                }
             }
-        }catch (exception : Exception){
-            _sportsVideos.postValue(
-                YoutubeResource.Error(exception)
-            )
+            is NetworkResult.Error -> _sportsVideos.postValue(response)
+            is NetworkResult.Loading -> Unit
         }
     }
 
     private fun getTechnologyVideos() = viewModelScope.launch {
-        try {
-            _technologyVideos.postValue(YoutubeResource.Loading)
-            val response = youtubeRepositoryImpl.getLibraryVideos(
-                YoutubeClient.TECH_VIDEOS
-            )
-            if(response.items.isNullOrEmpty()){
-                _technologyVideos.postValue(
-                    YoutubeResource.Error(
-                        Exception(
-                            "The request cannot be completed because you have exceeded your quota."
-                        )
-                    )
-                )
-            }else{
-                _technologyVideos.postValue(
-                    YoutubeResource.Success(response)
-                )
+        _technologyVideos.postValue(NetworkResult.Loading)
+        val response = youtubeRepositoryImpl.getLibraryVideos(YoutubeClient.TECH_VIDEOS)
+        when (response) {
+            is NetworkResult.Success -> {
+                if (response.data.items.isNullOrEmpty()) {
+                    _technologyVideos.postValue(NetworkResult.Error(message = "No tech videos found."))
+                } else {
+                    _technologyVideos.postValue(response)
+                }
             }
-        }catch (exception : Exception){
-            _technologyVideos.postValue(
-                YoutubeResource.Error(exception)
-            )
+            is NetworkResult.Error -> _technologyVideos.postValue(response)
+            is NetworkResult.Loading -> Unit
         }
     }
 
-    private fun reGetCodingVideos() = viewModelScope.launch {
-            try {
-                _reGetCodingVideos.postValue(YoutubeResource.Loading)
-                _reGetCodingVideos.postValue(
-                    YoutubeResource.Success(
-                        youtubeRepositoryImpl.reGetLibraryVideos(
-                            YoutubeClient.CODING_VIDEOS
-                        )
-                    )
-                )
-            }catch (exception : Exception){
-                _reGetCodingVideos.postValue(
-                    YoutubeResource.Error(exception)
-                )
-            }
-    }
-
-    private fun reGetSportsVideos() = viewModelScope.launch {
-            try {
-                _reGetSportsVideos.postValue(YoutubeResource.Loading)
-                _reGetSportsVideos.postValue(
-                    YoutubeResource.Success(
-                        youtubeRepositoryImpl.reGetLibraryVideos(
-                            YoutubeClient.SPORTS_VIDEOS
-                        )
-                    )
-                )
-            }catch (exception : Exception){
-                _reGetSportsVideos.postValue(
-                    YoutubeResource.Error(exception)
-                )
-            }
-
-    }
-
-    private fun reGetTechnologyVideos() = viewModelScope.launch {
+    fun reGetCodingVideos() = viewModelScope.launch {
         try {
-            _reGetTechnologyVideos.postValue(YoutubeResource.Loading)
-            _reGetTechnologyVideos.postValue(
-                YoutubeResource.Success(
-                    youtubeRepositoryImpl.reGetLibraryVideos(
-                        YoutubeClient.TECH_VIDEOS
-                    )
-                )
-            )
-        }catch (exception : Exception){
-            _reGetTechnologyVideos.postValue(
-                YoutubeResource.Error(exception)
-            )
+            _reGetCodingVideos.postValue(NetworkResult.Loading)
+            val response = youtubeRepositoryImpl.reGetLibraryVideos(YoutubeClient.CODING_VIDEOS)
+            if (response.items.isNullOrEmpty()) {
+                _reGetCodingVideos.postValue(NetworkResult.Error(message = "API quota exceeded."))
+            } else {
+                _reGetCodingVideos.postValue(NetworkResult.Success(response))
+            }
+        } catch (exception: Exception) {
+            _reGetCodingVideos.postValue(NetworkResult.Error(message = exception.message ?: "Failed to load.", exception = exception))
+        }
+    }
+
+    fun reGetSportsVideos() = viewModelScope.launch {
+        try {
+            _reGetSportsVideos.postValue(NetworkResult.Loading)
+            val response = youtubeRepositoryImpl.reGetLibraryVideos(YoutubeClient.SPORTS_VIDEOS)
+            if (response.items.isNullOrEmpty()) {
+                _reGetSportsVideos.postValue(NetworkResult.Error(message = "API quota exceeded."))
+            } else {
+                _reGetSportsVideos.postValue(NetworkResult.Success(response))
+            }
+        } catch (exception: Exception) {
+            _reGetSportsVideos.postValue(NetworkResult.Error(message = exception.message ?: "Failed to load.", exception = exception))
+        }
+    }
+
+    fun reGetTechnologyVideos() = viewModelScope.launch {
+        try {
+            _reGetTechnologyVideos.postValue(NetworkResult.Loading)
+            val response = youtubeRepositoryImpl.reGetLibraryVideos(YoutubeClient.TECH_VIDEOS)
+            if (response.items.isNullOrEmpty()) {
+                _reGetTechnologyVideos.postValue(NetworkResult.Error(message = "API quota exceeded."))
+            } else {
+                _reGetTechnologyVideos.postValue(NetworkResult.Success(response))
+            }
+        } catch (exception: Exception) {
+            _reGetTechnologyVideos.postValue(NetworkResult.Error(message = exception.message ?: "Failed to load.", exception = exception))
         }
     }
 }
@@ -173,11 +133,11 @@ class LibraryViewModel(
 @Suppress("UNCHECKED_CAST")
 class LibraryViewModelFactory(
     private val youtubeRepositoryImpl: YoutubeRepositoryImpl
-) : ViewModelProvider.Factory{
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(LibraryViewModel::class.java)){
+        if (modelClass.isAssignableFrom(LibraryViewModel::class.java)) {
             return LibraryViewModel(youtubeRepositoryImpl) as T
-        }else{
+        } else {
             throw IllegalArgumentException("Unknown class name")
         }
     }

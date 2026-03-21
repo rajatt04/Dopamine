@@ -246,12 +246,18 @@ class MobileLoginActivity : AppCompatActivity() {
     }
 
     private fun loginUser() {
+        val phoneNumber = binding.phoneInput.text.toString().trim()
+        val fullPhone = "$selectedCountryCode $phoneNumber"
+        val uid = "mobile_$phoneNumber"
+
         val sharedPrefs = getSharedPreferences("currentUser", MODE_PRIVATE)
         sharedPrefs.edit()
-            .putString("uid", "mobile_user_" + System.currentTimeMillis())
+            .putString("uid", uid)
             .putString("name", "Mobile User")
-            .putString("email", "mobile_${binding.phoneInput.text}@dopamine.dummy")
-            .putString("photoUrl", "https://ui-avatars.com/api/?name=Mobile+User&background=C00100&color=fff")
+            .putString("email", fullPhone)
+            .putString("phone", fullPhone)
+            .putString("photoUrl", "https://ui-avatars.com/api/?name=MU&background=C00100&color=fff&size=128")
+            .putString("loginType", "mobile")
             .apply()
 
         binding.tvLoadingMessage.text = "Welcome back!"

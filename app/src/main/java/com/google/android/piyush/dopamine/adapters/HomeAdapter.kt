@@ -38,50 +38,58 @@ class HomeAdapter(
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: HomeViewHolder, position: Int) {
-        val publishedTime = formatDuration(
-            ChronoUnit.SECONDS.between(
-                LocalDateTime.parse(
-                    youtube?.items?.get(position)?.snippet!!.publishedAt, DateTimeFormatter.ISO_DATE_TIME),
-                LocalDateTime.now()
+        val item = youtube?.items?.get(position) ?: return
+
+        val publishedTime = try {
+            formatDuration(
+                ChronoUnit.SECONDS.between(
+                    LocalDateTime.parse(item.snippet?.publishedAt, DateTimeFormatter.ISO_DATE_TIME),
+                    LocalDateTime.now()
+                )
             )
-        )
-        val publishedViews = viewsCount(
-            youtube!!.items?.get(position)?.statistics!!.viewCount!!.toInt()
-        )
+        } catch (e: Exception) {
+            ""
+        }
 
-        val channelTitle = "${
-            youtube!!.items?.get(position)?.snippet!!.channelTitle} • $publishedViews • $publishedTime"
+        val publishedViews = try {
+            viewsCount(item.statistics?.viewCount?.toInt() ?: 0)
+        } catch (e: Exception) {
+            ""
+        }
 
-        holder.videoTitle.text = youtube!!.items?.get(position)?.snippet!!.title
-
-        holder.channelTitle.text = channelTitle
+        holder.videoTitle.text = item.snippet?.title ?: ""
+        holder.channelTitle.text = item.snippet?.channelTitle ?: ""
+        holder.videoViews.text = publishedViews
+        holder.videoPublished.text = publishedTime
 
         Glide.with(context)
-            .load(youtube!!.items?.get(position)?.snippet!!.thumbnails!!.default!!.url)
+            .load(item.snippet?.thumbnails?.default?.url)
+            .circleCrop()
             .into(holder.imageView)
 
         Glide.with(context)
-            .load(youtube!!.items?.get(position)?.snippet!!.thumbnails!!.high!!.url)
+            .load(item.snippet?.thumbnails?.high?.url)
             .into(holder.youTubePlayerView)
 
-        holder.videoDuration.text = formatDuration(
-            Duration.parse(youtube!!.items?.get(position)?.contentDetails!!.duration!!)
-        )
+        try {
+            holder.videoDuration.text = formatDuration(
+                Duration.parse(item.contentDetails?.duration ?: "PT0S")
+            )
+        } catch (e: Exception) {
+            holder.videoDuration.text = ""
+        }
 
-        holder.youTubePlayer.setOnClickListener {
+        holder.itemView.setOnClickListener {
             if(NetworkUtilities.isNetworkAvailable(context)) {
                 context.startActivity(
                     Intent(context, YoutubePlayer::class.java)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        .putExtra("videoId", youtube!!.items?.get(position)?.id)
-                        .putExtra("channelId", youtube!!.items?.get(position)?.snippet!!.channelId)
+                        .putExtra("videoId", item.id)
+                        .putExtra("channelId", item.snippet?.channelId)
                 )
-                Log.d("FragmentHome", "videoId: ${youtube!!.items?.get(position)?.id}")
-                Log.d("FragmentHome", "channelId: ${youtube!!.items?.get(position)?.snippet!!.channelId}")
-            }else{
+            } else {
                 NetworkUtilities.showNetworkError(context)
             }
-            Log.d("FragmentHome", "videoData: ${youtube!!.items?.get(position)}")
         }
     }
 

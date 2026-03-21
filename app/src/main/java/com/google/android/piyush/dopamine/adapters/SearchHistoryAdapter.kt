@@ -8,8 +8,11 @@ import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.viewHolders.SearchHistoryViewHolder
 
 class SearchHistoryAdapter(
-    private val searchHistoryItem : List<EntityVideoSearch>?
+    private val searchHistoryItem: List<EntityVideoSearch>?,
+    private val onItemClick: ((String) -> Unit)? = null,
+    private val onDeleteClick: ((EntityVideoSearch) -> Unit)? = null
 ) : RecyclerView.Adapter<SearchHistoryViewHolder>() {
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchHistoryViewHolder {
         return SearchHistoryViewHolder(
             LayoutInflater
@@ -19,10 +22,19 @@ class SearchHistoryAdapter(
     }
 
     override fun getItemCount(): Int {
-        return searchHistoryItem?.size!!
+        return searchHistoryItem?.size ?: 0
     }
 
     override fun onBindViewHolder(holder: SearchHistoryViewHolder, position: Int) {
-        holder.searchHistoryItem.text = searchHistoryItem?.get(position)?.search
+        val item = searchHistoryItem?.get(position) ?: return
+        holder.searchHistoryItem.text = item.search ?: ""
+
+        holder.itemView.setOnClickListener {
+            onItemClick?.invoke(item.search ?: "")
+        }
+
+        holder.deleteButton?.setOnClickListener {
+            onDeleteClick?.invoke(item)
+        }
     }
 }

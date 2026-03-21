@@ -25,15 +25,19 @@ import com.google.android.piyush.database.entities.EntityFavouritePlaylist
 import com.google.android.piyush.database.entities.EntityRecentVideos
 import com.google.android.piyush.database.viewModel.DatabaseViewModel
 import com.google.android.piyush.dopamine.R
+import com.google.android.piyush.dopamine.adapters.ChaptersAdapter
+import com.google.android.piyush.dopamine.adapters.CommentsAdapter
 import com.google.android.piyush.dopamine.adapters.CustomPlaylistsAdapter
 import com.google.android.piyush.dopamine.adapters.YoutubeChannelPlaylistsAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityYoutubePlayerBinding
+import com.google.android.piyush.dopamine.utilities.AnalyticsHelper
+import com.google.android.piyush.dopamine.utilities.ChapterParser
 import com.google.android.piyush.dopamine.utilities.CustomDialog
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.YoutubePlayerViewModel
 import com.google.android.piyush.dopamine.viewModels.YoutubePlayerViewModelFactory
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
-import com.google.android.piyush.youtube.utilities.YoutubeResource
+import com.google.android.piyush.youtube.utilities.NetworkResult
 import com.google.firebase.auth.FirebaseAuth
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
@@ -52,6 +56,8 @@ class YoutubePlayer : AppCompatActivity() {
     private lateinit var youtubePlayerViewModel: YoutubePlayerViewModel
     private lateinit var youtubePlayerViewModelFactory: YoutubePlayerViewModelFactory
     private lateinit var databaseViewModel: DatabaseViewModel
+    private var youTubePlayer: YouTubePlayer? = null
+    private var commentsAdapter: CommentsAdapter? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,7 +90,7 @@ class YoutubePlayer : AppCompatActivity() {
 
         binding.YtPlayer.enableBackgroundPlayback(true)
         binding.YtPlayer.enableAutomaticInitialization = false
-        val iFramePlayerOptions = IFramePlayerOptions.Builder()
+        val iFramePlayerOptions = IFramePlayerOptions.Builder(this@YoutubePlayer)
             .rel(1)
             .controls(1)
             .fullscreen(1)
@@ -94,6 +100,7 @@ class YoutubePlayer : AppCompatActivity() {
             AbstractYouTubePlayerListener() {
             override fun onReady(youTubePlayer: YouTubePlayer) {
                 super.onReady(youTubePlayer)
+                this@YoutubePlayer.youTubePlayer = youTubePlayer
                 youTubePlayer.apply {
                     loadVideo(
                         intent?.getStringExtra("videoId")!!,
@@ -150,13 +157,13 @@ class YoutubePlayer : AppCompatActivity() {
         val videoId = intent?.getStringExtra("videoId").toString()
         val channelId = intent?.getStringExtra("channelId").toString()
 
-        youtubePlayerViewModel.getVideoDetails(videoId)
+        youtubePlayerViewModel.loadVideoData(videoId, channelId)
 
         youtubePlayerViewModel.videoDetails.observe(this) { videoDetails ->
             when (videoDetails) {
-                is YoutubeResource.Loading -> {}
+                is NetworkResult.Loading -> {}
 
-                is YoutubeResource.Success -> {
+                is NetworkResult.Success -> {
                     val videoTitle = videoDetails.data.items?.get(0)?.snippet?.title
                     val videoDescription = videoDetails.data.items?.get(0)?.snippet?.description
                     val videoThumbnail = videoDetails.data.items?.get(0)?.snippet?.thumbnails?.high?.url
@@ -171,6 +178,9 @@ class YoutubePlayer : AppCompatActivity() {
                         textLiked.text  = videoLikes
                         textView.text   = videoViews
                         textDescription.text = videoDescription
+
+                        AnalyticsHelper.logVideoPlay(videoId, videoTitle, channelTitle)
+                        AnalyticsHelper.setCustomKey("current_video_id", videoId)
 
                         addToPlayList.addOnCheckedStateChangedListener { _, isFavourite ->
                             if (isFavourite == 1) {
@@ -190,6 +200,19 @@ class YoutubePlayer : AppCompatActivity() {
                             }
                         }
                     }
+
+                    val chapters = ChapterParser.parseChapters(videoDescription)
+                    if (chapters.isNotEmpty()) {
+                        binding.chaptersHeader.visibility = View.VISIBLE
+                        binding.chaptersRecyclerView.visibility = View.VISIBLE
+                        binding.chaptersRecyclerView.apply {
+                            layoutManager = LinearLayoutManager(this@YoutubePlayer)
+                            adapter = ChaptersAdapter(this@YoutubePlayer, chapters) { chapter ->
+                                youTubePlayer?.seekTo(chapter.startTimeSeconds.toFloat())
+                            }
+                        }
+                    }
+
                     databaseViewModel.isRecentVideo(videoId = videoId)
 
                     databaseViewModel.isRecent.observe(this) {
@@ -226,19 +249,17 @@ class YoutubePlayer : AppCompatActivity() {
                     }
                 }
 
-                is YoutubeResource.Error -> {
-                    Log.d("YoutubePlayer", "YoutubePlayer: ${videoDetails.exception.message.toString()}")
+                is NetworkResult.Error -> {
+                    Log.d("YoutubePlayer", "YoutubePlayer: ${videoDetails.message}")
                 }
             }
         }
 
-        youtubePlayerViewModel.getChannelDetails(channelId)
-
         youtubePlayerViewModel.channelDetails.observe(this) { channelDetails ->
             when (channelDetails) {
-                is YoutubeResource.Loading -> {}
+                is NetworkResult.Loading -> {}
 
-                is YoutubeResource.Success -> {
+                is NetworkResult.Success -> {
                     val channelLogo = channelDetails.data.items?.get(0)?.snippet?.thumbnails?.default?.url
                     val channelSubscribers = "${counter(channelDetails.data.items?.get(0)?.statistics?.subscriberCount!!.toInt())} Subscribers"
                     val channelTitle = channelDetails.data.items?.get(0)?.snippet?.title
@@ -258,27 +279,53 @@ class YoutubePlayer : AppCompatActivity() {
                     }
                 }
 
-                is YoutubeResource.Error -> {
-                    Log.d(TAG, "YoutubePlayer: ${channelDetails.exception.message.toString()}")
+                is NetworkResult.Error -> {
+                    Log.d(TAG, "YoutubePlayer: ${channelDetails.message}")
                 }
             }
         }
 
-        youtubePlayerViewModel.getChannelsPlaylist(channelId)
-
         youtubePlayerViewModel.channelsPlaylists.observe(this) { channelsPlaylist ->
             when (channelsPlaylist) {
-                is YoutubeResource.Loading -> {}
+                is NetworkResult.Loading -> {}
 
-                is YoutubeResource.Success -> {
+                is NetworkResult.Success -> {
                     binding.channelsPlaylist.apply {
                         layoutManager = LinearLayoutManager(this@YoutubePlayer)
                         adapter = YoutubeChannelPlaylistsAdapter(context, channelsPlaylist.data)
                     }
                 }
 
-                is YoutubeResource.Error -> {
-                    Log.d(TAG, "YoutubePlayer: ${channelsPlaylist.exception.message.toString()}")
+                is NetworkResult.Error -> {
+                    Log.d(TAG, "YoutubePlayer: ${channelsPlaylist.message}")
+                }
+            }
+        }
+
+        youtubePlayerViewModel.comments.observe(this) { comments ->
+            when (comments) {
+                is NetworkResult.Loading -> {}
+                is NetworkResult.Success -> {
+                    val items = comments.data.items
+                    if (!items.isNullOrEmpty()) {
+                        binding.commentsHeader.visibility = View.VISIBLE
+                        binding.commentsRecyclerView.visibility = View.VISIBLE
+                        if (commentsAdapter == null) {
+                            commentsAdapter = CommentsAdapter(
+                                this,
+                                items.toMutableList()
+                            ) { /* reply click handler */ }
+                            binding.commentsRecyclerView.apply {
+                                layoutManager = LinearLayoutManager(this@YoutubePlayer)
+                                adapter = commentsAdapter
+                            }
+                        } else {
+                            commentsAdapter?.addComments(items)
+                        }
+                    }
+                }
+                is NetworkResult.Error -> {
+                    Log.d(TAG, "Comments error: ${comments.message}")
                 }
             }
         }

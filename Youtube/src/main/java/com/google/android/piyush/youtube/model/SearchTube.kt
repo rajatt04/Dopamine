@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SearchTube(
     val regionCode: String? = null,
+    val nextPageToken: String? = null,
     val items: List<SearchTubeItems>? = null
 )

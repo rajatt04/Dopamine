@@ -6,38 +6,30 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.youtube.model.Youtube
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
-import com.google.android.piyush.youtube.utilities.YoutubeResource
+import com.google.android.piyush.youtube.utilities.NetworkResult
 import kotlinx.coroutines.launch
 
 class YoutubeChannelPlaylistsVideosViewModel(
     private val youtubeRepositoryImpl: YoutubeRepositoryImpl
 ) : ViewModel() {
 
-    private val _playlistsVideos  : MutableLiveData<YoutubeResource<Youtube>> = MutableLiveData()
-    val playlistsVideos : MutableLiveData<YoutubeResource<Youtube>> = _playlistsVideos
+    private val _playlistsVideos = MutableLiveData<NetworkResult<Youtube>>()
+    val playlistsVideos: MutableLiveData<NetworkResult<Youtube>> = _playlistsVideos
 
-    fun getPlaylistsVideos(channelId: String) {
+    fun getPlaylistsVideos(playlistId: String) {
         viewModelScope.launch {
-            try {
-                _playlistsVideos.postValue(YoutubeResource.Loading)
-                val response = youtubeRepositoryImpl.getPlaylistVideos(channelId)
-                if(response.items.isNullOrEmpty()) {
-                    _playlistsVideos.postValue(
-                        YoutubeResource.Error(
-                            Exception(
-                                "The request cannot be completed because you have exceeded your quota."
-                            )
-                        )
-                    )
-                } else {
-                    _playlistsVideos.postValue(
-                        YoutubeResource.Success(response)
-                    )
+            _playlistsVideos.postValue(NetworkResult.Loading)
+            val response = youtubeRepositoryImpl.getPlaylistVideos(playlistId)
+            when (response) {
+                is NetworkResult.Success -> {
+                    if (response.data.items.isNullOrEmpty()) {
+                        _playlistsVideos.postValue(NetworkResult.Error(message = "No videos in this playlist."))
+                    } else {
+                        _playlistsVideos.postValue(response)
+                    }
                 }
-            }catch (exception: Exception) {
-                _playlistsVideos.postValue(
-                    YoutubeResource.Error(exception)
-                )
+                is NetworkResult.Error -> _playlistsVideos.postValue(response)
+                is NetworkResult.Loading -> Unit
             }
         }
     }
@@ -48,7 +40,7 @@ class YoutubeChannelPlaylistsViewModelFactory(
     private val youtubeRepositoryImpl: YoutubeRepositoryImpl
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if(modelClass.isAssignableFrom(YoutubeChannelPlaylistsVideosViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(YoutubeChannelPlaylistsVideosViewModel::class.java)) {
             return YoutubeChannelPlaylistsVideosViewModel(youtubeRepositoryImpl) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

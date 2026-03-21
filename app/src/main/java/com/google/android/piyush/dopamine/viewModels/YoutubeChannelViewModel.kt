@@ -7,94 +7,65 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.youtube.model.channelDetails.YoutubeChannel
 import com.google.android.piyush.youtube.model.channelPlaylists.ChannelPlaylists
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
-import com.google.android.piyush.youtube.utilities.YoutubeResource
+import com.google.android.piyush.youtube.utilities.NetworkResult
 import kotlinx.coroutines.launch
 
 class YoutubeChannelViewModel(
     private val youtubeRepositoryImpl: YoutubeRepositoryImpl
 ) : ViewModel() {
 
-    private val _channelDetails : MutableLiveData<YoutubeResource<YoutubeChannel>> = MutableLiveData()
-    val channelDetails : MutableLiveData<YoutubeResource<YoutubeChannel>> = _channelDetails
+    private val _channelDetails = MutableLiveData<NetworkResult<YoutubeChannel>>()
+    val channelDetails: MutableLiveData<NetworkResult<YoutubeChannel>> = _channelDetails
 
-    private val _channelsPlaylists : MutableLiveData<YoutubeResource<ChannelPlaylists>> = MutableLiveData()
-    val channelsPlaylists : MutableLiveData<YoutubeResource<ChannelPlaylists>> = _channelsPlaylists
+    private val _channelsPlaylists = MutableLiveData<NetworkResult<ChannelPlaylists>>()
+    val channelsPlaylists: MutableLiveData<NetworkResult<ChannelPlaylists>> = _channelsPlaylists
 
-    fun getChannelDetails(channelId : String) {
-       viewModelScope.launch {
-           try {
-               _channelDetails.postValue(
-                   YoutubeResource.Loading
-               )
-               val response = youtubeRepositoryImpl.getChannelDetails(channelId)
-               if(response.items.isNullOrEmpty()) {
-                   _channelDetails.postValue(
-                       YoutubeResource.Error(
-                           Exception(
-                               "The request cannot be completed because server unreachable !"
-                           )
-                       )
-                   )
-               } else {
-                   _channelDetails.postValue(
-                       YoutubeResource.Success(
-                           response
-                       )
-                   )
-               }
-           }catch (exception : Exception) {
-               _channelDetails.postValue(
-                   YoutubeResource.Error(
-                       exception
-                   )
-               )
-           }
-       }
+    fun getChannelDetails(channelId: String) {
+        viewModelScope.launch {
+            _channelDetails.postValue(NetworkResult.Loading)
+            val response = youtubeRepositoryImpl.getChannelDetails(channelId)
+            when (response) {
+                is NetworkResult.Success -> {
+                    if (response.data.items.isNullOrEmpty()) {
+                        _channelDetails.postValue(NetworkResult.Error(message = "Channel not found."))
+                    } else {
+                        _channelDetails.postValue(response)
+                    }
+                }
+                is NetworkResult.Error -> _channelDetails.postValue(response)
+                is NetworkResult.Loading -> Unit
+            }
+        }
     }
 
-    fun getChannelsPlaylist(channelId : String) {
+    fun getChannelsPlaylist(channelId: String) {
         viewModelScope.launch {
-            try{
-                _channelsPlaylists.postValue(
-                    YoutubeResource.Loading
-                )
-                val response = youtubeRepositoryImpl.getChannelsPlaylists(channelId)
-                if(response.items.isNullOrEmpty()) {
-                    _channelsPlaylists.postValue(
-                        YoutubeResource.Error(
-                            Exception(
-                                "The request cannot be completed because you have exceeded your quota."
-                            )
-                        )
-                    )
-                } else {
-                    _channelsPlaylists.postValue(
-                        YoutubeResource.Success(
-                            response
-                        )
-                    )
+            _channelsPlaylists.postValue(NetworkResult.Loading)
+            val response = youtubeRepositoryImpl.getChannelsPlaylists(channelId)
+            when (response) {
+                is NetworkResult.Success -> {
+                    if (response.data.items.isNullOrEmpty()) {
+                        _channelsPlaylists.postValue(NetworkResult.Error(message = "No playlists found."))
+                    } else {
+                        _channelsPlaylists.postValue(response)
+                    }
                 }
-            }catch (exception : Exception) {
-                _channelsPlaylists.postValue(
-                    YoutubeResource.Error(
-                        exception
-                    )
-                )
+                is NetworkResult.Error -> _channelsPlaylists.postValue(response)
+                is NetworkResult.Loading -> Unit
             }
         }
     }
 }
 
-
 @Suppress("UNCHECKED_CAST")
 class YoutubeChannelViewModelFactory(
     private val youtubeRepositoryImpl: YoutubeRepositoryImpl
-) : ViewModelProvider.Factory{
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-       if(modelClass.isAssignableFrom(YoutubeChannelViewModel::class.java)) {
-           return YoutubeChannelViewModel(youtubeRepositoryImpl) as T
-       } else {
-           throw IllegalArgumentException("Unknown ViewModel Class")
-       }
+        if (modelClass.isAssignableFrom(YoutubeChannelViewModel::class.java)) {
+            return YoutubeChannelViewModel(youtubeRepositoryImpl) as T
+        } else {
+            throw IllegalArgumentException("Unknown ViewModel Class")
+        }
     }
 }

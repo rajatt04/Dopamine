@@ -33,7 +33,7 @@ import com.google.android.piyush.dopamine.utilities.CustomDialog
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.youtube.utilities.DopamineVersionViewModel
-import com.google.android.piyush.youtube.utilities.YoutubeResource
+import com.google.android.piyush.youtube.utilities.NetworkResult
 import com.google.firebase.auth.FirebaseAuth
 
 class DopamineUserProfile : AppCompatActivity() {
@@ -84,22 +84,53 @@ class DopamineUserProfile : AppCompatActivity() {
 
         if(NetworkUtilities.isNetworkAvailable(context = this)) {
             dopamineVersionViewModel = DopamineVersionViewModel()
-            if (firebaseAuth.currentUser?.email.isNullOrEmpty()) {
+
+            val firebaseUser = firebaseAuth.currentUser
+            val sharedPrefs = applicationContext.getSharedPreferences("currentUser", MODE_PRIVATE)
+            val loginType = sharedPrefs.getString("loginType", "")
+
+            if (loginType == "mobile") {
+                val name = sharedPrefs.getString("name", "Mobile User") ?: "Mobile User"
+                val phone = sharedPrefs.getString("phone", "") ?: ""
+                val email = sharedPrefs.getString("email", "") ?: ""
+                val photoUrl = sharedPrefs.getString("photoUrl", "")
+
+                binding.userName.text = name
+                binding.userEmail.text = if (phone.isNotEmpty()) phone else email
+
+                if (!photoUrl.isNullOrEmpty()) {
+                    Glide.with(this).load(photoUrl).circleCrop().into(binding.userImage)
+                } else {
+                    binding.userImage.setImageResource(R.drawable.default_user)
+                }
+            } else if (firebaseUser != null && !firebaseUser.email.isNullOrEmpty()) {
+                Glide.with(this).load(firebaseUser.photoUrl).circleCrop().into(binding.userImage)
+                binding.userName.text = firebaseUser.displayName ?: "Dopamine User"
+                binding.userEmail.text = firebaseUser.email ?: ""
+            } else if (firebaseUser != null) {
                 Glide.with(this).load(R.drawable.default_user).into(binding.userImage)
                 binding.userName.text = getString(R.string.app_name)
-                binding.userEmail.text = firebaseAuth.currentUser?.phoneNumber
+                binding.userEmail.text = firebaseUser.phoneNumber ?: ""
             } else {
-                Glide.with(this).load(firebaseAuth.currentUser?.photoUrl).into(binding.userImage)
-                binding.userName.text = firebaseAuth.currentUser?.displayName
-                binding.userEmail.text = firebaseAuth.currentUser?.email
+                binding.userName.text = getString(R.string.app_name)
+                binding.userEmail.text = "Not signed in"
+                binding.userImage.setImageResource(R.drawable.default_user)
             }
         }else{
             applicationContext.getSharedPreferences("currentUser", MODE_PRIVATE).apply {
-                getString("uid","").also { binding.userName.text = if(it.isNullOrEmpty()) "No User Id" else it.substring(0,15) }
-                getString("email","").also { binding.userEmail.text = if(it.isNullOrEmpty()) "Empty Email" else it }
-                binding.userImage.apply {
-                    setImageResource(R.drawable.default_user)
+                val loginType = getString("loginType", "")
+                val name = getString("name", "") ?: ""
+                val email = getString("email", "") ?: ""
+                val phone = getString("phone", "") ?: ""
+
+                if (loginType == "mobile") {
+                    binding.userName.text = if (name.isNotEmpty()) name else "Mobile User"
+                    binding.userEmail.text = if (phone.isNotEmpty()) phone else email
+                } else {
+                    binding.userName.text = if (name.isNotEmpty()) name else "No User"
+                    binding.userEmail.text = if (email.isNotEmpty()) email else "No Email"
                 }
+                binding.userImage.setImageResource(R.drawable.default_user)
             }
             Snackbar.make(
                 binding.main,"You are not connected to the internet",Snackbar.LENGTH_LONG
@@ -110,7 +141,7 @@ class DopamineUserProfile : AppCompatActivity() {
         if (preReleaseUpdates) {
             dopamineVersionViewModel.preReleaseUpdate()
             dopamineVersionViewModel.preRelease.observe(this@DopamineUserProfile) {
-                if (it is YoutubeResource.Success) {
+                if (it is NetworkResult.Success) {
                     sharedPreferences.edit().apply {
                         putString("PreReleaseVersion", it.data.versionName)
                         putString("PreReleaseUrl", it.data.url)
@@ -126,8 +157,8 @@ class DopamineUserProfile : AppCompatActivity() {
                 NetworkUtilities.isNetworkAvailable(applicationContext)) {
                 dopamineVersionViewModel.update.observe(this) { update ->
                     when (update) {
-                        is YoutubeResource.Loading -> {}
-                        is YoutubeResource.Success -> {
+                        is NetworkResult.Loading -> {}
+                        is NetworkResult.Success -> {
                             sharedPreferences.edit().apply {
                                 putString("Version", update.data.versionName)
                                 putString("Url", update.data.url)
@@ -138,7 +169,7 @@ class DopamineUserProfile : AppCompatActivity() {
                             }
                         }
 
-                        is YoutubeResource.Error -> {
+                        is NetworkResult.Error -> {
                             Snackbar.make(
                                 binding.main,
                                 "Oh no! Something went wrong",
