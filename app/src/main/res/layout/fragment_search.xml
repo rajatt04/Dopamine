@@ -54,7 +54,7 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="8dp"
         app:cardBackgroundColor="?attr/colorSurfaceVariant"
-        app:cardCornerRadius="28dp"
+        app:cardCornerRadius="16dp"
         app:cardElevation="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -67,18 +67,10 @@
             android:orientation="horizontal"
             android:paddingHorizontal="16dp">
 
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:alpha="0.5"
-                android:contentDescription="Search"
-                android:src="@drawable/ic_search" />
-
             <SearchView
                 android:id="@+id/searchVideo"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
                 android:iconifiedByDefault="false"
@@ -224,7 +216,13 @@
         android:id="@+id/utilList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         android:clipToPadding="false"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
         android:paddingBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

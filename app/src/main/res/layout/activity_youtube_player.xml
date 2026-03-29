@@ -78,14 +78,15 @@
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/secondContainer"
-                style="@style/Widget.Material3.CardView.Filled"
+                style="@style/Widget.Material3.CardView.Elevated"
+                android:elevation="8dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:backgroundTint="?attr/colorPrimaryContainer"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toBottomOf="@+id/fourthContainer">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/constraint"
@@ -114,9 +115,9 @@
                         android:layout_marginStart="8dp"
                         android:layout_marginTop="8dp"
                         android:layout_marginEnd="8dp"
+                        android:ellipsize="end"
                         android:fontFamily="@font/proxima_nova"
                         android:maxLines="4"
-                        android:ellipsize="end"
                         android:text="@string/video_title"
                         android:textSize="12sp"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -152,61 +153,20 @@
                 android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/secondContainer"
+                app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="RtlHardcoded">
 
                 <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/materialCardView3"
-                    style="@style/Widget.Material3.CardView.Filled"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp">
-
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <com.google.android.material.imageview.ShapeableImageView
-                            android:id="@+id/view_video_eye"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:src="@drawable/ic_view"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-
-                        <com.google.android.material.textview.MaterialTextView
-                            android:id="@+id/textView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="4dp"
-                            android:layout_marginTop="12dp"
-                            android:layout_marginEnd="8dp"
-                            android:layout_marginBottom="12dp"
-                            android:ellipsize="end"
-                            android:fontFamily="@font/circular_spotify"
-                            android:maxLines="2"
-                            android:text="@string/video_view"
-                            android:textSize="12sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/view_video_eye"
-                            app:layout_constraintTop_toTopOf="parent" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <com.google.android.material.card.MaterialCardView
                     android:id="@+id/materialCardView2"
-                    style="@style/Widget.Material3.CardView.Filled"
+                    style="@style/Widget.Material3.CardView.Elevated"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
+                    android:backgroundTint="?attr/colorPrimaryContainer"
+                    android:elevation="8dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
@@ -247,8 +207,66 @@
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/materialCardView3"
+                    style="@style/Widget.Material3.CardView.Elevated"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:backgroundTint="?attr/colorPrimaryContainer"
+                    android:elevation="8dp">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/view_video_eye"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:src="@drawable/ic_view"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/textView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginBottom="12dp"
+                            android:ellipsize="end"
+                            android:fontFamily="@font/circular_spotify"
+                            android:maxLines="2"
+                            android:text="@string/video_view"
+                            android:textSize="12sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/materialTextView3"
+                            app:layout_constraintStart_toEndOf="@+id/view_video_eye"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/materialTextView3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:ellipsize="end"
+                            android:fontFamily="@font/circular_spotify"
+                            android:maxLines="2"
+                            android:text=" Views"
+                            android:textSize="12sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
                     android:id="@+id/enter_in_pip"
-                    style="@style/Widget.Material3.CardView.Filled"
+                    style="@style/Widget.Material3.CardView.Elevated"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -256,6 +274,8 @@
                     android:layout_marginTop="8dp"
                     android:layout_marginEnd="8dp"
                     android:layout_marginBottom="8dp"
+                    android:backgroundTint="?attr/colorPrimaryContainer"
+                    android:elevation="8dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/materialCardView3"
                     app:layout_constraintStart_toEndOf="@+id/materialCardView2"
@@ -295,15 +315,14 @@
             </LinearLayout>
 
 
-
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/imageView"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:layout_marginStart="12dp"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="8dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/fourthContainer"
+                app:layout_constraintTop_toBottomOf="@+id/chaptersRecyclerView"
                 app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Medium" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -368,7 +387,7 @@
                 android:text="More from this channel"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:visibility="gone"
+                android:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/text4" />
@@ -380,13 +399,16 @@
                 android:layout_margin="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp"
-                android:scrollbars="none"
-                android:visibility="gone"
+                android:layout_marginBottom="8dp"
                 android:orientation="horizontal"
+                android:scrollbars="none"
+                android:visibility="visible"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/moreFromChannelHeader" />
+                app:layout_constraintTop_toBottomOf="@id/moreFromChannelHeader"
+                tools:listitem="@layout/shimmer_item_fragment_library" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/chaptersHeader"
@@ -398,10 +420,10 @@
                 android:text="Chapters"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:visibility="gone"
+                android:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/channelsPlaylist" />
+                app:layout_constraintTop_toBottomOf="@id/btnShowMoreComments" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/chaptersRecyclerView"
@@ -409,10 +431,11 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
                 android:scrollbars="none"
-                android:visibility="gone"
+                android:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/chaptersHeader" />
+                app:layout_constraintTop_toBottomOf="@id/chaptersHeader"
+                tools:listitem="chap" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/commentsHeader"
@@ -424,10 +447,10 @@
                 android:text="Comments"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:visibility="gone"
+                android:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/chaptersRecyclerView" />
+                app:layout_constraintTop_toBottomOf="@id/secondContainer" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/commentsRecyclerView"
@@ -436,7 +459,7 @@
                 android:layout_margin="8dp"
                 android:nestedScrollingEnabled="false"
                 android:scrollbars="none"
-                android:visibility="gone"
+                android:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/commentsHeader" />
@@ -453,7 +476,7 @@
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="?attr/colorPrimary"
-                android:visibility="gone"
+                android:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/commentsRecyclerView" />
