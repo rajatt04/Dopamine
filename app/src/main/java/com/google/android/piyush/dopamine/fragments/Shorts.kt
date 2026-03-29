@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.ShortsAdapter
 import com.google.android.piyush.dopamine.databinding.FragmentShortsBinding
@@ -21,6 +22,7 @@ class Shorts : Fragment() {
     private lateinit var youtubeRepositoryImpl: YoutubeRepositoryImpl
     private lateinit var shortsViewModel: ShortsViewModel
     private lateinit var shortsViewModelFactory: ShortsViewModelFactory
+    private var shortsAdapter: ShortsAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,29 +40,66 @@ class Shorts : Fragment() {
         shortsViewModelFactory = ShortsViewModelFactory(youtubeRepositoryImpl)
         shortsViewModel = ViewModelProvider(this, shortsViewModelFactory)[ShortsViewModel::class.java]
 
-        if(NetworkUtilities.isNetworkAvailable(requireContext())){
-            shortsViewModel.shorts.observe(viewLifecycleOwner){ shorts ->
-                when(shorts){
-                    is NetworkResult.Loading -> {}
+        if (NetworkUtilities.isNetworkAvailable(requireContext())) {
+            shortsViewModel.shorts.observe(viewLifecycleOwner) { shorts ->
+                when (shorts) {
+                    is NetworkResult.Loading -> {
+                        binding.playWithShortsEffect.apply {
+                            startShimmer()
+                            visibility = View.VISIBLE
+                        }
+                    }
+
                     is NetworkResult.Success -> {
-                        if(shorts.data.isEmpty()){
+                        if (shorts.data.isEmpty()) {
                             binding.playWithShortsEffect.apply {
                                 startShimmer()
                                 visibility = View.VISIBLE
                             }
-                        }else{
+                        } else {
                             binding.playWithShortsEffect.apply {
                                 stopShimmer()
                                 visibility = View.GONE
                             }
+
+                            shortsAdapter = ShortsAdapter(
+                                requireContext(),
+                                viewLifecycleOwner.lifecycle,
+                                shorts.data
+                            )
+
                             binding.playWithShorts.apply {
-                                adapter = ShortsAdapter(
-                                    requireContext(),
-                                    shorts.data
-                                )
+                                adapter = shortsAdapter
+                                offscreenPageLimit = 1 // Keep 1 neighbour ready
+                            }
+
+                            // Wire page-change → adapter so only current page plays
+                            binding.playWithShorts.registerOnPageChangeCallback(
+                                object : ViewPager2.OnPageChangeCallback() {
+                                    override fun onPageSelected(position: Int) {
+                                        super.onPageSelected(position)
+                                        val rv = binding.playWithShorts.getChildAt(0)
+                                            as? androidx.recyclerview.widget.RecyclerView
+                                        val holder = rv
+                                            ?.findViewHolderForAdapterPosition(position)
+                                            as? com.google.android.piyush.dopamine.viewHolders.ShortsViewHolder
+                                        shortsAdapter?.onPageSelected(position, holder)
+                                    }
+                                }
+                            )
+
+                            // Auto-play first item once adapter is attached
+                            binding.playWithShorts.post {
+                                val rv = binding.playWithShorts.getChildAt(0)
+                                    as? androidx.recyclerview.widget.RecyclerView
+                                val holder = rv
+                                    ?.findViewHolderForAdapterPosition(0)
+                                    as? com.google.android.piyush.dopamine.viewHolders.ShortsViewHolder
+                                shortsAdapter?.onPageSelected(0, holder)
                             }
                         }
                     }
+
                     is NetworkResult.Error -> {
                         binding.playWithShortsEffect.apply {
                             startShimmer()
@@ -70,5 +109,11 @@ class Shorts : Fragment() {
                 }
             }
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        shortsAdapter?.clearData()
+        shortsFragmentBinding = null
     }
 }

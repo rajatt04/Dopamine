@@ -32,7 +32,9 @@ class YoutubeChannelPlaylistsAdapter(
 
     override fun onBindViewHolder(holder: YoutubeChannelPlaylistsViewHolder, position: Int) {
         val playListData = playlists?.items?.get(position)
-        val playlistImage = playListData?.snippet?.thumbnails?.default?.url
+        val playlistImage = playListData?.snippet?.thumbnails?.high?.url
+            ?: playListData?.snippet?.thumbnails?.medium?.url
+            ?: playListData?.snippet?.thumbnails?.default?.url
         val playlistTitle = playListData?.snippet?.title
         val playlistChannelTitle = playListData?.snippet?.channelTitle
 

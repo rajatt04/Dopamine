@@ -26,6 +26,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.android.material.carousel.CarouselLayoutManager
+import com.google.android.material.carousel.HeroCarouselStrategy
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 import com.google.android.piyush.database.entities.EntityFavouritePlaylist
@@ -344,23 +346,6 @@ class YoutubePlayer : AppCompatActivity() {
 
         youtubePlayerViewModel.channelsPlaylists.observe(this) { channelsPlaylist ->
             when (channelsPlaylist) {
-                is NetworkResult.Loading -> {}
-
-                is NetworkResult.Success -> {
-                    binding.channelsPlaylist.apply {
-                        layoutManager = LinearLayoutManager(this@YoutubePlayer)
-                        adapter = YoutubeChannelPlaylistsAdapter(context, channelsPlaylist.data)
-                    }
-                }
-
-                is NetworkResult.Error -> {
-                    Log.d(TAG, "YoutubePlayer: ${channelsPlaylist.message}")
-                }
-            }
-        }
-
-        youtubePlayerViewModel.channelsPlaylists.observe(this) { channelsPlaylist ->
-            when (channelsPlaylist) {
                 is NetworkResult.Loading -> {
                     binding.moreFromChannelHeader.visibility = View.GONE
                     binding.channelsPlaylist.visibility = View.GONE
@@ -371,7 +356,7 @@ class YoutubePlayer : AppCompatActivity() {
                         binding.moreFromChannelHeader.visibility = View.VISIBLE
                         binding.channelsPlaylist.visibility = View.VISIBLE
                         binding.channelsPlaylist.apply {
-                            layoutManager = LinearLayoutManager(this@YoutubePlayer, LinearLayoutManager.HORIZONTAL, false)
+                            layoutManager = CarouselLayoutManager(HeroCarouselStrategy())
                             adapter = YoutubeChannelPlaylistsAdapter(this@YoutubePlayer, channelsPlaylist.data)
                         }
                     } else {

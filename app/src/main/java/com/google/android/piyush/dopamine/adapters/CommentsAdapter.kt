@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.text.HtmlCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.piyush.dopamine.R
@@ -52,7 +53,10 @@ class CommentsAdapter(
         val snippet = comment.snippet?.topLevelComment?.snippet
 
         holder.authorName.text  = snippet?.authorDisplayName ?: "Anonymous"
-        holder.commentText.text = snippet?.textDisplay ?: ""
+        holder.commentText.text = HtmlCompat.fromHtml(
+            snippet?.textDisplay ?: "",
+            HtmlCompat.FROM_HTML_MODE_COMPACT
+        )
         holder.commentTime.text = ChapterParser.getRelativeTime(snippet?.publishedAt)
 
         val likeCount = snippet?.likeCount ?: 0

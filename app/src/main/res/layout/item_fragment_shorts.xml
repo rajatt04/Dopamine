@@ -1,88 +1,266 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:cardCornerRadius="0dp"
-    style="@style/Widget.Material3.CardView.Filled">
+    android:background="#000000">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!-- Thumbnail (shown instantly, hidden when player is ready) -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/thumbnail"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop" />
 
-        <com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
-            android:id="@+id/shortsPlayer"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/infoLayout"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+    <!-- YouTube Player (hidden until ready, replaces thumbnail) -->
+    <com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
+        android:id="@+id/shortsPlayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 
-        <ImageView
-            android:id="@+id/thumbnail"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_margin="8dp"
-            android:scaleType="centerCrop"
-            android:visibility="gone"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+    <!-- Bottom gradient scrim for text legibility -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/gradient_scrim" />
 
+    <!-- Top gradient scrim for mute button legibility -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_gravity="top"
+        android:background="@drawable/gradient_top_transparent" />
+
+    <!-- ===== RIGHT SIDE ACTION BUTTONS ===== -->
+    <LinearLayout
+        android:id="@+id/actionsPanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="96dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <!-- Like -->
         <LinearLayout
-            android:id="@+id/infoLayout"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:padding="12dp"
-            android:background="@color/md_theme_light_surfaceVariant"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            android:layout_marginBottom="20dp">
 
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="match_parent"
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/likeBtn"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="4dp"
+                android:src="@drawable/ic_like_video"
+                app:tint="#FFFFFF" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/likeCount"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Short"
-                android:textSize="14sp"
-                android:textColor="?attr/colorOnSurface"
-                android:maxLines="2"
-                android:ellipsize="end"/>
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/circular_spotify"
+                android:text="0"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp" />
+        </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
+        <!-- Dislike -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/dislikeBtn"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="4dp"
+                android:src="@drawable/ic_like_video"
+                android:rotationX="180"
+                app:tint="#FFFFFF" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="4dp">
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/circular_spotify"
+                android:text="Dislike"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp" />
+        </LinearLayout>
 
-                <TextView
-                    android:id="@+id/views"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0 views"
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorOutline"/>
+        <!-- Share -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=" • "
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorOutline"/>
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/shareBtn"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="4dp"
+                android:src="@drawable/ic_share"
+                app:tint="#FFFFFF" />
 
-                <TextView
-                    android:id="@+id/duration"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0:00"
-                    android:textSize="12sp"
-                    android:textColor="?attr/colorOutline"/>
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/circular_spotify"
+                android:text="Share"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp" />
+        </LinearLayout>
 
-            </LinearLayout>
+        <!-- More / overflow -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/moreBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_more"
+            app:tint="#FFFFFF" />
+
+    </LinearLayout>
+
+    <!-- ===== BOTTOM LEFT CHANNEL + TITLE INFO ===== -->
+    <LinearLayout
+        android:id="@+id/infoPanel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="72dp"
+        android:layout_marginBottom="96dp"
+        android:gravity="start"
+        android:orientation="vertical">
+
+        <!-- Channel row -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/channelAvatar"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:scaleType="centerCrop"
+                app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/channelName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/circular_spotify"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <!-- Follow pill -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/followBtn"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:layout_marginStart="8dp"
+                android:fontFamily="@font/circular_spotify"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minHeight="0dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:strokeColor="#FFFFFF"
+                android:text="Follow"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                app:cornerRadius="14dp" />
 
         </LinearLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Video title -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/videoTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/proxima_nova"
+            android:maxLines="2"
+            android:textColor="#FFFFFFFF"
+            android:textSize="13sp" />
 
-</com.google.android.material.card.MaterialCardView>
+        <!-- Views -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/views"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="@font/proxima_nova"
+            android:textColor="#CCFFFFFF"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+    <!-- ===== TOP RIGHT: MUTE BUTTON ===== -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/muteCard"
+        style="@style/Widget.Material3.CardView.Filled"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:cardBackgroundColor="#99000000"
+        app:cardCornerRadius="18dp"
+        app:cardElevation="0dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/muteBtn"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:src="@drawable/ic_volume_on"
+            app:tint="#FFFFFF" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- ===== PLAY/PAUSE overlay (tap to toggle) ===== -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/playPauseCard"
+        style="@style/Widget.Material3.CardView.Filled"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        app:cardBackgroundColor="#99000000"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="0dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/playPauseIcon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="14dp"
+            android:src="@drawable/ic_play"
+            app:tint="#FFFFFF" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+</FrameLayout>
