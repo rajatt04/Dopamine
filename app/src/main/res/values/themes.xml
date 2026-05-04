@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <style name="Base.Theme.Dopamine" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/md_theme_light_primary</item>
@@ -30,6 +30,79 @@
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:windowActivityTransitions">true</item>
+
+        <!-- Typography Overhaul -->
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.Dopamine.DisplayLarge</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.Dopamine.DisplayMedium</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.Dopamine.DisplaySmall</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Dopamine.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.Dopamine.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.Dopamine.HeadlineSmall</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.Dopamine.TitleLarge</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.Dopamine.TitleMedium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.Dopamine.TitleSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.Dopamine.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.Dopamine.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.Dopamine.BodySmall</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.Dopamine.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.Dopamine.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.Dopamine.LabelSmall</item>
+    </style>
+
+    <!-- Gotham for large punchy text -->
+    <style name="TextAppearance.Dopamine.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="fontFamily">@font/gotham</item>
+    </style>
+    <style name="TextAppearance.Dopamine.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="fontFamily">@font/gotham</item>
+    </style>
+    <style name="TextAppearance.Dopamine.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="fontFamily">@font/gotham</item>
+    </style>
+    <style name="TextAppearance.Dopamine.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="fontFamily">@font/gotham</item>
+    </style>
+    <style name="TextAppearance.Dopamine.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="fontFamily">@font/gotham</item>
+    </style>
+    <style name="TextAppearance.Dopamine.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="fontFamily">@font/gotham</item>
+    </style>
+
+    <!-- Circular Spotify for Titles (e.g. app bars, prominent elements) -->
+    <style name="TextAppearance.Dopamine.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="fontFamily">@font/circular_spotify</item>
+    </style>
+    <style name="TextAppearance.Dopamine.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="fontFamily">@font/circular_spotify</item>
+    </style>
+    <style name="TextAppearance.Dopamine.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="fontFamily">@font/circular_spotify</item>
+    </style>
+
+    <!-- Proxima Nova for highly readable body text -->
+    <style name="TextAppearance.Dopamine.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="fontFamily">@font/proxima_nova</item>
+    </style>
+    <style name="TextAppearance.Dopamine.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="fontFamily">@font/proxima_nova</item>
+    </style>
+    <style name="TextAppearance.Dopamine.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="fontFamily">@font/proxima_nova</item>
+    </style>
+
+    <!-- Circular Std for Labels (buttons, small indicators) -->
+    <style name="TextAppearance.Dopamine.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
+        <item name="fontFamily">@font/circular_std</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+    <style name="TextAppearance.Dopamine.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="fontFamily">@font/circular_std</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+    <style name="TextAppearance.Dopamine.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+        <item name="fontFamily">@font/circular_std</item>
+        <item name="android:textAllCaps">false</item>
     </style>
 
     <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.Light">

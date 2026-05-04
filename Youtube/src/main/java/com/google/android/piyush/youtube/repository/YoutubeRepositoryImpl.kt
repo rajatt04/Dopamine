@@ -10,7 +10,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 
 class YoutubeRepositoryImpl : YoutubeRepository {
-    override suspend fun getHomeVideos(): Youtube {
+    override suspend fun getHomeVideos(categoryId: String?): Youtube {
         val response = YoutubeClient.CLIENT.get(
             YoutubeClient.YOUTUBE + YoutubeClient.VIDEO
         ){
@@ -20,6 +20,9 @@ class YoutubeRepositoryImpl : YoutubeRepository {
                 parameters.append("regionCode", YoutubeClient.REGION_CODE)
                 parameters.append("maxResults", YoutubeClient.MAX_RESULTS)
                 parameters.append("key", YoutubeClient.API_KEY)
+                if (categoryId != null) {
+                    parameters.append("videoCategoryId", categoryId)
+                }
             }
         }
         return response.body()

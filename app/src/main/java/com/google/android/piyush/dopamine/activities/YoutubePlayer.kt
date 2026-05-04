@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -31,10 +30,8 @@ import com.google.android.piyush.dopamine.databinding.ActivityYoutubePlayerBindi
 import com.google.android.piyush.dopamine.utilities.CustomDialog
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.YoutubePlayerViewModel
-import com.google.android.piyush.dopamine.viewModels.YoutubePlayerViewModelFactory
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
+import androidx.fragment.app.activityViewModels
 import com.google.android.piyush.youtube.utilities.YoutubeResource
-import com.google.firebase.auth.FirebaseAuth
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.FullscreenListener
@@ -44,27 +41,22 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.activity.viewModels
+
 @Suppress("DEPRECATION")
+@AndroidEntryPoint
 class YoutubePlayer : AppCompatActivity() {
 
     private lateinit var binding: ActivityYoutubePlayerBinding
-    private lateinit var youtubeRepositoryImpl: YoutubeRepositoryImpl
-    private lateinit var youtubePlayerViewModel: YoutubePlayerViewModel
-    private lateinit var youtubePlayerViewModelFactory: YoutubePlayerViewModelFactory
-    private lateinit var databaseViewModel: DatabaseViewModel
+    private val youtubePlayerViewModel: YoutubePlayerViewModel by viewModels()
+    private val databaseViewModel: DatabaseViewModel by viewModels()
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityYoutubePlayerBinding.inflate(layoutInflater)
-        youtubeRepositoryImpl = YoutubeRepositoryImpl()
-        youtubePlayerViewModelFactory = YoutubePlayerViewModelFactory(youtubeRepositoryImpl)
-        databaseViewModel = DatabaseViewModel(applicationContext)
-        youtubePlayerViewModel = ViewModelProvider(
-            this, youtubePlayerViewModelFactory
-        )[YoutubePlayerViewModel::class.java]
-
         setContentView(binding.root)
 
         enableEdgeToEdge()
@@ -84,7 +76,7 @@ class YoutubePlayer : AppCompatActivity() {
 
         binding.YtPlayer.enableBackgroundPlayback(true)
         binding.YtPlayer.enableAutomaticInitialization = false
-        val iFramePlayerOptions = IFramePlayerOptions.Builder()
+        val iFramePlayerOptions = IFramePlayerOptions.Builder(this@YoutubePlayer)
             .rel(1)
             .controls(1)
             .fullscreen(1)
@@ -163,8 +155,8 @@ class YoutubePlayer : AppCompatActivity() {
                     val videoDuration = videoDetails.data.items?.get(0)?.contentDetails?.duration
                     val videoPublishedAt = videoDetails.data.items?.get(0)?.snippet?.publishedAt
                     val channelTitle = videoDetails.data.items?.get(0)?.snippet?.channelTitle
-                    val videoLikes = counter(videoDetails.data.items?.get(0)?.statistics?.likeCount!!.toInt())
-                    val videoViews = counter(videoDetails.data.items?.get(0)?.statistics?.viewCount!!.toInt())
+                    val videoLikes = counter(videoDetails.data.items?.get(0)?.statistics?.likeCount!!)
+                    val videoViews = counter(videoDetails.data.items?.get(0)?.statistics?.viewCount!!)
 
                     binding.apply {
                         textTitle.text  = videoTitle
@@ -313,8 +305,9 @@ class YoutubePlayer : AppCompatActivity() {
     }
 }
 
+@AndroidEntryPoint
 class MyBottomSheetFragment : BottomSheetDialogFragment(){
-    private lateinit var databaseViewModel: DatabaseViewModel
+    private val databaseViewModel: DatabaseViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -324,7 +317,6 @@ class MyBottomSheetFragment : BottomSheetDialogFragment(){
         val view = inflater.inflate(R.layout.bottom_sheet_add_to_a_playlist,container,false)
         val createNewPlaylist: MaterialButton = view.findViewById(R.id.createNewPlayList)
         val customPlaylists : RecyclerView = view.findViewById(R.id.recyclerViewLocalPlaylist)
-        databaseViewModel = DatabaseViewModel(requireContext())
         databaseViewModel.defaultMasterDev
 
         createNewPlaylist.setOnClickListener {
@@ -332,18 +324,10 @@ class MyBottomSheetFragment : BottomSheetDialogFragment(){
             customDialog.show()
         }
 
-        if(FirebaseAuth.getInstance().currentUser?.email.isNullOrEmpty()){
-            if(!databaseViewModel.isPlaylistExist(databaseViewModel.isUserFromPhoneAuth)){
-                databaseViewModel.userFromPhoneAuth()
-            }else{
-                Log.d(TAG, "${databaseViewModel.isUserFromPhoneAuth} : Exists")
-            }
-        }else {
-            if (!databaseViewModel.isPlaylistExist(databaseViewModel.newPlaylistName)) {
-                databaseViewModel.defaultUserPlaylist()
-            } else {
-                Log.d(TAG, "${databaseViewModel.newPlaylistName} : Exists")
-            }
+        if(!databaseViewModel.isPlaylistExist(databaseViewModel.isUserFromPhoneAuth)){
+            databaseViewModel.userFromPhoneAuth()
+        }else{
+            Log.d(TAG, "${databaseViewModel.isUserFromPhoneAuth} : Exists")
         }
 
         customPlaylists.apply {

@@ -1,11 +1,11 @@
 package com.google.android.piyush.database.viewModel
 
+import android.app.Application
 import android.content.ContentValues
-import android.content.Context
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.database.DopamineDatabase
 import com.google.android.piyush.database.entities.EntityFavouritePlaylist
@@ -14,16 +14,17 @@ import com.google.android.piyush.database.entities.EntityVideoSearch
 import com.google.android.piyush.database.model.CustomPlaylistView
 import com.google.android.piyush.database.model.CustomPlaylists
 import com.google.android.piyush.database.repository.DopamineDatabaseRepository
-import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class DatabaseViewModel(
-    context: Context
-) : ViewModel() {
+@HiltViewModel
+class DatabaseViewModel @Inject constructor(
+    application: Application
+) : AndroidViewModel(application) {
 
     private val dopamineDatabaseRepository : DopamineDatabaseRepository
-    private val database = DopamineDatabase.getDatabase(context).openHelper
-    private val currentUser = FirebaseAuth.getInstance().currentUser
+    private val database = DopamineDatabase.getDatabase(application).openHelper
 
     private val _searchVideoHistory = MutableLiveData<List<EntityVideoSearch>>()
     val searchVideoHistory : LiveData<List<EntityVideoSearch>> = _searchVideoHistory
@@ -40,13 +41,17 @@ class DatabaseViewModel(
     private val _isRecent : MutableLiveData<String> = MutableLiveData()
     val isRecent : LiveData<String> = _isRecent
 
+    val isUserFromPhoneAuth = "guest_phone_playlist"
+    val newPlaylistName = "guest_default_playlist"
+
     init {
-        val dopamineDao = DopamineDatabase.getDatabase(context).dopamineDao()
+        val dopamineDao = DopamineDatabase.getDatabase(application).dopamineDao()
         dopamineDatabaseRepository = DopamineDatabaseRepository(dopamineDao)
     }
 
     fun insertSearchVideos(searchVideos: EntityVideoSearch) {
         viewModelScope.launch {
+            searchVideos.search?.let { dopamineDatabaseRepository.deleteSearchQuery(it) }
             dopamineDatabaseRepository.insertSearchVideos(searchVideos)
         }
     }
@@ -124,7 +129,7 @@ class DatabaseViewModel(
         val newPlaylistName = stringify(playlistsData.playListName)
         val query = "CREATE TABLE IF NOT EXISTS $newPlaylistName (videoId TEXT PRIMARY KEY, title TEXT, thumbnail TEXT, channelId TEXT, publishedAt TEXT , viewCount TEXT, channelTitle TEXT , duration TEXT)"
         writableDatabase.execSQL("CREATE TABLE IF NOT EXISTS DopamineMastersDev (playlistName TEXT PRIMARY KEY, playlistDescription TEXT)")
-        writableDatabase.execSQL("INSERT INTO DopamineMastersDev VALUES (\"${stringify(playlistsData.playListName)}\",\"${playlistsData.playListDescription}\") ")
+        writableDatabase.execSQL("INSERT OR IGNORE INTO DopamineMastersDev VALUES (\"${stringify(playlistsData.playListName)}\",\"${playlistsData.playListDescription}\") ")
         writableDatabase.execSQL(query)
     }
 
@@ -139,22 +144,18 @@ class DatabaseViewModel(
         writableDatabase.execSQL(query)
     }
 
-    private val usersFavoritePlayListName = currentUser?.displayName+" Favorites"
-    val newPlaylistName = stringify(usersFavoritePlayListName)
-    val isUserFromPhoneAuth = currentUser?.uid.toString()
-
     fun defaultUserPlaylist() {
         val usersFavoritePlayListDescription =  "Your favorites playlist can be found in library"
         val writableDatabase = database.writableDatabase
         writableDatabase.execSQL("CREATE TABLE IF NOT EXISTS $newPlaylistName (videoId TEXT PRIMARY KEY, title TEXT, thumbnail TEXT, channelId TEXT, publishedAt TEXT , viewCount TEXT, channelTitle TEXT , duration TEXT)")
-        writableDatabase.execSQL("INSERT INTO DopamineMastersDev VALUES (\"$newPlaylistName\",\"$usersFavoritePlayListDescription\")")
+        writableDatabase.execSQL("INSERT OR IGNORE INTO DopamineMastersDev VALUES (\"$newPlaylistName\",\"$usersFavoritePlayListDescription\")")
     }
 
     fun userFromPhoneAuth() {
         val usersFavoritePlayListDescription =  "You can store your favorite videos here"
         val writableDatabase = database.writableDatabase
         writableDatabase.execSQL("CREATE TABLE IF NOT EXISTS dopaminePlaylist (videoId TEXT PRIMARY KEY, title TEXT, thumbnail TEXT, channelId TEXT, publishedAt TEXT , viewCount TEXT, channelTitle TEXT , duration TEXT)")
-        writableDatabase.execSQL("INSERT INTO DopamineMastersDev VALUES (\"dopaminePlaylist\",\"$usersFavoritePlayListDescription\")")
+        writableDatabase.execSQL("INSERT OR IGNORE INTO DopamineMastersDev VALUES (\"dopaminePlaylist\",\"$usersFavoritePlayListDescription\")")
     }
 
     fun getPlaylist() : List<CustomPlaylistView>{

@@ -14,7 +14,8 @@ import android.view.ViewGroup
 import android.widget.SearchView
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -29,20 +30,16 @@ import com.google.android.piyush.dopamine.utilities.NetworkUtilities
 import com.google.android.piyush.dopamine.utilities.ToastUtilities
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.SearchViewModel
-import com.google.android.piyush.dopamine.viewModels.SearchViewModelFactory
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeResource
-import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
 import kotlin.random.Random
 
+@AndroidEntryPoint
 class Search : Fragment() {
     private var fragmentSearchBinding: FragmentSearchBinding? = null
-    private lateinit var firebaseAuth: FirebaseAuth
-    private lateinit var databaseViewModel: DatabaseViewModel
-    private lateinit var searchViewModel: SearchViewModel
-    private lateinit var youtubeRepositoryImpl: YoutubeRepositoryImpl
-    private lateinit var searchViewModelFactory: SearchViewModelFactory
+    private val databaseViewModel: DatabaseViewModel by activityViewModels()
+    private val searchViewModel: SearchViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -57,19 +54,10 @@ class Search : Fragment() {
 
         val binding = FragmentSearchBinding.bind(view)
         fragmentSearchBinding = binding
-        firebaseAuth = FirebaseAuth.getInstance()
-        youtubeRepositoryImpl = YoutubeRepositoryImpl()
-        searchViewModelFactory = SearchViewModelFactory(youtubeRepositoryImpl)
-        searchViewModel = ViewModelProvider(this, searchViewModelFactory)[SearchViewModel::class.java]
-        databaseViewModel = DatabaseViewModel(context?.applicationContext!!)
 
-        if(firebaseAuth.currentUser?.email.toString().isEmpty()){
-            Glide.with(this).load(R.drawable.default_user).into(fragmentSearchBinding!!.userImage)
-        }else{
-            Glide.with(this).load(firebaseAuth.currentUser?.photoUrl).into(fragmentSearchBinding!!.userImage)
-        }
+        Glide.with(this).load(R.drawable.default_user).into(binding.userImage)
 
-        fragmentSearchBinding!!.userImage.setOnClickListener {
+        binding.userImage.setOnClickListener {
             startActivity(
                 Intent(
                     context,
@@ -85,18 +73,26 @@ class Search : Fragment() {
             databaseViewModel.deleteSearchVideoList()
             ToastUtilities.showToast(
                 requireContext(),
-                "Search History Cleared",
+                getString(R.string.msg_search_history_cleared),
             )
+        }
+
+        val chips = listOf("All", "Shorts", "Unwatched", "Watched", "Recently uploaded")
+        binding.chipsRecyclerViewSearch.apply {
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            adapter = com.google.android.piyush.dopamine.adapters.ChipAdapter(chips) { selectedChip ->
+                fragmentSearchBinding?.searchVideo?.setQuery(selectedChip, true)
+            }
         }
 
         databaseViewModel.getSearchVideoList()
 
         databaseViewModel.searchVideoHistory.observe(viewLifecycleOwner){
-            if(it.isEmpty()){
+            if(it.isEmpty() && fragmentSearchBinding?.searchVideo?.query.isNullOrEmpty()){
                 binding.clearAll.visibility = View.GONE
                 binding.searchEffect.visibility = View.VISIBLE
                 binding.utilList.visibility = View.GONE
-            }else{
+            }else if (fragmentSearchBinding?.searchVideo?.query.isNullOrEmpty()){
                 binding.searchEffect.visibility = View.INVISIBLE
                 binding.clearAll.visibility = View.VISIBLE
                 binding.utilList.apply {
@@ -107,6 +103,22 @@ class Search : Fragment() {
                 }
             }
             Log.d(TAG, " -> Fragment : Search || Search History : $it")
+        }
+
+        searchViewModel.searchSuggestions.observe(viewLifecycleOwner) { suggestions ->
+            if (suggestions.isNotEmpty() && !fragmentSearchBinding?.searchVideo?.query.isNullOrEmpty()) {
+                binding.searchEffect.visibility = View.INVISIBLE
+                binding.clearAll.visibility = View.GONE
+                binding.utilList.apply {
+                    visibility = View.VISIBLE
+                    layoutManager = LinearLayoutManager(context)
+                    adapter = com.google.android.piyush.dopamine.adapters.SuggestionAdapter(suggestions) { selectedSuggestion ->
+                        fragmentSearchBinding?.searchVideo?.setQuery(selectedSuggestion, true)
+                    }
+                }
+            } else if (fragmentSearchBinding?.searchVideo?.query.isNullOrEmpty()) {
+                databaseViewModel.getSearchVideoList() // Refresh history
+            }
         }
 
         binding.searchVideo.setOnQueryTextListener(
@@ -186,7 +198,14 @@ class Search : Fragment() {
                 }
 
                 override fun onQueryTextChange(newText: String?): Boolean {
-                    return false
+                    newText?.let {
+                        if (it.isNotEmpty()) {
+                            searchViewModel.fetchSearchSuggestions(it)
+                        } else {
+                            databaseViewModel.getSearchVideoList()
+                        }
+                    }
+                    return true
                 }
             }
         )
@@ -207,7 +226,7 @@ class Search : Fragment() {
                 val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say Something 🧿")
+                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_search_prompt))
                 startActivityForResult(intent, Utilities.PERMISSION_REQUEST_CODE)
             }
         }
@@ -243,7 +262,7 @@ class Search : Fragment() {
 
         if(requestCode == Utilities.PERMISSION_REQUEST_CODE && resultCode == RESULT_OK){
             val result = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-            fragmentSearchBinding!!.searchVideo.setQuery(result?.get(0), true)
+            fragmentSearchBinding?.searchVideo?.setQuery(result?.get(0), true)
             Log.d(TAG, " -> Fragment : Search || User Voice Search : ${result?.get(0)}")
         }
     }

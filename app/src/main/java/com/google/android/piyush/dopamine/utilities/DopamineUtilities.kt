@@ -81,7 +81,7 @@ class CustomDialog(context: Context) : MaterialAlertDialogBuilder(context) {
     private var databaseViewModel: DatabaseViewModel
     init {
         setCancelable(true)
-        databaseViewModel = DatabaseViewModel(context)
+        databaseViewModel = DatabaseViewModel(context.applicationContext as android.app.Application)
         binding = ItemCustomDialogBinding.inflate(LayoutInflater.from(context)).also {
             setView(it.root)
         }

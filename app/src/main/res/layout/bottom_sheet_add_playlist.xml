@@ -21,20 +21,19 @@
             android:layout_marginBottom="10sp">
         </com.google.android.material.card.MaterialCardView>
 
-        <com.airbnb.lottie.LottieAnimationView
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_margin="8dp"
-            app:lottie_autoPlay="true"
-            app:lottie_loop="true"
-            app:lottie_rawRes="@raw/auth"
-            android:layout_width="256dp"
-            android:layout_height="256dp"/>
+            android:layout_margin="24dp"
+            android:text="@string/playlist_icon"
+            android:textSize="100sp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btCreatePlaylist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Create A New PlayList"
+            android:text="@string/create_a_new_playlist"
             android:fontFamily="@font/circular_spotify"
             android:layout_gravity="center"
             android:textColor="?attr/colorControlActivated"

@@ -13,16 +13,19 @@ import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.RecentVideosAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityDopamineVideoWatchHistoryBinding
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.activity.viewModels
+
+@AndroidEntryPoint
 class DopamineVideoWatchHistory : AppCompatActivity() {
 
     private lateinit var binding: ActivityDopamineVideoWatchHistoryBinding
-    private lateinit var databaseViewModel: DatabaseViewModel
+    private val databaseViewModel: DatabaseViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityDopamineVideoWatchHistoryBinding.inflate(layoutInflater)
-        databaseViewModel = DatabaseViewModel(context = applicationContext)
         setContentView(binding.root)
 
         enableEdgeToEdge()
@@ -45,8 +48,6 @@ class DopamineVideoWatchHistory : AppCompatActivity() {
                 binding.clearWatchHistory.visibility = android.view.View.GONE
                 binding.lottieAnimationView.apply {
                     visibility = android.view.View.VISIBLE
-                    setAnimation(R.raw.auth)
-                    loop(true)
                 }
             }
             Log.d(ContentValues.TAG, " -> Activity : DopamineVideoWatchHistory || recentVideos : $recentVideos")
@@ -63,10 +64,6 @@ class DopamineVideoWatchHistory : AppCompatActivity() {
             binding.clearWatchHistory.visibility = android.view.View.GONE
             binding.lottieAnimationView.apply {
                 visibility = android.view.View.VISIBLE
-                setAnimation(R.raw.auth)
-                @Suppress("DEPRECATION")
-                loop(true)
-                playAnimation()
             }
         }
     }

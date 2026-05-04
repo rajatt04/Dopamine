@@ -12,12 +12,15 @@ import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.CustomPlaylistsVDataAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityCvplaylistBinding
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.activity.viewModels
+
+@AndroidEntryPoint
 class CVPlaylist : AppCompatActivity() {
-    private lateinit var databaseViewModel: DatabaseViewModel
+    private val databaseViewModel: DatabaseViewModel by viewModels()
     private lateinit var binding : ActivityCvplaylistBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        databaseViewModel = DatabaseViewModel(applicationContext)
         binding = ActivityCvplaylistBinding.inflate(layoutInflater)
         setContentView(binding.root)
         enableEdgeToEdge()

@@ -3,14 +3,16 @@ package com.google.android.piyush.youtube.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.youtube.model.Shorts
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeResource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ShortsViewModel(
+@HiltViewModel
+class ShortsViewModel @Inject constructor(
     private val youtubeRepositoryImpl: YoutubeRepositoryImpl
 ) : ViewModel() {
 
@@ -34,19 +36,6 @@ class ShortsViewModel(
             }catch (e : Exception){
                 _shorts.postValue(YoutubeResource.Error(e))
             }
-        }
-    }
-}
-
-class ShortsViewModelFactory(
-    private val youtubeRepositoryImpl: YoutubeRepositoryImpl
-) : ViewModelProvider.Factory{
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if(modelClass.isAssignableFrom(ShortsViewModel::class.java)){
-            @Suppress("UNCHECKED_CAST")
-            return ShortsViewModel(youtubeRepositoryImpl) as T
-        }else{
-            throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }

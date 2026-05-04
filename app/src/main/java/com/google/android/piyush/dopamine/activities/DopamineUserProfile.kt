@@ -1,8 +1,8 @@
 package com.google.android.piyush.dopamine.activities
 
+
 import android.annotation.SuppressLint
 import android.app.ActivityManager
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
@@ -16,6 +16,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -34,22 +35,22 @@ import com.google.android.piyush.dopamine.utilities.NetworkUtilities
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.youtube.utilities.DopamineVersionViewModel
 import com.google.android.piyush.youtube.utilities.YoutubeResource
-import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class DopamineUserProfile : AppCompatActivity() {
 
     private lateinit var binding: ActivityDopamineUserProfileBinding
-    private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var sharedPreferences: SharedPreferences
-    private lateinit var dopamineVersionViewModel: DopamineVersionViewModel
+    private val dopamineVersionViewModel: DopamineVersionViewModel by viewModels()
 
+    @SuppressLint("SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityDopamineUserProfileBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        firebaseAuth = FirebaseAuth.getInstance()
         sharedPreferences = getSharedPreferences("DopamineApp", MODE_PRIVATE)
 
         enableEdgeToEdge()
@@ -83,16 +84,9 @@ class DopamineUserProfile : AppCompatActivity() {
         }
 
         if(NetworkUtilities.isNetworkAvailable(context = this)) {
-            dopamineVersionViewModel = DopamineVersionViewModel()
-            if (firebaseAuth.currentUser?.email.isNullOrEmpty()) {
-                Glide.with(this).load(R.drawable.default_user).into(binding.userImage)
-                binding.userName.text = getString(R.string.app_name)
-                binding.userEmail.text = firebaseAuth.currentUser?.phoneNumber
-            } else {
-                Glide.with(this).load(firebaseAuth.currentUser?.photoUrl).into(binding.userImage)
-                binding.userName.text = firebaseAuth.currentUser?.displayName
-                binding.userEmail.text = firebaseAuth.currentUser?.email
-            }
+            Glide.with(this).load(R.drawable.default_user).into(binding.userImage)
+            binding.userName.text = getString(R.string.app_name)
+            binding.userEmail.text = "Guest User"
         }else{
             applicationContext.getSharedPreferences("currentUser", MODE_PRIVATE).apply {
                 getString("uid","").also { binding.userName.text = if(it.isNullOrEmpty()) "No User Id" else it.substring(0,15) }
@@ -158,37 +152,8 @@ class DopamineUserProfile : AppCompatActivity() {
 
         binding.topAppBar.setOnMenuItemClickListener {
             when(it.itemId){
-                R.id.logout ->{
-
-                    MaterialAlertDialogBuilder(this)
-                        .setTitle("Sign out from your account ?")
-                        .setIcon(R.drawable.ic_dopamine)
-                        .setMessage("Logging out will remove your account from the app and you will not be able to access it's features. To access it, please sign in again 😊")
-                        .setCancelable(true)
-                        .setPositiveButton("Yes"){
-                                dialog, _ ->
-                            if(NetworkUtilities.isNetworkAvailable(context = this)) {
-                                firebaseAuth.signOut()
-                                Toast.makeText(
-                                    applicationContext,
-                                    "See you soon 🫡",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                startActivity(
-                                    Intent(this, MainActivity::class.java)
-                                )
-                                dialog.dismiss()
-                            }else{
-                                Snackbar.make(
-                                    binding.main,"Please check your internet connection",Snackbar.LENGTH_LONG
-                                ).show()
-                            }
-                        }
-                        .setNegativeButton("No"){
-                                dialog, _ ->
-                            dialog.dismiss()
-                        }
-                  .create().show()
+                R.id.logout -> {
+                    Toast.makeText(this, "You are logged in locally.", Toast.LENGTH_SHORT).show()
                     true
                 }
                 else -> false
@@ -280,7 +245,7 @@ class DopamineUserProfile : AppCompatActivity() {
     }
 
     private fun getRAMInfo(): String {
-        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
         val memoryInfo = ActivityManager.MemoryInfo()
         activityManager.getMemoryInfo(memoryInfo)
 
@@ -307,6 +272,7 @@ class DopamineUserProfile : AppCompatActivity() {
         }
     }
 
+    @AndroidEntryPoint
     class MyBottomSheetFragment : BottomSheetDialogFragment(){
         override fun onCreateView(
             inflater: LayoutInflater,

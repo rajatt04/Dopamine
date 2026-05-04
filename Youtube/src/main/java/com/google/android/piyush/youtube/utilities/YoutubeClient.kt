@@ -1,8 +1,10 @@
 package com.google.android.piyush.youtube.utilities
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.piyush.youtube.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
@@ -13,6 +15,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 object YoutubeClient {
 
@@ -42,13 +46,9 @@ object YoutubeClient {
 
     const val PRE_RELEASE = "https://api.npoint.io/255cbfc840e9bf199c9d"
 
-    val API_KEY = arrayListOf(
-        "AIzaSyDetnr3eHcdt6oqv_poZkrHB_T63cMRMsc","AIzaSyAx7uFZfxSppUJmY4ifXYirVEPB9pdUw2c","AIzaSyDaHGB5Z5nq29U46YGINN4Xjku3f-U8AIs"
-    ).random()
+    val API_KEY = BuildConfig.API_KEYS.split(",").random()
 
-    val EXTRA_KEYS = arrayListOf(
-        "AIzaSyDMQuMItUqW2QrSQUtLtCpKmdCfniKD1zE","AIzaSyCgLZsNdWFWuJb4GQvfS_HJvc5n7cV6Pyk","AIzaSyDthuStFPH6bdtsDBFHVm30wjprKKOd5b8"
-    ).random()
+    val EXTRA_KEYS = BuildConfig.EXTRA_KEYS.split(",").random()
 
     val HIDDEN_CLIENT = "https://api.npoint.io/$SHORTS/"
 
@@ -112,6 +112,7 @@ object YoutubeClient {
     }
 }
 
+@SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class DopamineVersion(
     val versionName : String? = null,
@@ -119,7 +120,9 @@ data class DopamineVersion(
     val changelog : String? = null
 )
 
-class DopamineVersionViewModel : ViewModel() {
+
+@HiltViewModel
+class DopamineVersionViewModel @Inject constructor() : ViewModel() {
     private val _update : MutableLiveData<YoutubeResource<DopamineVersion>> = MutableLiveData()
     val update : MutableLiveData<YoutubeResource<DopamineVersion>> = _update
 
@@ -163,6 +166,7 @@ class DopamineVersionViewModel : ViewModel() {
     }
 }
 
+@SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class Developer(
     val userId : String? = null,
@@ -176,12 +180,14 @@ data class Developer(
     val userPhotos : List<Photos>? = null
 )
 
+@SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class Photos(
     val photo : String? = null
 )
 
-class DevelopersViewModel : ViewModel() {
+@HiltViewModel
+class DevelopersViewModel @Inject constructor() : ViewModel() {
 
     private val _devModel : MutableLiveData<YoutubeResource<List<Developer>>> = MutableLiveData()
     val devModel : MutableLiveData<YoutubeResource<List<Developer>>> = _devModel

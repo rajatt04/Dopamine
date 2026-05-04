@@ -7,9 +7,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -21,23 +21,19 @@ import com.google.android.piyush.dopamine.adapters.LibraryAdapter
 import com.google.android.piyush.dopamine.adapters.YourFavouriteVideosAdapter
 import com.google.android.piyush.dopamine.databinding.FragmentLibraryBinding
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 import com.google.android.piyush.youtube.viewModels.LibraryViewModel
-import com.google.android.piyush.youtube.viewModels.LibraryViewModelFactory
-import com.google.firebase.auth.FirebaseAuth
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class Library : Fragment() {
 
     private var fragmentLibraryBinding: FragmentLibraryBinding? = null
-    private lateinit var repository: YoutubeRepositoryImpl
-    private lateinit var viewModel : LibraryViewModel
-    private lateinit var viewModelProviderFactory: LibraryViewModelFactory
-    private lateinit var databaseViewModel: DatabaseViewModel
-    private lateinit var firebaseAuth: FirebaseAuth
+    private val viewModel : LibraryViewModel by viewModels()
+    private val databaseViewModel: DatabaseViewModel by activityViewModels()
     private lateinit var libraryAdapter: LibraryAdapter
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,25 +47,10 @@ class Library : Fragment() {
 
         val binding = FragmentLibraryBinding.bind(view)
         fragmentLibraryBinding = binding
-        repository = YoutubeRepositoryImpl()
-        viewModelProviderFactory = LibraryViewModelFactory(repository)
-        databaseViewModel = DatabaseViewModel(requireContext())
-        viewModel = ViewModelProvider(
-            this,
-            viewModelProviderFactory
-        )[LibraryViewModel::class.java]
 
-        firebaseAuth = FirebaseAuth.getInstance()
-
-        if(firebaseAuth.currentUser?.email.toString().isEmpty()){
-            Glide.with(this).load(R.drawable.default_user).into(fragmentLibraryBinding!!.userImage)
-        }else{
-            Glide.with(this).load(firebaseAuth.currentUser?.photoUrl).into(fragmentLibraryBinding!!.userImage)
-        }
+        Glide.with(this).load(R.drawable.default_user).into(fragmentLibraryBinding!!.userImage)
 
         fragmentLibraryBinding!!.userImage.setOnClickListener {
-            Toast.makeText(context,firebaseAuth.currentUser!!.displayName,
-                Toast.LENGTH_SHORT).show()
             startActivity(
                 Intent(context, DopamineUserProfile::class.java)
             )
@@ -248,7 +229,7 @@ class Library : Fragment() {
             }
         }
 
-        val iFramePlayerOptions = IFramePlayerOptions.Builder()
+        val iFramePlayerOptions = IFramePlayerOptions.Builder(requireContext())
             .controls(0)
             .build()
 
@@ -260,7 +241,7 @@ class Library : Fragment() {
                     override fun onReady(youTubePlayer: YouTubePlayer) {
                         super.onReady(youTubePlayer)
                         youTubePlayer.loadVideo(
-                            "l2UDgpLz20M", 0.0F
+                            "8nKJCNgiVhc", 0.1F
                         )
                         youTubePlayer.mute()
                     }

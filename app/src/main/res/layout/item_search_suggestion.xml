@@ -19,11 +19,11 @@
         android:paddingHorizontal="16dp">
 
         <ImageView
-            android:id="@+id/iconHistory"
+            android:id="@+id/iconSuggestion"
             android:layout_width="22dp"
             android:layout_height="22dp"
             android:contentDescription="@string/todo"
-            android:src="@drawable/ic_history"
+            android:src="@drawable/ic_search"
             app:tint="?attr/colorControlNormal"
             android:alpha="0.7"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -37,12 +37,12 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:fontFamily="@font/circular_spotify"
-            android:text="@string/search_history_item"
+            android:text="@string/suggestion_item"
             android:textColor="?attr/colorOnSurface"
             android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/iconArrow"
-            app:layout_constraintStart_toEndOf="@+id/iconHistory"
+            app:layout_constraintStart_toEndOf="@+id/iconSuggestion"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView

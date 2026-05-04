@@ -3,14 +3,16 @@ package com.google.android.piyush.youtube.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.youtube.model.Youtube
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeResource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel(
+@HiltViewModel
+class HomeViewModel @Inject constructor(
     private val youtubeRepositoryImpl: YoutubeRepositoryImpl
 ) : ViewModel() {
 
@@ -21,15 +23,15 @@ class HomeViewModel(
     val reGetVideos : LiveData<YoutubeResource<Youtube>> = _reGetVideos
 
     init {
-        getHomeVideos()
+        fetchHomeVideos()
     }
 
-    private fun getHomeVideos() = viewModelScope.launch {
+    fun fetchHomeVideos(categoryId: String? = null) = viewModelScope.launch {
         try {
             _videos.postValue(
                 YoutubeResource.Loading
             )
-            val response = youtubeRepositoryImpl.getHomeVideos()
+            val response = youtubeRepositoryImpl.getHomeVideos(categoryId)
             if(response.items.isNullOrEmpty()){
                 _videos.postValue(
                     YoutubeResource.Error(
@@ -85,19 +87,5 @@ class HomeViewModel(
                 )
             }
         }
-    }
-}
-
-@Suppress("UNCHECKED_CAST")
-class HomeViewModelFactory(
-    private val repository: YoutubeRepositoryImpl
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if(modelClass.isAssignableFrom(HomeViewModel::class.java)){
-            return HomeViewModel(repository) as T
-        }
-        throw IllegalArgumentException(
-            "Unknown class name"
-        )
     }
 }

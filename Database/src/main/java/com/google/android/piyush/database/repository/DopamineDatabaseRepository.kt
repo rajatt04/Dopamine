@@ -20,6 +20,10 @@ class DopamineDatabaseRepository(
         dopamineDao.deleteSearchVideoList()
     }
 
+    suspend fun deleteSearchQuery(searchQuery: String) {
+        dopamineDao.deleteSearchQuery(searchQuery)
+    }
+
     suspend fun insertFavouriteVideos(vararg favouriteVideo: EntityFavouritePlaylist) {
         dopamineDao.insertFavouriteVideos(*favouriteVideo)
     }

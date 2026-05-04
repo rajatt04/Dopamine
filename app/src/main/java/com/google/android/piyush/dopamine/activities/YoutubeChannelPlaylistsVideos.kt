@@ -6,39 +6,32 @@ import android.util.Log
 import android.view.SoundEffectConstants
 import android.view.View
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.YoutubePlaylistsVideosAdapter
 import com.google.android.piyush.dopamine.databinding.ActivityYoutubeChannelPlaylistsVideosBinding
 import com.google.android.piyush.dopamine.viewModels.YoutubeChannelPlaylistsVideosViewModel
-import com.google.android.piyush.dopamine.viewModels.YoutubeChannelPlaylistsViewModelFactory
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.options.IFramePlayerOptions
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
 
     private lateinit var binding: ActivityYoutubeChannelPlaylistsVideosBinding
-    private lateinit var youtubeRepositoryImpl: YoutubeRepositoryImpl
-    private lateinit var youtubeChannelPlaylistsVideosViewModel: YoutubeChannelPlaylistsVideosViewModel
-    private lateinit var youtubeChannelPlaylistsViewModelFactory: YoutubeChannelPlaylistsViewModelFactory
+    private val youtubeChannelPlaylistsVideosViewModel: YoutubeChannelPlaylistsVideosViewModel by viewModels()
     private var youTubePlayer : YouTubePlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityYoutubeChannelPlaylistsVideosBinding.inflate(layoutInflater)
-        youtubeRepositoryImpl = YoutubeRepositoryImpl()
-        youtubeChannelPlaylistsViewModelFactory = YoutubeChannelPlaylistsViewModelFactory(youtubeRepositoryImpl)
-        youtubeChannelPlaylistsVideosViewModel = ViewModelProvider(
-            this, youtubeChannelPlaylistsViewModelFactory
-        )[YoutubeChannelPlaylistsVideosViewModel::class.java]
         setContentView(binding.root)
 
         enableEdgeToEdge()
@@ -66,12 +59,7 @@ class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
                     Log.d(TAG, "Error: ${playlistsVideos.exception.message.toString()}")
                     binding.channelPlaylistVideosLoader.apply {
                         visibility = View.VISIBLE
-                        setAnimation(R.raw.auth)
-                        playAnimation()
                         playSoundEffect(SoundEffectConstants.CLICK)  //sound effect
-                        speed = 1.5f        //speed of animation
-                        @Suppress("DEPRECATION")
-                        loop(true)
                     }
                 }
             }
@@ -88,7 +76,7 @@ class YoutubeChannelPlaylistsVideos : AppCompatActivity() {
                     }
                 },
                 handleNetworkEvents = true,
-                IFramePlayerOptions.Builder()
+                IFramePlayerOptions.Builder(this@YoutubeChannelPlaylistsVideos)
                     .controls(1)
                     .listType("playlist")
                     .list(playlistId)

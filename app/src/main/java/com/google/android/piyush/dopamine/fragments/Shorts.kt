@@ -5,22 +5,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import com.google.android.piyush.dopamine.R
 import com.google.android.piyush.dopamine.adapters.ShortsAdapter
 import com.google.android.piyush.dopamine.databinding.FragmentShortsBinding
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 import com.google.android.piyush.youtube.viewModels.ShortsViewModel
-import com.google.android.piyush.youtube.viewModels.ShortsViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class Shorts : Fragment() {
 
     private var shortsFragmentBinding: FragmentShortsBinding? = null
-    private lateinit var youtubeRepositoryImpl: YoutubeRepositoryImpl
-    private lateinit var shortsViewModel: ShortsViewModel
-    private lateinit var shortsViewModelFactory: ShortsViewModelFactory
+    private val shortsViewModel: ShortsViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,9 +32,6 @@ class Shorts : Fragment() {
 
         val binding = FragmentShortsBinding.bind(view)
         shortsFragmentBinding = binding
-        youtubeRepositoryImpl = YoutubeRepositoryImpl()
-        shortsViewModelFactory = ShortsViewModelFactory(youtubeRepositoryImpl)
-        shortsViewModel = ViewModelProvider(this, shortsViewModelFactory)[ShortsViewModel::class.java]
 
         if(NetworkUtilities.isNetworkAvailable(requireContext())){
             shortsViewModel.shorts.observe(viewLifecycleOwner){ shorts ->

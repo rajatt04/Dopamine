@@ -1,15 +1,18 @@
 package com.google.android.piyush.dopamine.viewModels
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.youtube.model.SearchTube
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeResource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SearchViewModel(
+@HiltViewModel
+class SearchViewModel @Inject constructor(
     private val youtubeRepositoryImpl: YoutubeRepositoryImpl
 ) : ViewModel() {
 
@@ -18,6 +21,40 @@ class SearchViewModel(
 
     private val _reGetSearchVideos : MutableLiveData<YoutubeResource<SearchTube>> = MutableLiveData()
     val reGetSearchVideos : MutableLiveData<YoutubeResource<SearchTube>> = _reGetSearchVideos
+
+    private val _searchSuggestions : MutableLiveData<List<String>> = MutableLiveData()
+    val searchSuggestions : LiveData<List<String>> = _searchSuggestions
+
+    fun fetchSearchSuggestions(query: String) {
+        if (query.isBlank()) {
+            _searchSuggestions.postValue(emptyList())
+            return
+        }
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val url = java.net.URL("http://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${java.net.URLEncoder.encode(query, "UTF-8")}")
+                val connection = url.openConnection() as java.net.HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.connectTimeout = 5000
+                connection.readTimeout = 5000
+
+                if (connection.responseCode == 200) {
+                    val response = connection.inputStream.bufferedReader().use { it.readText() }
+                    val jsonArray = org.json.JSONArray(response)
+                    if (jsonArray.length() > 1) {
+                        val suggestionsArray = jsonArray.getJSONArray(1)
+                        val suggestions = mutableListOf<String>()
+                        for (i in 0 until suggestionsArray.length()) {
+                            suggestions.add(suggestionsArray.getString(i))
+                        }
+                        _searchSuggestions.postValue(suggestions)
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     fun searchVideos(query : String) {
         viewModelScope.launch {
@@ -60,20 +97,6 @@ class SearchViewModel(
             } catch (e : Exception) {
                 _reGetSearchVideos.postValue(YoutubeResource.Error(e))
             }
-        }
-    }
-}
-
-
-@Suppress("UNCHECKED_CAST")
-class SearchViewModelFactory(
-    private val youtubeRepositoryImpl: YoutubeRepositoryImpl
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if(modelClass.isAssignableFrom(SearchViewModel::class.java)) {
-            return SearchViewModel(youtubeRepositoryImpl) as T
-        } else {
-            throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }

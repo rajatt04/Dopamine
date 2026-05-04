@@ -3,15 +3,17 @@ package com.google.android.piyush.youtube.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.piyush.youtube.model.Youtube
 import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeClient
 import com.google.android.piyush.youtube.utilities.YoutubeResource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LibraryViewModel(
+@HiltViewModel
+class LibraryViewModel @Inject constructor(
     private val youtubeRepositoryImpl: YoutubeRepositoryImpl
 ) : ViewModel() {
     private val _codingVideos : MutableLiveData<YoutubeResource<Youtube>> = MutableLiveData()
@@ -166,19 +168,6 @@ class LibraryViewModel(
             _reGetTechnologyVideos.postValue(
                 YoutubeResource.Error(exception)
             )
-        }
-    }
-}
-
-@Suppress("UNCHECKED_CAST")
-class LibraryViewModelFactory(
-    private val youtubeRepositoryImpl: YoutubeRepositoryImpl
-) : ViewModelProvider.Factory{
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(LibraryViewModel::class.java)){
-            return LibraryViewModel(youtubeRepositoryImpl) as T
-        }else{
-            throw IllegalArgumentException("Unknown class name")
         }
     }
 }

@@ -5,10 +5,10 @@ import android.util.Log
 import android.view.SoundEffectConstants
 import android.view.View
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.piyush.dopamine.R
@@ -16,28 +16,20 @@ import com.google.android.piyush.dopamine.adapters.YoutubeChannelPlaylistsAdapte
 import com.google.android.piyush.dopamine.databinding.ActivityYoutubeChannelBinding
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.YoutubeChannelViewModel
-import com.google.android.piyush.dopamine.viewModels.YoutubeChannelViewModelFactory
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeResource
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class YoutubeChannel : AppCompatActivity() {
 
     private val TAG = "YoutubeChannel"
     private lateinit var binding: ActivityYoutubeChannelBinding
-    private lateinit var youtubeRepositoryImpl: YoutubeRepositoryImpl
-    private lateinit var youtubeChannelViewModel: YoutubeChannelViewModel
-    private lateinit var youtubeChannelViewModelFactory: YoutubeChannelViewModelFactory
+    private val youtubeChannelViewModel: YoutubeChannelViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityYoutubeChannelBinding.inflate(layoutInflater)
-        youtubeRepositoryImpl = YoutubeRepositoryImpl()
-        youtubeChannelViewModelFactory = YoutubeChannelViewModelFactory(youtubeRepositoryImpl)
-        youtubeChannelViewModel = ViewModelProvider(
-            this,
-            youtubeChannelViewModelFactory
-        )[YoutubeChannelViewModel::class.java]
         setContentView(binding.root)
 
         enableEdgeToEdge()
@@ -106,12 +98,7 @@ class YoutubeChannel : AppCompatActivity() {
                     Log.d(TAG, "Error: ${channelsPlaylists.exception.message.toString()}")
                     binding.channelPlaylistLoader.apply {
                         visibility = View.VISIBLE
-                        setAnimation(R.raw.auth)
-                        playAnimation()
                         playSoundEffect(SoundEffectConstants.CLICK)  //sound effect
-                        speed = 1.5f        //speed of animation
-                        @Suppress("DEPRECATION")
-                        loop(true)
                     }
                 }
             }

@@ -20,15 +20,18 @@ import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.youtube.utilities.DevelopersViewModel
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.activity.viewModels
+
+@AndroidEntryPoint
 class AboutDeveloper : AppCompatActivity() {
     private lateinit var binding: ActivityAboutDeveloperBinding
-    private lateinit var developersViewModel: DevelopersViewModel
+    private val developersViewModel: DevelopersViewModel by viewModels()
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityAboutDeveloperBinding.inflate(layoutInflater)
-        developersViewModel = DevelopersViewModel()
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())

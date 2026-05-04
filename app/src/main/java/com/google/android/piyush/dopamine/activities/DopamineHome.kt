@@ -19,20 +19,21 @@ import com.google.android.piyush.dopamine.utilities.NetworkUtilities
 import com.google.android.piyush.dopamine.utilities.Utilities
 import com.google.android.piyush.dopamine.viewModels.DopamineHomeViewModel
 import com.google.android.piyush.dopamine.viewModels.SharedViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlin.system.exitProcess
 
 @Suppress("DEPRECATION")
+@AndroidEntryPoint
 class DopamineHome : AppCompatActivity() {
 
     private val viewModel : DopamineHomeViewModel by viewModels<DopamineHomeViewModel>()
-    private lateinit var sharedViewModel: SharedViewModel
+    private val sharedViewModel: SharedViewModel by viewModels()
     private lateinit var binding: ActivityDopamineHomeBinding
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityDopamineHomeBinding.inflate(layoutInflater)
-        sharedViewModel = SharedViewModel()
         setContentView(binding.root)
 
         onBackPressedDispatcher.addCallback {

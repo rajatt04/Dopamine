@@ -8,6 +8,9 @@ import com.google.android.material.color.DynamicColorsOptions
 import com.google.android.piyush.dopamine.utilities.Utilities
 
 
+import dagger.hilt.android.HiltAndroidApp
+
+@HiltAndroidApp
 class DopamineApp : Application() {
     override fun onCreate() {
         super.onCreate()

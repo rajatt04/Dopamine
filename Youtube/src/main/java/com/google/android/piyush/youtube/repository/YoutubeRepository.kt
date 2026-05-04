@@ -7,7 +7,7 @@ import com.google.android.piyush.youtube.model.channelDetails.YoutubeChannel
 import com.google.android.piyush.youtube.model.channelPlaylists.ChannelPlaylists
 
 interface YoutubeRepository {
-    suspend fun getHomeVideos() : Youtube
+    suspend fun getHomeVideos(categoryId: String? = null) : Youtube
     suspend fun getLibraryVideos(playListId : String) : Youtube
     suspend fun getSearchVideos(query : String) : SearchTube
     suspend fun getYoutubeShorts() : List<Shorts>

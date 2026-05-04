@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Dopamine</string>
     <string name="home">Home</string>
     <string name="shorts">Shorts</string>
@@ -19,7 +19,7 @@
     <string name="video_view">View</string>
     <string name="like">Like</string>
     <string name="pip">Picture In Picture</string>
-    <string name="copy">Copy</string>
+    <string name="copy" tools:ignore="PrivateResource">Copy</string>
     <string name="your_favourites">Your Liked Videos</string>
     <string name="create_new_playlist">Create new playlist !</string>
     <string name="playlist_name">Playlist name</string>
@@ -27,6 +27,15 @@
     <string name="create">Create Playlist</string>
     <string name="title_activity_settings">SettingsActivity</string>
 
+    <!-- Dialog and common messages -->
+    <string name="error_title_something_went_wrong">Something went wrong</string>
+    <string name="error_title_oops">Oops!</string>
+    <string name="error_msg_something_went_wrong_retry">Oh no! Something went wrong. Please try again.</string>
+    <string name="voice_search_prompt">Say Something 🧿</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_try_again_later">Try again later</string>
+    <string name="msg_search_history_cleared">Search History Cleared</string>
     <!-- Preference Titles -->
     <string name="messages_header">Messages</string>
     <string name="sync_header">Sync</string>
@@ -97,4 +106,14 @@
     <string name="web_client_id">963836142894-dl1bho9tvka14n1ptia8lrodf5du1m8l.apps.googleusercontent.com</string>
     <string name="no_contact_available">No Contact Available</string>
     <string name="photos_from_user">Photos from User</string>
+    <string name="chip">Chip</string>
+    <string name="create_a_new_playlist">Create A New PlayList</string>
+    <string name="playlist_icon">🗂️</string>
+    <string name="todo">TODO</string>
+    <string name="suggestion_item">Suggestion item</string>
+    <string name="search_history_item">Search history item</string>
+    <string name="discover">Discover</string>
+    <string name="search_icon">🔍</string>
+    <string name="next_video">Next Video…</string>
+    <string name="history_icon">📜</string>
 </resources>

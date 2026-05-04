@@ -8,7 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -18,21 +18,17 @@ import com.google.android.piyush.dopamine.activities.DopamineVideoWatchHistory
 import com.google.android.piyush.dopamine.adapters.HomeAdapter
 import com.google.android.piyush.dopamine.databinding.FragmentHomeBinding
 import com.google.android.piyush.dopamine.utilities.NetworkUtilities
-import com.google.android.piyush.youtube.repository.YoutubeRepositoryImpl
 import com.google.android.piyush.youtube.utilities.YoutubeResource
 import com.google.android.piyush.youtube.viewModels.HomeViewModel
-import com.google.android.piyush.youtube.viewModels.HomeViewModelFactory
-import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.Calendar
 import kotlin.system.exitProcess
 
+@AndroidEntryPoint
 class Home : Fragment() {
 
     private var fragmentHomeBinding : FragmentHomeBinding? = null
-    private lateinit var homeViewModel: HomeViewModel
-    private lateinit var repository: YoutubeRepositoryImpl
-    private lateinit var homeViewModelFactory: HomeViewModelFactory
-    private lateinit var firebaseAuth: FirebaseAuth
+    private val homeViewModel: HomeViewModel by viewModels()
     private lateinit var homeAdapter: HomeAdapter
 
     override fun onCreateView(
@@ -47,33 +43,12 @@ class Home : Fragment() {
 
         val binding = FragmentHomeBinding.bind(view)
         fragmentHomeBinding = binding
-        repository = YoutubeRepositoryImpl()
-        homeViewModelFactory = HomeViewModelFactory(repository)
-        homeViewModel = ViewModelProvider(this, homeViewModelFactory)[HomeViewModel::class.java]
-        firebaseAuth = FirebaseAuth.getInstance()
-
-        fragmentHomeBinding!!.greeting.text = getGreeting()
+        binding.greeting.text = getGreeting()
         Log.d(TAG, " -> Fragment : Home || Greeting : ${getGreeting()}")
 
-        //User details
-        Log.d(TAG, "User Name  : " +firebaseAuth.currentUser?.displayName.toString())
-        Log.d(TAG, "User Email : " +firebaseAuth.currentUser?.email.toString())
-        Log.d(TAG, "User Photo : " +firebaseAuth.currentUser?.photoUrl.toString())
-        Log.d(TAG, "User Uid   : " +firebaseAuth.currentUser?.uid.toString())
-        Log.d(TAG, "User PhoneNumber : "  +firebaseAuth.currentUser?.phoneNumber.toString())
-        Log.d(TAG, "User ProviderId : "+firebaseAuth.currentUser?.providerId.toString())
-        Log.d(TAG, "IsUserAnonymous : "+firebaseAuth.currentUser?.isAnonymous.toString())
-        Log.d(TAG, "IsUserEmailVerified : "+firebaseAuth.currentUser?.isEmailVerified.toString())
-        Log.d(TAG, "User ProviderData : "+firebaseAuth.currentUser?.providerData.toString())
-        Log.d(TAG, "User Metadata : "+firebaseAuth.currentUser?.metadata.toString())
+        Glide.with(this).load(R.drawable.default_user).into(binding.userImage)
 
-        if(firebaseAuth.currentUser?.email.isNullOrEmpty()){
-            Glide.with(this).load(R.drawable.default_user).into(fragmentHomeBinding!!.userImage)
-        }else{
-            Glide.with(this).load(firebaseAuth.currentUser?.photoUrl).into(fragmentHomeBinding!!.userImage)
-        }
-
-        fragmentHomeBinding!!.watchHistory.setOnClickListener {
+        binding.watchHistory.setOnClickListener {
             startActivity(
                 Intent(
                     context,
@@ -82,13 +57,29 @@ class Home : Fragment() {
             )
         }
 
-        fragmentHomeBinding!!.userImage.setOnClickListener {
+        binding.userImage.setOnClickListener {
             startActivity(
                 Intent(
                     context,
                     DopamineUserProfile::class.java
                 )
             )
+        }
+
+        val chips = listOf("All", "Music", "Gaming", "News", "Entertainment", "Comedy")
+        binding.chipsRecyclerView.apply {
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            adapter = com.google.android.piyush.dopamine.adapters.ChipAdapter(chips) { selectedChip ->
+                val categoryId = when(selectedChip) {
+                    "Music" -> "10"
+                    "Gaming" -> "20"
+                    "News" -> "25"
+                    "Entertainment" -> "24"
+                    "Comedy" -> "34"
+                    else -> null // "All" or unknown
+                }
+                homeViewModel.fetchHomeVideos(categoryId)
+            }
         }
 
         if(NetworkUtilities.isNetworkAvailable(requireContext())) {
@@ -113,14 +104,14 @@ class Home : Fragment() {
                         Log.d(TAG, "Error: ${videos.exception.message.toString()}")
                         MaterialAlertDialogBuilder(requireContext())
                             .apply {
-                                this.setTitle("Something went wrong")
+                                this.setTitle(getString(R.string.error_title_something_went_wrong))
                                 this.setMessage(videos.exception.message.toString())
                                 this.setIcon(R.drawable.ic_dialog_error)
                                 this.setCancelable(false)
-                                this.setNegativeButton("Cancel") { dialog, _ ->
+                                this.setNegativeButton(getString(R.string.action_cancel)) { dialog, _ ->
                                     dialog?.dismiss()
                                 }
-                                this.setPositiveButton("Retry") { _, _ ->
+                                this.setPositiveButton(getString(R.string.action_retry)) { _, _ ->
                                     homeViewModel.reGetHomeVideos()
                                     homeViewModel.reGetVideos.observe(viewLifecycleOwner){ videos ->
                                         when (videos) {
@@ -144,11 +135,11 @@ class Home : Fragment() {
                                                 Log.d(TAG, "Error: ${videos.exception.message.toString()}")
                                                 MaterialAlertDialogBuilder(requireContext())
                                                     .apply {
-                                                        this.setTitle("Something went wrong")
+                                                        this.setTitle(getString(R.string.error_title_something_went_wrong))
                                                         this.setMessage(videos.exception.message.toString())
                                                         this.setIcon(R.drawable.ic_dialog_error)
                                                         this.setCancelable(false)
-                                                        this.setPositiveButton("Try again later") { dialog, _ ->
+                                                        this.setPositiveButton(getString(R.string.action_try_again_later)) { dialog, _ ->
                                                             dialog?.dismiss()
                                                             exitProcess(0)
                                                         }.create().show()

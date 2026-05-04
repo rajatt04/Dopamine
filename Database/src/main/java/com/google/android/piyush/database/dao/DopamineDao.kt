@@ -13,6 +13,8 @@ interface DopamineDao {
     suspend fun insertSearchVideos(vararg searchVideo: EntityVideoSearch)
     @Query("SELECT * FROM search_table")
     suspend fun getSearchVideoList(): List<EntityVideoSearch>
+    @Query("DELETE FROM search_table WHERE search = :searchQuery")
+    suspend fun deleteSearchQuery(searchQuery: String)
     @Query("DELETE FROM search_table")
     suspend fun deleteSearchVideoList()
     @Insert
