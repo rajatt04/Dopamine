@@ -17,6 +17,19 @@
 
 ---
 
+## 📥 Download APK
+
+<p align="center">
+  <a href="https://github.com/rajatt04/Dopamine/releases/download/1.0/app-universal-release.apk">
+    <img src="https://img.shields.io/badge/Download-Dopamine%20APK-FF6B6B?style=for-the-badge&logo=android&logoColor=white" />
+  </a>
+</p>
+<p align="center">
+  ⚡ Fast • 🎯 Minimal • 📱 Built with Kotlin & MVVM
+</p>
+
+---
+
 ## 📖 About
 
 **Dopamine** is a feature-rich YouTube client for Android, engineered from the ground up with modern Android architecture in mind. It delivers a clean, ad-free, distraction-free experience with a stunning Material 3 UI — powered by premium typography and a thoughtfully crafted design system.
